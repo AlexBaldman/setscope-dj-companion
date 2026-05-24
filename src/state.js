@@ -9,6 +9,7 @@ state.query = state.query || "";
 state.reviewOnly = state.reviewOnly || false;
 state.recognitionCursor = state.recognitionCursor || 0;
 state.captureLog = state.captureLog || [];
+state.audioEvents = state.audioEvents || [];
 state.archiveId = state.archiveId || null;
 state.archiveList = state.archiveList || [];
 
@@ -54,6 +55,7 @@ export function getSelectedTrack() {
 }
 
 export function normalizeTrack(track) {
+  track.tags = Array.isArray(track.tags) ? track.tags : [];
   track.era = track.era || "Unknown era";
   track.label = track.label || "Unknown label";
   track.source = track.source || "Unverified";
@@ -69,7 +71,7 @@ export function visibleTracks() {
   const query = state.query.trim().toLowerCase();
   return state.tracks.filter((track) => {
     normalizeTrack(track);
-    const searchable = [track.title, track.artist, track.era, track.label, track.source, track.transition]
+    const searchable = [track.title, track.artist, track.era, track.label, track.source, track.transition, ...track.tags]
       .join(" ")
       .toLowerCase();
     const queryMatch = !query || searchable.includes(query);
@@ -87,6 +89,7 @@ export function addTrack(track = {}) {
     bpm: track.bpm || 0,
     key: track.key || "-",
     transition: track.transition || "Blend",
+    tags: Array.isArray(track.tags) ? track.tags : [],
     confidence: track.confidence || 61,
     wave: track.wave || 50,
     colors: track.colors || randomColors(),
@@ -125,6 +128,32 @@ export function upsertRecognizedTrack(match) {
   sortTracksInPlace();
   logCapture(match, selectedId);
   return next;
+}
+
+export function tagSelectedTrack(tag) {
+  const track = state.tracks.find((item) => item.id === selectedId);
+  if (!track || !tag) return false;
+  normalizeTrack(track);
+  if (track.tags.includes(tag)) {
+    track.tags = track.tags.filter((item) => item !== tag);
+    logAudioEvent({
+      type: "tag",
+      trackId: track.id,
+      time: track.time,
+      title: "Tag removed",
+      detail: `${tag} / ${track.title}`,
+    });
+    return true;
+  }
+  track.tags.push(tag);
+  logAudioEvent({
+    type: "tag",
+    trackId: track.id,
+    time: track.time,
+    title: "Crate tag",
+    detail: `${tag} / ${track.title}`,
+  });
+  return true;
 }
 
 export function sortTracksInPlace() {
@@ -169,6 +198,26 @@ export function logCapture(match, trackId) {
     capturedAt: new Date().toISOString(),
   });
   state.captureLog = state.captureLog.slice(0, 24);
+  logAudioEvent({
+    type: "recognition",
+    trackId,
+    time: match.time,
+    title: match.title,
+    detail: `${match.artist} / ${match.provider || "setscope-stub"} / ${match.confidence || 0}%`,
+  });
+}
+
+export function logAudioEvent(event) {
+  state.audioEvents.unshift({
+    id: uid(),
+    type: event.type || "note",
+    trackId: event.trackId || "",
+    time: event.time || "--:--",
+    title: event.title || "Audio event",
+    detail: event.detail || "",
+    createdAt: new Date().toISOString(),
+  });
+  state.audioEvents = state.audioEvents.slice(0, 100);
 }
 
 export function nextTimecode() {
@@ -182,6 +231,7 @@ export function nextTimecode() {
 export function resetForNewSet() {
   state.archiveId = null;
   state.captureLog = [];
+  state.audioEvents = [];
   state.recognitionCursor = 0;
   state.archiveList = [];
   state.tracks = [];

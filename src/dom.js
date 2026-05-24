@@ -42,6 +42,7 @@ export const els = {
   chainInput: document.querySelector("#chainInput"),
   chainRecognizer: document.querySelector("#chainRecognizer"),
   captureLog: document.querySelector("#captureLog"),
+  audioEventLog: document.querySelector("#audioEventLog"),
   archiveList: document.querySelector("#archiveList"),
   timelineSearch: document.querySelector("#timelineSearch"),
   reviewToggle: document.querySelector("#reviewToggle"),
@@ -50,4 +51,6 @@ export const els = {
   factSource: document.querySelector("#factSource"),
   factTexture: document.querySelector("#factTexture"),
   factStatus: document.querySelector("#factStatus"),
+  tagList: document.querySelector("#tagList"),
+  tagButtons: document.querySelectorAll("[data-quick-tag]"),
 };

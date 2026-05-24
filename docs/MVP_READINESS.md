@@ -22,6 +22,8 @@ The current MVP supports the essential loop:
 - Synthetic sample-audio provider test.
 - Browser mic capture path with sanitized server payloads.
 - Imported-audio BPM estimation.
+- Audio event timeline for recognition and crate-tag events.
+- Quick crate tags in the Track Intel panel.
 - Timeline search and review filtering.
 - Set map canvas with click-to-select.
 - Track inspector with editable metadata.

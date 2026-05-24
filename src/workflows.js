@@ -147,6 +147,7 @@ export function createWorkflows(els, { render, renderArchiveList, applySkin, sho
         dominantMove: els.summaryMove.textContent,
       },
       captureLog: state.captureLog,
+      audioEvents: state.audioEvents,
       tracks: state.tracks,
     };
   }
@@ -184,6 +185,7 @@ export function createWorkflows(els, { render, renderArchiveList, applySkin, sho
       state.archiveId = set.id;
       state.skin = set.skin || state.skin;
       state.captureLog = set.captureLog || [];
+      state.audioEvents = set.audioEvents || [];
       state.tracks = hydrateState({ tracks: set.tracks || [] }).tracks;
       setSelectedId(state.tracks[0]?.id);
       applySkin(state.skin);

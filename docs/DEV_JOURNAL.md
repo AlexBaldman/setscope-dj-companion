@@ -306,3 +306,24 @@ The project now has a repeatable MVP health check, a clear GitHub publishing rec
 Next MVP domino:
 
 Run the smoke test in every major pass and then add manual duplicate/merge controls for repeated recognized tracks.
+
+## 2026-05-24 - Audio Event Timeline And Crate Tags
+
+We added the first shared event lane for the larger toolbelt idea.
+
+What changed:
+
+- Added `state.audioEvents`.
+- Recognition captures now write both capture-log entries and audio-event entries.
+- Track Intel now has quick crate tags: heater, deep cut, break, sample source, crowd lift, unknown gem, blendable, and review.
+- Tag changes are logged as audio events.
+- Archived sets now include `audioEvents`.
+- The timeline search includes tags.
+
+Why this matters:
+
+The product now has a small but real audio event timeline. Future tools like tuners, note detectors, oscilloscopes, practice quests, and synth toys can all write useful moments into the same structure instead of becoming isolated gadgets.
+
+Next MVP domino:
+
+Add duplicate/merge controls for repeated recognized tracks.

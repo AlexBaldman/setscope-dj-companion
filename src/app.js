@@ -13,6 +13,7 @@ import {
   setSelectedTransition,
   sortTracksInPlace,
   state,
+  tagSelectedTrack,
 } from "./state.js";
 import { createWorkflows } from "./workflows.js";
 import { showToast } from "./utils.js";
@@ -119,6 +120,12 @@ function tagTransition(transition) {
   showToast(els, `${transition} tagged`);
 }
 
+function tagCrateMoment(tag) {
+  if (!tagSelectedTrack(tag)) return;
+  renderer.render();
+  showToast(els, `${tag} tagged`);
+}
+
 function selectFromSetMap(event) {
   const nearest = nearestTrackFromMap(els.setMapCanvas, event, state.tracks);
   if (!nearest) return;
@@ -174,6 +181,9 @@ els.skinButtons.forEach((button) => {
 });
 els.padButtons.forEach((button) => {
   button.addEventListener("click", () => tagTransition(button.dataset.padTransition));
+});
+els.tagButtons.forEach((button) => {
+  button.addEventListener("click", () => tagCrateMoment(button.dataset.quickTag));
 });
 els.setMapCanvas.addEventListener("click", selectFromSetMap);
 window.addEventListener("resize", renderer.renderTimeline);

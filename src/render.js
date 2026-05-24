@@ -37,6 +37,7 @@ export function createRenderer(els, handlers) {
     renderInspector(track);
     renderNow(track);
     renderCaptureLog();
+    renderAudioEvents();
     persist();
   }
 
@@ -95,6 +96,7 @@ export function createRenderer(els, handlers) {
     els.factSource.textContent = track.source;
     els.factTexture.textContent = track.texture;
     els.factStatus.textContent = formatStatus(track.status, track.needsReview);
+    renderTrackTags(track);
     els.editTitle.value = track.title;
     els.editArtist.value = track.artist;
     els.editTime.value = track.time;
@@ -151,6 +153,30 @@ export function createRenderer(els, handlers) {
     });
   }
 
+  function renderAudioEvents() {
+    const events = state.audioEvents.slice(0, 5);
+    if (!events.length) {
+      els.audioEventLog.innerHTML = `<p>No toolbelt events yet.</p>`;
+      return;
+    }
+    els.audioEventLog.innerHTML = events
+      .map(
+        (event) => `
+          <button class="event-item" data-event-track-id="${escapeHtml(event.trackId || "")}">
+            <div class="event-type">${escapeHtml(event.type)}</div>
+            <div>
+              <strong>${escapeHtml(event.title)}</strong>
+              <span>${escapeHtml(event.time)} / ${escapeHtml(event.detail)}</span>
+            </div>
+          </button>
+        `,
+      )
+      .join("");
+    els.audioEventLog.querySelectorAll("[data-event-track-id]").forEach((button) => {
+      button.addEventListener("click", () => handlers.onSelectTrack(button.dataset.eventTrackId));
+    });
+  }
+
   function renderArchiveList() {
     const sets = state.archiveList.slice(0, 6);
     if (!sets.length) {
@@ -182,6 +208,20 @@ export function createRenderer(els, handlers) {
     els.nowConfidenceMeter?.querySelectorAll("i").forEach((bar, index) => {
       bar.classList.toggle("active", index < activeBars);
       bar.classList.toggle("hot", index >= 6 && index < activeBars);
+    });
+  }
+
+  function renderTrackTags(track) {
+    normalizeTrack(track);
+    if (!track.tags.length) {
+      els.tagList.innerHTML = `<p>No crate tags yet.</p>`;
+    } else {
+      els.tagList.innerHTML = track.tags
+        .map((tag) => `<span class="crate-tag">${escapeHtml(tag)}</span>`)
+        .join("");
+    }
+    els.tagButtons.forEach((button) => {
+      button.classList.toggle("active", track.tags.includes(button.dataset.quickTag));
     });
   }
 }

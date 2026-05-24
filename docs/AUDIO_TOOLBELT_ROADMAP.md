@@ -13,6 +13,7 @@ The core primitive is the **audio event timeline**. Recognition, ShazamKit, BPM 
 ### Audio Event Timeline
 
 - `recognition`: track, artist, provider, confidence, timestamp.
+- `tag`: crate tag, practice label, utility marker, review reason.
 - `analysis`: BPM, key, energy, density, waveform, phrase, transition.
 - `learning`: explanation, practice prompt, ear-training result, teacher-mode note.
 - `crate`: sample lineage, label, era, scene, source, recommendation.
@@ -63,6 +64,7 @@ The core primitive is the **audio event timeline**. Recognition, ShazamKit, BPM 
 - Producer and session-player links.
 - Taste graph across sets.
 - Recurring sample-source memory.
+- Quick tags for DJ utility: heater, deep cut, break, sample source, crowd lift, unknown gem, blendable, review.
 
 ### Creative Toys
 
