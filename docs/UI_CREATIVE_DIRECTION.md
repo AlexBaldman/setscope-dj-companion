@@ -130,3 +130,11 @@ Audio-hardware lane:
 - Let new recognition events flash like a pad light or LCD update.
 - Use hardware language for controls and status, with clean information architecture underneath.
 - Avoid copying exact product layouts, logos, knob colors, or recognizable trade dress from real gear.
+
+DJ craft lane:
+
+- Keep live use quiet: the app should feel like a silent assistant, not a needy second screen.
+- Make confidence honest and review states obvious.
+- Prioritize timestamp, artist, title, BPM, key, transition, and source links.
+- Add quick tags like `heater`, `deep cut`, `break`, `sample source`, `crowd lift`, `unknown gem`, and `blendable`.
+- Build toward A/B transition training, phrase counting, cue timing, and sample family trees.

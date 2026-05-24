@@ -286,3 +286,23 @@ These details make recognition feel more like an instrument: confidence is reada
 Next creative domino:
 
 Design sampler-pad tags for quick track annotation.
+
+## 2026-05-24 - MVP Readiness And Toolbelt Roadmap
+
+We added a tighter product-readiness pass.
+
+What changed:
+
+- Added `docs/MVP_READINESS.md`.
+- Added `docs/AUDIO_TOOLBELT_ROADMAP.md`.
+- Added `docs/GITHUB_PUBLISHING.md`.
+- Added `scripts/smoke-api.mjs` for an end-to-end API smoke test.
+- Added `npm run smoke`.
+
+Why this matters:
+
+The project now has a repeatable MVP health check, a clear GitHub publishing recovery path, and a structured place for the bigger audio-toolbelt vision: DJ companion, listening lab, musician helpers, crate intelligence, practice tools, and creative toys.
+
+Next MVP domino:
+
+Run the smoke test in every major pass and then add manual duplicate/merge controls for repeated recognized tracks.
