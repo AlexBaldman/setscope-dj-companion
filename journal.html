@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SetScope Dev Journal</title>
+    <link rel="stylesheet" href="./src/journal.css" />
+  </head>
+  <body data-paper="notebook">
+    <div class="journal-app">
+      <header class="journal-topbar">
+        <a class="back-link" href="./index.html">SetScope</a>
+        <div>
+          <strong>Dev Journal</strong>
+          <span>Markdown progress log</span>
+        </div>
+        <div class="journal-actions">
+          <button id="prevBtn" title="Previous page">Prev</button>
+          <button id="nextBtn" title="Next page">Next</button>
+          <button id="saveBtn" title="Save markdown">Save</button>
+        </div>
+      </header>
+
+      <main class="journal-layout">
+        <aside class="journal-sidebar">
+          <div class="sidebar-head">
+            <span>Entries</span>
+            <button id="refreshBtn" title="Reload journal">Reload</button>
+          </div>
+          <div class="entry-list" id="entryList"></div>
+        </aside>
+
+        <section class="book-stage">
+          <div class="paper-controls" aria-label="Paper type">
+            <button class="paper-chip active" data-paper="notebook">Notebook</button>
+            <button class="paper-chip" data-paper="graph">Graph</button>
+            <button class="paper-chip" data-paper="sketch">Sketch</button>
+          </div>
+
+          <article class="book" id="book">
+            <div class="page-shadow"></div>
+            <section class="page" id="page">
+              <div class="page-header">
+                <span id="pageNumber">Page 1</span>
+                <div class="entry-move">
+                  <button id="moveUpBtn" title="Move entry up">Up</button>
+                  <button id="moveDownBtn" title="Move entry down">Down</button>
+                </div>
+              </div>
+              <input id="entryTitle" class="entry-title" />
+              <textarea id="entryBody" class="entry-body"></textarea>
+            </section>
+          </article>
+
+          <div class="source-panel">
+            <div class="sidebar-head">
+              <span>Markdown Source</span>
+              <span id="saveStatus">Loaded</span>
+            </div>
+            <textarea id="markdownSource" class="markdown-source"></textarea>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="./src/journal.js"></script>
+  </body>
+</html>

@@ -1,0 +1,5 @@
+data/sets.json
+.env
+*-setscope.png
+node_modules/
+.DS_Store

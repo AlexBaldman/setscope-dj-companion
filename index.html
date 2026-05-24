@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SetScope DJ Companion</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <div class="mark" aria-hidden="true"></div>
+          <div>
+            <strong>SetScope</strong>
+            <span>DJ set companion</span>
+          </div>
+        </div>
+
+        <div class="set-meta">
+          <span class="set-title" id="setTitle">Jazzy Jeff study notes</span>
+          <span class="pill" id="setDate">Local draft</span>
+          <span class="pill" id="setLength">42:18</span>
+        </div>
+
+        <div class="actions">
+          <a class="quiet-btn" href="./journal.html" title="Open dev journal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z" />
+            </svg>
+            Journal
+          </a>
+          <button class="quiet-btn" id="archiveBtn" title="Archive set">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 8v13H3V8" />
+              <path d="M1 3h22v5H1z" />
+              <path d="M10 12h4" />
+            </svg>
+            Archive
+          </button>
+          <button class="quiet-btn" id="exportBtn" title="Export set data">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 3v12" />
+              <path d="m7 10 5 5 5-5" />
+              <path d="M5 21h14" />
+            </svg>
+            Export
+          </button>
+          <button class="quiet-btn" id="newSetBtn" title="New set">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14" />
+              <path d="M5 12h14" />
+            </svg>
+            New
+          </button>
+          <button class="primary-btn" id="listenBtn" title="Start listening">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 3a6 6 0 0 0-6 6v4a6 6 0 0 0 12 0V9a6 6 0 0 0-6-6Z" />
+              <path d="M19 11v2a7 7 0 0 1-14 0v-2" />
+              <path d="M12 20v3" />
+            </svg>
+            Listen
+          </button>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Signal</div>
+            <div class="status-group">
+              <span class="pill" id="apiStatus">API ...</span>
+              <span class="pill" id="engineStatus">Idle</span>
+            </div>
+          </div>
+          <div class="stack">
+            <div class="listen-card">
+              <div class="deck-visual">
+                <div class="platter">
+                  <div class="record-label" id="recordLabel">SET<br />ID</div>
+                  <div class="record-shine"></div>
+                </div>
+                <div class="tonearm"><span></span></div>
+                <div class="sampler-strip" aria-label="Transition pads">
+                  <button class="sampler-pad" data-pad-transition="Blend">BLD</button>
+                  <button class="sampler-pad" data-pad-transition="Cut">CUT</button>
+                  <button class="sampler-pad" data-pad-transition="Loop tease">LOOP</button>
+                  <button class="sampler-pad" data-pad-transition="Echo out">ECHO</button>
+                </div>
+                <div class="pitch-meter"></div>
+                <div class="wave-bars" id="waveBars"></div>
+              </div>
+              <div class="skin-rail" aria-label="Deck skin">
+                <button class="skin-chip active" data-skin="vinyl">Vinyl</button>
+                <button class="skin-chip" data-skin="sampler">Sampler</button>
+                <button class="skin-chip" data-skin="car">Car</button>
+                <button class="skin-chip" data-skin="cd">CD</button>
+              </div>
+              <div class="track-now">
+                <h1 id="nowTitle">Warm Up The Room</h1>
+                <p id="nowArtist">K.M. Session Band</p>
+              </div>
+              <div class="stats-grid">
+                <div class="stat">
+                  <span>BPM</span>
+                  <strong id="nowBpm">94</strong>
+                </div>
+                <div class="stat">
+                  <span>Key</span>
+                  <strong id="nowKey">9A</strong>
+                </div>
+                <div class="stat">
+                  <span>Match</span>
+                  <strong id="nowConfidence">91%</strong>
+                </div>
+              </div>
+              <div class="source-row">
+                <button class="quiet-btn" id="importBtn" title="Import audio">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <path d="m17 8-5-5-5 5" />
+                    <path d="M12 3v12" />
+                  </svg>
+                  Import audio
+                </button>
+                <input class="file-input" type="file" id="audioInput" accept="audio/*" />
+                <button class="icon-btn" id="demoBtn" title="Run recognition demo">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m5 3 14 9-14 9V3Z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="info-block">
+              <h2>Set Pulse</h2>
+              <div class="summary-grid">
+                <div class="summary-cell">
+                  <span>Range</span>
+                  <strong id="summaryBpm">94-105</strong>
+                </div>
+                <div class="summary-cell">
+                  <span>Review</span>
+                  <strong id="summaryReview">1</strong>
+                </div>
+                <div class="summary-cell">
+                  <span>Era</span>
+                  <strong id="summaryEra">70s-90s</strong>
+                </div>
+                <div class="summary-cell">
+                  <span>Move</span>
+                  <strong id="summaryMove">Blend</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="info-block">
+              <h2>Recognition Stack</h2>
+              <div class="provider-panel">
+                <div>
+                  <span id="providerName">SetScope Stub</span>
+                  <strong id="providerMode">Local demo fallback</strong>
+                </div>
+                <div class="provider-grid">
+                  <div>
+                    <span>Web</span>
+                    <strong id="providerWeb">Stub</strong>
+                  </div>
+                  <div>
+                    <span>Setup</span>
+                    <strong id="providerSetup">Token needed</strong>
+                  </div>
+                  <div>
+                    <span>Window</span>
+                    <strong id="providerSample">8s</strong>
+                  </div>
+                  <div>
+                    <span>Native</span>
+                    <strong id="providerNative">ShazamKit</strong>
+                  </div>
+                </div>
+                <button class="quiet-btn provider-test-btn" id="providerTestBtn" title="Test recognition provider">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18V5l12-2v13" />
+                    <circle cx="6" cy="18" r="3" />
+                    <circle cx="18" cy="16" r="3" />
+                  </svg>
+                  Test provider
+                </button>
+              </div>
+            </div>
+
+            <div class="info-block">
+              <h2>Capture Log</h2>
+              <div class="capture-log" id="captureLog"></div>
+            </div>
+
+            <div class="info-block">
+              <h2>Set Archive</h2>
+              <div class="archive-list" id="archiveList"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel timeline-panel">
+          <div class="panel-header">
+            <div class="panel-title">Set Timeline</div>
+            <div class="timeline-controls">
+              <button class="quiet-btn" id="addTrackBtn" title="Add track">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 18V5l12-2v13" />
+                  <circle cx="6" cy="18" r="3" />
+                  <circle cx="18" cy="16" r="3" />
+                </svg>
+                Add
+              </button>
+              <button class="quiet-btn" id="sortBtn" title="Sort by timestamp">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M8 6h13" />
+                  <path d="M8 12h9" />
+                  <path d="M8 18h5" />
+                  <path d="M3 6h.01" />
+                  <path d="M3 12h.01" />
+                  <path d="M3 18h.01" />
+                </svg>
+                Sort
+              </button>
+              <button class="quiet-btn" id="copySetlistBtn" title="Copy setlist">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect width="14" height="14" x="8" y="8" rx="2" />
+                  <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+                </svg>
+                Copy
+              </button>
+            </div>
+          </div>
+          <div class="timeline-tools">
+            <input class="search-input" id="timelineSearch" placeholder="Search tracks, artists, eras, labels" />
+            <button class="quiet-btn toggle-btn" id="reviewToggle" title="Needs review">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 9v4" />
+                <path d="M12 17h.01" />
+                <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+              </svg>
+              Review
+            </button>
+          </div>
+          <div class="set-map-shell">
+            <canvas class="set-map" id="setMapCanvas"></canvas>
+          </div>
+          <div class="timeline" id="timeline"></div>
+          <div class="timeline-footer">
+            <div class="progress-shell"><div class="progress-fill" id="progressFill"></div></div>
+            <span class="pill" id="timelineCount">0 tracks</span>
+          </div>
+        </section>
+
+        <aside class="panel inspector">
+          <div class="panel-header">
+            <div class="panel-title">Track Intel</div>
+            <button class="icon-btn" id="saveTrackBtn" title="Save changes">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z" />
+                <path d="M17 21v-8H7v8" />
+                <path d="M7 3v5h8" />
+              </svg>
+            </button>
+          </div>
+          <div class="inspector-body">
+            <div class="artwork" id="artwork"><span></span></div>
+
+            <div class="info-block">
+              <h2 id="intelTitle">Warm Up The Room</h2>
+              <p id="intelSummary">
+                A brushed-soul opener with enough swing to let a DJ blend into boom-bap,
+                broken beat, or early disco without shocking the floor.
+              </p>
+            </div>
+
+            <div class="info-block">
+              <h2>Set Moment</h2>
+              <ul id="momentList"></ul>
+            </div>
+
+            <div class="info-block">
+              <h2>Music DNA</h2>
+              <div class="dna-grid" id="dnaGrid"></div>
+            </div>
+
+            <div class="info-block">
+              <h2>Crate Facts</h2>
+              <div class="fact-grid">
+                <div class="fact">
+                  <span>Label</span>
+                  <strong id="factLabel">-</strong>
+                </div>
+                <div class="fact">
+                  <span>Source</span>
+                  <strong id="factSource">-</strong>
+                </div>
+                <div class="fact">
+                  <span>Texture</span>
+                  <strong id="factTexture">-</strong>
+                </div>
+                <div class="fact">
+                  <span>Status</span>
+                  <strong id="factStatus">-</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="info-block">
+              <h2>Edit Metadata</h2>
+              <div class="form-grid">
+                <div class="field full">
+                  <label for="editTitle">Track</label>
+                  <input id="editTitle" />
+                </div>
+                <div class="field full">
+                  <label for="editArtist">Artist</label>
+                  <input id="editArtist" />
+                </div>
+                <div class="field">
+                  <label for="editTime">Timestamp</label>
+                  <input id="editTime" />
+                </div>
+                <div class="field">
+                  <label for="editBpm">BPM</label>
+                  <input id="editBpm" type="number" />
+                </div>
+                <div class="field">
+                  <label for="editKey">Key</label>
+                  <input id="editKey" />
+                </div>
+                <div class="field">
+                  <label for="editTransition">Transition</label>
+                  <select id="editTransition">
+                    <option>Blend</option>
+                    <option>Fade</option>
+                    <option>Cut</option>
+                    <option>Loop tease</option>
+                    <option>Backspin</option>
+                    <option>Echo out</option>
+                  </select>
+                </div>
+                <div class="field full">
+                  <label for="editNotes">AI notes</label>
+                  <textarea id="editNotes"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <div class="toast" id="toast">Saved</div>
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>

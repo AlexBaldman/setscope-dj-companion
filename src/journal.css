@@ -1,0 +1,319 @@
+:root {
+  color-scheme: dark;
+  --bg: #11100f;
+  --ink: #1c1712;
+  --muted: #847869;
+  --line: rgba(42, 36, 30, 0.28);
+  --panel: #1a1714;
+  --paper: #f2ead9;
+  --paper-line: rgba(80, 112, 170, 0.2);
+  --accent: #df9c3d;
+  --green: #6ebf9e;
+  --rose: #d96a7a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 20% 8%, rgba(223, 156, 61, 0.14), transparent 28%),
+    linear-gradient(135deg, rgba(110, 191, 158, 0.12), transparent 38%),
+    var(--bg);
+  color: #f5efe5;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button,
+.back-link {
+  border: 1px solid rgba(245, 239, 229, 0.14);
+  border-radius: 8px;
+  background: rgba(245, 239, 229, 0.08);
+  color: inherit;
+  cursor: pointer;
+  min-height: 36px;
+  padding: 0 12px;
+  text-decoration: none;
+  display: inline-grid;
+  place-items: center;
+}
+
+.journal-app {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.journal-topbar {
+  height: 70px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(245, 239, 229, 0.12);
+  background: rgba(17, 16, 15, 0.82);
+  backdrop-filter: blur(18px);
+}
+
+.journal-topbar strong,
+.journal-topbar span {
+  display: block;
+}
+
+.journal-topbar span {
+  color: #afa394;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.journal-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.journal-layout {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 18px;
+  padding: 18px;
+  min-height: 0;
+}
+
+.journal-sidebar,
+.source-panel {
+  border: 1px solid rgba(245, 239, 229, 0.12);
+  border-radius: 8px;
+  background: rgba(26, 23, 20, 0.88);
+  overflow: hidden;
+}
+
+.sidebar-head {
+  min-height: 50px;
+  padding: 12px;
+  border-bottom: 1px solid rgba(245, 239, 229, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: #b9ad9d;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.entry-list {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  max-height: calc(100vh - 146px);
+  overflow: auto;
+}
+
+.entry-card {
+  min-height: 70px;
+  border: 1px solid rgba(245, 239, 229, 0.1);
+  border-radius: 8px;
+  background: rgba(245, 239, 229, 0.06);
+  color: #f5efe5;
+  padding: 10px;
+  text-align: left;
+}
+
+.entry-card.active {
+  border-color: rgba(223, 156, 61, 0.8);
+  background: rgba(223, 156, 61, 0.12);
+}
+
+.entry-card strong,
+.entry-card span {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entry-card span {
+  color: #afa394;
+  font-size: 12px;
+  margin-top: 7px;
+}
+
+.book-stage {
+  display: grid;
+  grid-template-rows: auto minmax(430px, 1fr) 260px;
+  gap: 12px;
+  min-width: 0;
+}
+
+.paper-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.paper-chip.active {
+  border-color: rgba(223, 156, 61, 0.8);
+  background: rgba(223, 156, 61, 0.14);
+}
+
+.book {
+  position: relative;
+  perspective: 1400px;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+}
+
+.page-shadow {
+  position: absolute;
+  width: min(780px, 92%);
+  height: 92%;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  transform: translate(16px, 18px);
+  filter: blur(10px);
+}
+
+.page {
+  position: relative;
+  width: min(780px, 92%);
+  height: 100%;
+  min-height: 430px;
+  border-radius: 8px;
+  color: var(--ink);
+  padding: 34px 42px 34px 58px;
+  box-shadow: inset 0 0 0 1px rgba(53, 42, 31, 0.18), 0 20px 50px rgba(0, 0, 0, 0.28);
+  transform-origin: left center;
+  transition: transform 420ms ease, filter 420ms ease;
+  overflow: hidden;
+}
+
+.page.turning {
+  transform: rotateY(-16deg);
+  filter: brightness(0.96);
+}
+
+body[data-paper="notebook"] .page {
+  background:
+    linear-gradient(90deg, transparent 0 42px, rgba(215, 89, 102, 0.36) 42px 44px, transparent 44px),
+    repeating-linear-gradient(180deg, transparent 0 30px, var(--paper-line) 31px 32px),
+    var(--paper);
+}
+
+body[data-paper="graph"] .page {
+  background:
+    linear-gradient(rgba(83, 128, 168, 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(83, 128, 168, 0.16) 1px, transparent 1px),
+    #f1ecdc;
+  background-size: 24px 24px;
+}
+
+body[data-paper="sketch"] .page {
+  background:
+    radial-gradient(circle at 30% 20%, rgba(160, 130, 87, 0.08), transparent 24%),
+    repeating-linear-gradient(110deg, rgba(80, 65, 44, 0.03) 0 2px, transparent 2px 8px),
+    #eee5d2;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  color: rgba(28, 23, 18, 0.58);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.entry-move {
+  display: flex;
+  gap: 6px;
+}
+
+.entry-move button {
+  min-height: 30px;
+  color: var(--ink);
+  background: rgba(28, 23, 18, 0.06);
+  border-color: rgba(28, 23, 18, 0.12);
+}
+
+.entry-title,
+.entry-body,
+.markdown-source {
+  width: 100%;
+  border: 0;
+  outline: none;
+  resize: none;
+}
+
+.entry-title {
+  margin-top: 24px;
+  background: transparent;
+  color: var(--ink);
+  font-size: clamp(28px, 4vw, 54px);
+  font-weight: 850;
+  line-height: 1;
+}
+
+.entry-body {
+  height: calc(100% - 120px);
+  min-height: 260px;
+  margin-top: 24px;
+  background: transparent;
+  color: rgba(28, 23, 18, 0.88);
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.source-panel {
+  min-height: 0;
+}
+
+.markdown-source {
+  height: 210px;
+  padding: 14px;
+  background: #100f0e;
+  color: #f5efe5;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media (max-width: 880px) {
+  .journal-topbar,
+  .journal-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .journal-topbar {
+    height: auto;
+  }
+
+  .journal-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .book-stage {
+    grid-template-rows: auto minmax(500px, 58vh) 260px;
+  }
+
+  .page {
+    width: 100%;
+    padding: 26px 24px 28px 34px;
+  }
+}

@@ -1,0 +1,125 @@
+import assert from "node:assert/strict";
+import { isAudDConfigured, mapAudDResult } from "../server/audd-provider.mjs";
+import {
+  getRecognitionDiagnostics,
+  getRecognitionProviderStatus,
+  normalizeProviderMatch,
+  recognizeAudioWindow,
+} from "../server/recognition-provider.mjs";
+
+const scoreMatch = normalizeProviderMatch({
+  title: "  Clean Title ",
+  artist: " Artist Name ",
+  score: 0.87,
+  tempo: 96.4,
+  wave: 200,
+  provider: "contract-test",
+  raw: { providerId: "abc" },
+});
+
+assert.equal(scoreMatch.title, "Clean Title");
+assert.equal(scoreMatch.artist, "Artist Name");
+assert.equal(scoreMatch.confidence, 87);
+assert.equal(scoreMatch.bpm, 96);
+assert.equal(scoreMatch.wave, 100);
+assert.equal(scoreMatch.status, "matched");
+assert.equal(scoreMatch.needsReview, false);
+assert.deepEqual(scoreMatch.raw, { providerId: "abc" });
+
+const missingArtist = normalizeProviderMatch({
+  title: "Mystery Break",
+  confidence: 99,
+  bpm: -20,
+  provider: "contract-test",
+});
+
+assert.equal(missingArtist.artist, "Unknown artist");
+assert.equal(missingArtist.bpm, 0);
+assert.equal(missingArtist.status, "unknown");
+assert.equal(missingArtist.needsReview, true);
+
+const noisyNumbers = normalizeProviderMatch({
+  title: "Loud Record",
+  artist: "Limiter",
+  confidence: 180,
+  bpm: 500,
+  wave: -10,
+});
+
+assert.equal(noisyNumbers.confidence, 100);
+assert.equal(noisyNumbers.bpm, 220);
+assert.equal(noisyNumbers.wave, 0);
+assert.equal(noisyNumbers.provider, "unknown-provider");
+
+const explicitReview = normalizeProviderMatch({
+  title: "Borderline",
+  artist: "Detector",
+  confidence: 99,
+  status: "review",
+});
+
+assert.equal(explicitReview.status, "review");
+assert.equal(explicitReview.needsReview, true);
+
+const audioResult = await recognizeAudioWindow({
+  cursor: 0,
+  audio: {
+    dataUrl: "data:audio/webm;base64,abc123",
+    durationMs: 4000,
+    mimeType: "audio/webm",
+    size: 1234,
+  },
+  metadata: { windowSeconds: 4 },
+});
+
+assert.equal(audioResult.audio.hasData, true);
+assert.equal(audioResult.audio.durationMs, 4000);
+assert.equal(audioResult.match.raw.audio.hasData, true);
+assert.equal(audioResult.match.raw.audio.dataUrl, undefined);
+assert.equal(audioResult.match.raw.metadata.windowSeconds, 4);
+
+assert.equal(isAudDConfigured({}), false);
+assert.equal(isAudDConfigured({ AUDD_API_TOKEN: "token" }), true);
+
+const auddMatch = mapAudDResult({
+  status: "success",
+  result: {
+    artist: "The Test Pressings",
+    title: "Needle Drop",
+    album: "Contract Grooves",
+    label: "Spec Records",
+    release_date: "1994-04-01",
+    song_link: "https://example.test/song",
+  },
+});
+
+assert.equal(auddMatch.provider, "audd");
+assert.equal(auddMatch.title, "Needle Drop");
+assert.equal(auddMatch.artist, "The Test Pressings");
+assert.equal(auddMatch.era, "1990s");
+assert.equal(auddMatch.status, "matched");
+assert.equal(auddMatch.needsReview, false);
+assert.equal(auddMatch.raw.result.label, "Spec Records");
+
+const auddMiss = mapAudDResult({ status: "success", result: null });
+
+assert.equal(auddMiss.provider, "audd");
+assert.equal(auddMiss.status, "unknown");
+assert.equal(auddMiss.needsReview, true);
+assert.equal(auddMiss.raw.dataUrl, undefined);
+
+const providerStatus = getRecognitionProviderStatus();
+
+assert.equal(providerStatus.activeProvider, process.env.AUDD_API_TOKEN ? "audd" : "setscope-stub");
+assert.equal(providerStatus.sampleSeconds, 8);
+assert.equal(providerStatus.providers.some((provider) => provider.id === "shazamkit"), true);
+assert.equal(providerStatus.native.target, "ShazamKit");
+
+const diagnostics = getRecognitionDiagnostics();
+
+assert.equal(diagnostics.ok, true);
+assert.equal(diagnostics.activeProvider, providerStatus.activeProvider);
+assert.equal(diagnostics.checks.some((check) => check.id === "audd-token"), true);
+assert.equal(diagnostics.checks.some((check) => check.status === "planned"), true);
+
+console.log("Provider contract checks passed");

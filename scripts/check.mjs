@@ -1,0 +1,89 @@
+import { readFile } from "node:fs/promises";
+
+const html = await readFile("index.html", "utf8");
+const js = await readFile("src/app.js", "utf8");
+const css = await readFile("src/styles.css", "utf8");
+const api = await readFile("src/api.js", "utf8");
+const workflows = await readFile("src/workflows.js", "utf8");
+const state = await readFile("src/state.js", "utf8");
+const render = await readFile("src/render.js", "utf8");
+const audio = await readFile("src/audio.js", "utf8");
+const capture = await readFile("src/capture.js", "utf8");
+const setMap = await readFile("src/set-map.js", "utf8");
+const journalHtml = await readFile("journal.html", "utf8");
+const journalJs = await readFile("src/journal.js", "utf8");
+const journalCss = await readFile("src/journal.css", "utf8");
+const server = await readFile("server.mjs", "utf8");
+const env = await readFile("server/env.mjs", "utf8");
+const routes = await readFile("server/routes.mjs", "utf8");
+const auddProvider = await readFile("server/audd-provider.mjs", "utf8");
+const normalizer = await readFile("server/provider-normalizer.mjs", "utf8");
+const provider = await readFile("server/recognition-provider.mjs", "utf8");
+const archiveStore = await readFile("server/archive-store.mjs", "utf8");
+
+assert(html.includes("./src/styles.css"), "index.html should load src/styles.css");
+assert(html.includes("./src/app.js"), "index.html should load src/app.js");
+assert(html.includes("id=\"setMapCanvas\""), "index.html should include the set map canvas");
+assert(html.includes("id=\"apiStatus\""), "index.html should include the API status indicator");
+assert(html.includes("id=\"providerName\""), "index.html should include provider status");
+assert(html.includes("id=\"providerSetup\""), "index.html should include provider setup status");
+assert(html.includes("id=\"providerTestBtn\""), "index.html should include provider test action");
+assert(html.includes("id=\"archiveBtn\""), "index.html should include archive action");
+assert(html.includes("id=\"archiveList\""), "index.html should include archive list");
+assert(css.includes(".set-map"), "styles.css should include set map styles");
+assert(css.includes(".archive-list"), "styles.css should include archive list styles");
+assert(css.includes(".provider-panel"), "styles.css should include provider panel styles");
+assert(workflows.includes("requestRecognition"), "workflows.js should include the recognition client");
+assert(workflows.includes("archiveSet"), "workflows.js should include archive save flow");
+assert(workflows.includes("loadArchivedSet"), "workflows.js should include archive load flow");
+assert(api.includes("/api/recognize"), "api.js should call the recognition endpoint");
+assert(api.includes("/api/providers/diagnostics"), "api.js should call provider diagnostics");
+assert(api.includes("audio"), "api.js should include audio window payloads");
+assert(api.includes("/api/sets"), "api.js should call the set archive endpoint");
+assert(api.includes("/api/sets/"), "api.js should call the set load endpoint");
+assert(api.includes("/api/journal"), "api.js should call the journal endpoint");
+assert(journalHtml.includes("src/journal.js"), "journal.html should load journal.js");
+assert(journalHtml.includes("data-paper=\"notebook\""), "journal.html should default to notebook paper");
+assert(journalJs.includes("parseJournal"), "journal.js should parse markdown entries");
+assert(journalJs.includes("saveJournal"), "journal.js should save markdown source");
+assert(journalCss.includes("body[data-paper=\"graph\"]"), "journal.css should include graph paper skin");
+assert(state.includes("./fixtures.js"), "state.js should import shared fixtures");
+assert(js.includes("./workflows.js"), "app.js should wire workflows");
+assert(js.includes("./render.js"), "app.js should wire rendering");
+assert(js.includes("renderProviderStatus"), "app.js should render provider health details");
+assert(js.includes("refreshProviderDiagnostics"), "app.js should refresh provider diagnostics");
+assert(render.includes("createRenderer"), "render.js should export renderer factory");
+assert(audio.includes("estimateBpm"), "audio.js should include BPM analysis");
+assert(capture.includes("MediaRecorder"), "capture.js should use MediaRecorder for mic windows");
+assert(capture.includes("dataUrl"), "capture.js should encode audio windows for API transport");
+assert(capture.includes("createSampleAudioPayload"), "capture.js should generate sample provider audio");
+assert(setMap.includes("drawSetMap"), "set-map.js should include canvas rendering");
+assert(workflows.includes("testProviderWithSample"), "workflows.js should include sample provider testing");
+assert(server.includes("./server/routes.mjs"), "server.mjs should wire API routes");
+assert(server.includes("./server/static.mjs"), "server.mjs should wire static serving");
+assert(server.includes("./server/env.mjs"), "server.mjs should load local env config");
+assert(env.includes("loadLocalEnv"), "env.mjs should expose local env loading");
+assert(routes.includes("createApiRouter"), "routes.mjs should export API router factory");
+assert(routes.includes("/api/providers/diagnostics"), "routes.mjs should expose provider diagnostics");
+assert(normalizer.includes("normalizeProviderMatch"), "provider-normalizer.mjs should normalize provider matches");
+assert(provider.includes("recognizeAudioWindow"), "recognition-provider.mjs should expose provider adapter contract");
+assert(provider.includes("getRecognitionProviderStatus"), "recognition-provider.mjs should expose provider status");
+assert(provider.includes("getRecognitionDiagnostics"), "recognition-provider.mjs should expose provider diagnostics");
+assert(normalizer.includes("clampNumber"), "provider-normalizer.mjs should clamp provider numeric fields");
+assert(normalizer.includes("normalizeConfidence"), "provider-normalizer.mjs should normalize provider confidence values");
+assert(provider.includes("sanitizeAudioMetadata"), "recognition-provider.mjs should sanitize audio metadata");
+assert(provider.includes("../src/fixtures.js"), "recognition provider should import shared fixtures");
+assert(provider.includes("./audd-provider.mjs"), "recognition provider should use the AudD adapter");
+assert(auddProvider.includes("./provider-normalizer.mjs"), "AudD provider should use the shared normalizer");
+assert(auddProvider.includes("recognizeWithAudD"), "AudD provider should expose a recognition function");
+assert(auddProvider.includes("mapAudDResult"), "AudD provider should expose result mapping for tests");
+assert(auddProvider.includes("AUDD_API_TOKEN"), "AudD provider should read server-side API token config");
+assert(archiveStore.includes("createArchiveStore"), "archive-store.mjs should export archive store factory");
+
+console.log("SetScope checks passed");
+
+function assert(condition, message) {
+  if (!condition) {
+    throw new Error(message);
+  }
+}
