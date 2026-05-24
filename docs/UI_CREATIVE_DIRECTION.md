@@ -103,3 +103,30 @@ Implementation priorities:
 - Patch-chain mini diagram in the Recognition Stack.
 - Hardware-style knobs for BPM range and confidence filters once filtering becomes richer.
 - Archive cards as save slots with small sticker stacks for set stats.
+
+## Sidecar Expert Notes
+
+Street-art lane:
+
+- Use layered sticker/poster edges, paint-marker outlines, stencil labels, halftone spray texture, tag rhythm lines, and utility wall markings.
+- Keep the UI grounded in black lacquer, charcoal rubber, off-white labels, brushed metal, and smoked plastic.
+- Use bright street-art accents as controlled state cues, not whole-screen decoration.
+- Let new captures stamp in like fresh labels or stickers.
+- Avoid copying specific artists, logos, tags, or identifiable murals.
+
+Retro-game lane:
+
+- Treat the active recognition state as a compact HUD.
+- Make confidence, capture windows, and transition intensity work as segmented meters.
+- Use pixel/arcade styling only for short status labels, chips, meters, and decorative frames.
+- Keep body text and metadata in readable sans-serif.
+- Add game-feel through short press states, `LISTENING`/`MATCHING`/`LOCKED` style state language, and side-scroller set-map ideas.
+- Avoid scanlines over small text, excessive glitching, and full pixel fonts for long-form notes.
+
+Audio-hardware lane:
+
+- Use sampler pads, mixer channels, EQ knobs, VU meters, jog-wheel/platter details, tape counters, car-stereo presets, LCD displays, patch-bay routing, and rack framing as modular inspiration.
+- Build next toward a recognition deck strip, transition mixer, sampler pad tags, crate presets, confidence VU meters, and hardware skin tokens.
+- Let new recognition events flash like a pad light or LCD update.
+- Use hardware language for controls and status, with clean information architecture underneath.
+- Avoid copying exact product layouts, logos, knob colors, or recognizable trade dress from real gear.

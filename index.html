@@ -113,6 +113,9 @@
                 <div class="stat">
                   <span>Match</span>
                   <strong id="nowConfidence">91%</strong>
+                  <div class="confidence-meter" id="nowConfidenceMeter" aria-hidden="true">
+                    <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+                  </div>
                 </div>
               </div>
               <div class="source-row">
@@ -178,6 +181,27 @@
                   <div>
                     <span>Native</span>
                     <strong id="providerNative">ShazamKit</strong>
+                  </div>
+                </div>
+                <div class="provider-chain" aria-label="Recognition signal chain">
+                  <div class="chain-step">
+                    <span>Input</span>
+                    <strong id="chainInput">Mic/Sample</strong>
+                  </div>
+                  <div class="chain-link"></div>
+                  <div class="chain-step">
+                    <span>ID</span>
+                    <strong id="chainRecognizer">Stub</strong>
+                  </div>
+                  <div class="chain-link"></div>
+                  <div class="chain-step">
+                    <span>Intel</span>
+                    <strong>Analysis</strong>
+                  </div>
+                  <div class="chain-link"></div>
+                  <div class="chain-step">
+                    <span>Save</span>
+                    <strong>Archive</strong>
                   </div>
                 </div>
                 <button class="quiet-btn provider-test-btn" id="providerTestBtn" title="Test recognition provider">

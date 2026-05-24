@@ -61,6 +61,8 @@ function renderProviderStatus(recognition = {}) {
   els.providerSetup.textContent = auddProvider?.configured ? "Ready" : "Token needed";
   els.providerSample.textContent = `${recognition.sampleSeconds || 8}s`;
   els.providerNative.textContent = recognition.native?.target || "ShazamKit";
+  els.chainInput.textContent = "Mic/Sample";
+  els.chainRecognizer.textContent = auddProvider?.configured ? "AudD" : "Stub";
 }
 
 async function refreshProviderDiagnostics() {

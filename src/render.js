@@ -111,6 +111,7 @@ export function createRenderer(els, handlers) {
     els.nowBpm.textContent = track.bpm;
     els.nowKey.textContent = track.key;
     els.nowConfidence.textContent = `${track.confidence || 0}%`;
+    renderConfidenceMeter(track.confidence || 0);
     els.recordLabel.textContent = `${track.bpm || "--"} BPM`;
   }
 
@@ -175,6 +176,14 @@ export function createRenderer(els, handlers) {
   }
 
   return { render, renderTimeline, renderArchiveList };
+
+  function renderConfidenceMeter(confidence) {
+    const activeBars = Math.round(Math.max(0, Math.min(100, confidence)) / 12.5);
+    els.nowConfidenceMeter?.querySelectorAll("i").forEach((bar, index) => {
+      bar.classList.toggle("active", index < activeBars);
+      bar.classList.toggle("hot", index >= 6 && index < activeBars);
+    });
+  }
 }
 
 function setTrackColors(track) {

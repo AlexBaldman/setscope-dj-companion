@@ -248,3 +248,41 @@ Provider integration now has a fast sanity check. We can validate stubs, AudD to
 Next creative domino:
 
 Build a visual direction board for the interface that combines vinyl culture, street art, retro games, and iconic production hardware.
+
+## 2026-05-24 - Recognition Chain HUD
+
+We added the first concrete visual experiment from the creative direction work.
+
+What changed:
+
+- Recognition Stack now includes a signal-chain HUD: Input -> ID -> Intel -> Save.
+- The recognizer step updates between Stub and AudD based on provider status.
+- The styling borrows from hardware LCDs, arcade HUDs, and patch-bay routing without changing the workflow.
+- The UI creative direction doc now includes sidecar expert notes for street-art and retro-game lanes.
+
+Why this matters:
+
+This gives the app a stronger product identity while making the provider architecture more legible. It is a small visual move that teaches the user how the system works.
+
+Next creative domino:
+
+Add a pixel confidence meter and capture-sticker animation.
+
+## 2026-05-24 - Confidence Meter And Capture Sticker
+
+We added two compact identity upgrades from the creative council.
+
+What changed:
+
+- The current track Match stat now includes a segmented VU/pixel confidence meter.
+- New capture-log entries land with a quick sticker-style animation.
+- The Recognition Stack signal-chain HUD remains the provider architecture anchor.
+- The UI creative direction doc now includes the audio-hardware sidecar notes.
+
+Why this matters:
+
+These details make recognition feel more like an instrument: confidence is readable at a glance, capture events feel tactile, and the interface starts developing its own SetScope language without sacrificing clarity.
+
+Next creative domino:
+
+Design sampler-pad tags for quick track annotation.
