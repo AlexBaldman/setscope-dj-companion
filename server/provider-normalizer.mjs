@@ -1,9 +1,12 @@
+import { assertNormalizedMatch } from "./provider-schema.mjs";
+
 export function normalizeProviderMatch(raw) {
+  raw = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
   const title = cleanText(raw.title);
   const artist = cleanText(raw.artist);
   const confidence = normalizeConfidence(raw.confidence ?? raw.score ?? raw.matchScore ?? 0);
   const status = normalizeStatus(raw.status, { title, artist, confidence });
-  return {
+  return assertNormalizedMatch({
     time: raw.time || "00:00",
     title: title || "Unknown track",
     artist: artist || "Unknown artist",
@@ -24,7 +27,7 @@ export function normalizeProviderMatch(raw) {
     needsReview: "needsReview" in raw ? Boolean(raw.needsReview) : status !== "matched",
     notes: raw.notes || "Recognized from the set. Add context notes after review.",
     raw: raw.raw || raw,
-  };
+  });
 }
 
 function cleanText(value) {

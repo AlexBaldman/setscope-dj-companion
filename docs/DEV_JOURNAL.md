@@ -346,3 +346,23 @@ Real DJ-set recognition will hear blends and long transitions more than once. Th
 Next MVP domino:
 
 Add schema validation around recognition payloads and prepare archive storage for SQLite.
+
+## 2026-05-24 - Provider Schema Boundary
+
+We added validation to the recognition contract.
+
+What changed:
+
+- Added `server/provider-schema.mjs`.
+- Every normalized provider match is now asserted before entering the app contract.
+- Validation checks required text fields, status values, confidence/BPM bounds, review state, and raw payload shape.
+- Provider diagnostics now report match-schema readiness.
+- Contract tests cover valid and malformed normalized matches.
+
+Why this matters:
+
+AudD, ShazamKit, and future recognition/analysis adapters can evolve independently, but malformed events should fail at one clear server boundary instead of corrupting the timeline or archive.
+
+Next architecture domino:
+
+Validate archived set/audio-event shapes, then migrate local archive persistence from JSON to SQLite.

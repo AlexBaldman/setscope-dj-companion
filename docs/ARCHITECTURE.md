@@ -22,6 +22,7 @@
 - `server/archive-store.mjs`: file-backed set archive.
 - `server/journal-store.mjs`: markdown journal persistence.
 - `server/audd-provider.mjs`: AudD recognition adapter and result mapper.
+- `server/provider-schema.mjs`: validation for normalized provider matches.
 - `server/provider-normalizer.mjs`: shared provider-to-SetScope match normalization.
 - `server/recognition-provider.mjs`: stub recognition provider, track analysis, and provider response normalization.
 - `server/json.mjs`: JSON request/response helpers.
@@ -46,7 +47,7 @@
 - The main frontend has been split into modules, which removes the largest immediate maintainability issue.
 - Backend concerns have been split into route, static, archive, journal, and recognition-provider modules.
 - Archive persistence is JSON-file based. This is fine for local prototyping, but concurrent writes, larger archives, and search/filtering should move to SQLite.
-- Provider matches are normalized and clamped at the server boundary. Add schema validation if/when the project accepts arbitrary third-party payloads directly.
+- Provider matches are normalized, clamped, and schema-validated at the server boundary.
 - The frontend state currently mixes durable set data with UI-only state. A small store module would make save/load behavior easier to reason about.
 
 ## Recommended Next Refactor
@@ -58,7 +59,7 @@
 
 2. Replace JSON archive with SQLite once saved sets become more than a local demo.
 
-3. Add schema validation if the provider layer starts accepting several raw provider formats.
+3. Expand schema validation to archived sets and audio events before migrating storage.
 
 ## Recognition Adapter Contract
 
@@ -92,4 +93,5 @@ The UI should depend on this normalized shape, not on any individual provider re
 - Apple does not currently advertise a separate public ShazamKit per-recognition fee in the docs we checked, but distributing an iOS app generally requires the Apple Developer Program, which Apple lists at 99 USD per year.
 - The main UI includes a Recognition Stack panel fed by `/api/health`, keeping provider setup visible without coupling controls to vendor-specific fields.
 - Provider diagnostics are intentionally non-secret: they report whether configuration exists, not token values.
+- Provider diagnostics include normalized-match schema readiness.
 - The sample-provider test uses the same `/api/recognize` contract as mic capture, which keeps provider testing aligned with real listening.

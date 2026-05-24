@@ -25,6 +25,7 @@ The current MVP supports the essential loop:
 - Audio event timeline for recognition and crate-tag events.
 - Quick crate tags in the Track Intel panel.
 - Nearby duplicate review and one-click merge for likely repeated recognition moments.
+- Provider-boundary validation for normalized recognition matches.
 - Timeline search and review filtering.
 - Set map canvas with click-to-select.
 - Track inspector with editable metadata.
@@ -46,7 +47,7 @@ The current MVP supports the essential loop:
 - Authenticate GitHub CLI and push the repo.
 - Add a real AudD token and run the Test provider workflow.
 - Keep new toolbelt modules writing to the shared audio event timeline.
-- Add schema validation around provider responses.
+- Expand schema validation to archived sets and audio events.
 - Add SQLite archive storage.
 - Add a real transition-analysis pass.
 - Add basic accessibility checks for keyboard focus and reduced motion.

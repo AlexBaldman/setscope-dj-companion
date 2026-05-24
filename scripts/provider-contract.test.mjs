@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { isAudDConfigured, mapAudDResult } from "../server/audd-provider.mjs";
+import { assertNormalizedMatch, validateNormalizedMatch } from "../server/provider-schema.mjs";
 import {
   getRecognitionDiagnostics,
   getRecognitionProviderStatus,
@@ -25,6 +26,7 @@ assert.equal(scoreMatch.wave, 100);
 assert.equal(scoreMatch.status, "matched");
 assert.equal(scoreMatch.needsReview, false);
 assert.deepEqual(scoreMatch.raw, { providerId: "abc" });
+assert.equal(validateNormalizedMatch(scoreMatch).valid, true);
 
 const missingArtist = normalizeProviderMatch({
   title: "Mystery Break",
@@ -120,6 +122,22 @@ const diagnostics = getRecognitionDiagnostics();
 assert.equal(diagnostics.ok, true);
 assert.equal(diagnostics.activeProvider, providerStatus.activeProvider);
 assert.equal(diagnostics.checks.some((check) => check.id === "audd-token"), true);
+assert.equal(diagnostics.checks.some((check) => check.id === "match-schema"), true);
 assert.equal(diagnostics.checks.some((check) => check.status === "planned"), true);
+
+const invalidMatch = validateNormalizedMatch({
+  title: "",
+  artist: "Artist",
+  time: "00:00",
+  provider: "bad-provider",
+  status: "maybe",
+  confidence: 400,
+  bpm: -1,
+  needsReview: "no",
+  raw: null,
+});
+
+assert.equal(invalidMatch.valid, false);
+assert.throws(() => assertNormalizedMatch({}), /invalid_normalized_match/);
 
 console.log("Provider contract checks passed");

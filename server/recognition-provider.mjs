@@ -1,6 +1,7 @@
 import { demoTracks as recognitionFixtures } from "../src/fixtures.js";
 import { isAudDConfigured, recognizeWithAudD } from "./audd-provider.mjs";
 import { normalizeProviderMatch } from "./provider-normalizer.mjs";
+import { validateNormalizedMatch } from "./provider-schema.mjs";
 
 export { normalizeProviderMatch };
 
@@ -120,6 +121,12 @@ export function getRecognitionDiagnostics() {
         label: "Capture window",
         status: "pass",
         detail: `${status.sampleSeconds}s browser audio windows are ready for provider submission.`,
+      },
+      {
+        id: "match-schema",
+        label: "Match schema",
+        status: validateNormalizedMatch(recognizeFromStub({ cursor: 0 }).match).valid ? "pass" : "warn",
+        detail: "Normalized recognition matches are validated at the provider boundary.",
       },
       {
         id: "ios-native",
