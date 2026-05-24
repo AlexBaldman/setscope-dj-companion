@@ -35,6 +35,7 @@ assert(html.includes("id=\"archiveBtn\""), "index.html should include archive ac
 assert(html.includes("id=\"archiveList\""), "index.html should include archive list");
 assert(html.includes("id=\"audioEventLog\""), "index.html should include audio event log");
 assert(html.includes("data-quick-tag=\"heater\""), "index.html should include quick crate tags");
+assert(html.includes("id=\"mergeDuplicateBtn\""), "index.html should include duplicate merge action");
 assert(css.includes(".set-map"), "styles.css should include set map styles");
 assert(css.includes(".archive-list"), "styles.css should include archive list styles");
 assert(css.includes(".provider-panel"), "styles.css should include provider panel styles");
@@ -43,6 +44,7 @@ assert(css.includes(".confidence-meter"), "styles.css should include confidence 
 assert(css.includes("stickerLand"), "styles.css should include capture sticker animation");
 assert(css.includes(".audio-event-log"), "styles.css should include audio event log styles");
 assert(css.includes(".quick-tag-grid"), "styles.css should include quick tag styles");
+assert(css.includes(".duplicate-panel"), "styles.css should include duplicate review styles");
 assert(workflows.includes("requestRecognition"), "workflows.js should include the recognition client");
 assert(workflows.includes("archiveSet"), "workflows.js should include archive save flow");
 assert(workflows.includes("loadArchivedSet"), "workflows.js should include archive load flow");
@@ -62,6 +64,7 @@ assert(journalCss.includes("body[data-paper=\"graph\"]"), "journal.css should in
 assert(state.includes("./fixtures.js"), "state.js should import shared fixtures");
 assert(state.includes("tagSelectedTrack"), "state.js should support crate tags");
 assert(state.includes("logAudioEvent"), "state.js should support audio event logging");
+assert(state.includes("mergeSelectedDuplicate"), "state.js should support duplicate merging");
 assert(js.includes("./workflows.js"), "app.js should wire workflows");
 assert(js.includes("./render.js"), "app.js should wire rendering");
 assert(js.includes("renderProviderStatus"), "app.js should render provider health details");
@@ -70,6 +73,7 @@ assert(render.includes("createRenderer"), "render.js should export renderer fact
 assert(render.includes("renderConfidenceMeter"), "render.js should update confidence meter");
 assert(render.includes("renderAudioEvents"), "render.js should render audio events");
 assert(render.includes("renderTrackTags"), "render.js should render crate tags");
+assert(render.includes("renderDuplicateReview"), "render.js should render duplicate review");
 assert(audio.includes("estimateBpm"), "audio.js should include BPM analysis");
 assert(capture.includes("MediaRecorder"), "capture.js should use MediaRecorder for mic windows");
 assert(capture.includes("dataUrl"), "capture.js should encode audio windows for API transport");

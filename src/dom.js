@@ -53,4 +53,6 @@ export const els = {
   factStatus: document.querySelector("#factStatus"),
   tagList: document.querySelector("#tagList"),
   tagButtons: document.querySelectorAll("[data-quick-tag]"),
+  duplicatePanel: document.querySelector("#duplicatePanel"),
+  duplicateText: document.querySelector("#duplicateText"),
 };

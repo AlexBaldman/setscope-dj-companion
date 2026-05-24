@@ -24,6 +24,7 @@ The current MVP supports the essential loop:
 - Imported-audio BPM estimation.
 - Audio event timeline for recognition and crate-tag events.
 - Quick crate tags in the Track Intel panel.
+- Nearby duplicate review and one-click merge for likely repeated recognition moments.
 - Timeline search and review filtering.
 - Set map canvas with click-to-select.
 - Track inspector with editable metadata.
@@ -44,7 +45,6 @@ The current MVP supports the essential loop:
 
 - Authenticate GitHub CLI and push the repo.
 - Add a real AudD token and run the Test provider workflow.
-- Add manual duplicate/merge controls for repeated matches.
 - Keep new toolbelt modules writing to the shared audio event timeline.
 - Add schema validation around provider responses.
 - Add SQLite archive storage.

@@ -327,3 +327,22 @@ The product now has a small but real audio event timeline. Future tools like tun
 Next MVP domino:
 
 Add duplicate/merge controls for repeated recognized tracks.
+
+## 2026-05-24 - Duplicate Moment Review
+
+We added a correction workflow for repeated recognizer hits.
+
+What changed:
+
+- Track Intel now surfaces a Possible Duplicate panel when the selected track matches another captured moment within 90 seconds.
+- Added one-click merge for nearby duplicate moments.
+- Merge preserves combined crate tags, highest confidence, and capture/event references.
+- Merges create an audio-event history entry.
+
+Why this matters:
+
+Real DJ-set recognition will hear blends and long transitions more than once. This workflow keeps the timeline clean without silently deleting intentional replays later in the set.
+
+Next MVP domino:
+
+Add schema validation around recognition payloads and prepare archive storage for SQLite.

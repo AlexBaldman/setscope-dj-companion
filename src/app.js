@@ -6,6 +6,7 @@ import { nearestTrackFromMap } from "./set-map.js";
 import {
   addTrack as addStateTrack,
   getSelectedTrack,
+  mergeSelectedDuplicate,
   nextTimecode,
   persist,
   saveSelectedTrack,
@@ -126,6 +127,13 @@ function tagCrateMoment(tag) {
   showToast(els, `${tag} tagged`);
 }
 
+function mergeDuplicateMoment() {
+  const merged = mergeSelectedDuplicate();
+  if (!merged) return;
+  renderer.render();
+  showToast(els, "Duplicate merged");
+}
+
 function selectFromSetMap(event) {
   const nearest = nearestTrackFromMap(els.setMapCanvas, event, state.tracks);
   if (!nearest) return;
@@ -162,6 +170,7 @@ document.querySelector("#archiveBtn").addEventListener("click", workflows.archiv
 document.querySelector("#exportBtn").addEventListener("click", workflows.exportData);
 document.querySelector("#newSetBtn").addEventListener("click", workflows.newSet);
 document.querySelector("#copySetlistBtn").addEventListener("click", workflows.copySetlist);
+document.querySelector("#mergeDuplicateBtn").addEventListener("click", mergeDuplicateMoment);
 
 els.timelineSearch.addEventListener("input", (event) => {
   state.query = event.target.value;

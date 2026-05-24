@@ -156,6 +156,52 @@ export function tagSelectedTrack(tag) {
   return true;
 }
 
+export function findNearbyDuplicate(track = getSelectedTrack()) {
+  if (!track) return null;
+  const title = normalizeMatchText(track.title);
+  const artist = normalizeMatchText(track.artist);
+  const trackSeconds = toSeconds(track.time);
+  return state.tracks
+    .filter((item) => item.id !== track.id)
+    .filter((item) => normalizeMatchText(item.title) === title && normalizeMatchText(item.artist) === artist)
+    .map((item) => ({ item, distance: Math.abs(toSeconds(item.time) - trackSeconds) }))
+    .filter((candidate) => candidate.distance <= 90)
+    .sort((left, right) => left.distance - right.distance)[0]?.item || null;
+}
+
+export function mergeSelectedDuplicate() {
+  const selected = getSelectedTrack();
+  const duplicate = findNearbyDuplicate(selected);
+  if (!selected || !duplicate) return null;
+  const keeper = toSeconds(selected.time) <= toSeconds(duplicate.time) ? selected : duplicate;
+  const removed = keeper.id === selected.id ? duplicate : selected;
+  normalizeTrack(keeper);
+  normalizeTrack(removed);
+  keeper.tags = [...new Set([...keeper.tags, ...removed.tags])];
+  keeper.confidence = Math.max(Number(keeper.confidence) || 0, Number(removed.confidence) || 0);
+  keeper.status = keeper.status === "matched" || removed.status === "matched" ? "matched" : keeper.status;
+  keeper.needsReview = Boolean(keeper.needsReview && removed.needsReview);
+  if (removed.notes && removed.notes !== keeper.notes) {
+    keeper.notes = `${keeper.notes}\n\nMerged review note: ${removed.notes}`;
+  }
+  state.captureLog.forEach((entry) => {
+    if (entry.trackId === removed.id) entry.trackId = keeper.id;
+  });
+  state.audioEvents.forEach((event) => {
+    if (event.trackId === removed.id) event.trackId = keeper.id;
+  });
+  state.tracks = state.tracks.filter((track) => track.id !== removed.id);
+  selectedId = keeper.id;
+  logAudioEvent({
+    type: "merge",
+    trackId: keeper.id,
+    time: keeper.time,
+    title: "Duplicate merged",
+    detail: `${keeper.title} / removed ${removed.time}`,
+  });
+  return { keeper, removed };
+}
+
 export function sortTracksInPlace() {
   state.tracks.sort((a, b) => toSeconds(a.time) - toSeconds(b.time));
 }
@@ -236,4 +282,8 @@ export function resetForNewSet() {
   state.archiveList = [];
   state.tracks = [];
   selectedId = undefined;
+}
+
+function normalizeMatchText(value) {
+  return String(value || "").trim().toLowerCase();
 }

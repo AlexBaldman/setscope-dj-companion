@@ -869,6 +869,20 @@ body[data-skin="cd"] .platter {
   color: var(--text);
 }
 
+.duplicate-panel {
+  border-color: rgba(240, 173, 78, 0.42);
+  background:
+    linear-gradient(135deg, rgba(240, 173, 78, 0.1), transparent),
+    rgba(15, 14, 12, 0.16);
+}
+
+.duplicate-merge-btn {
+  width: 100%;
+  justify-content: center;
+  margin-top: 10px;
+  color: var(--text);
+}
+
 .file-input {
   position: absolute;
   left: -9999px;

@@ -2,6 +2,7 @@ import { drawSetMap } from "./set-map.js";
 import {
   getSelectedId,
   getSelectedTrack,
+  findNearbyDuplicate,
   normalizeTrack,
   persist,
   state,
@@ -97,6 +98,7 @@ export function createRenderer(els, handlers) {
     els.factTexture.textContent = track.texture;
     els.factStatus.textContent = formatStatus(track.status, track.needsReview);
     renderTrackTags(track);
+    renderDuplicateReview(track);
     els.editTitle.value = track.title;
     els.editArtist.value = track.artist;
     els.editTime.value = track.time;
@@ -223,6 +225,13 @@ export function createRenderer(els, handlers) {
     els.tagButtons.forEach((button) => {
       button.classList.toggle("active", track.tags.includes(button.dataset.quickTag));
     });
+  }
+
+  function renderDuplicateReview(track) {
+    const duplicate = findNearbyDuplicate(track);
+    els.duplicatePanel.hidden = !duplicate;
+    if (!duplicate) return;
+    els.duplicateText.textContent = `${duplicate.time} / ${duplicate.title} may be the same captured moment.`;
   }
 }
 
