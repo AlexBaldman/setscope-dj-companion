@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pitch Gates - SetScope Arcade</title>
+    <link rel="stylesheet" href="./src/pitch-gates.css" />
+  </head>
+  <body>
+    <div class="game-app">
+      <header class="game-topbar">
+        <a class="back-link" href="./index.html">
+          <span class="mini-disc"></span>
+          SetScope
+        </a>
+        <div class="game-title">
+          <strong>Pitch Gates</strong>
+          <span>Arcade Lab</span>
+        </div>
+        <div class="lcd-pill" id="audioStatus">INPUT OFF</div>
+      </header>
+
+      <main class="game-layout">
+        <section class="cabinet">
+          <div class="score-rack">
+            <div><span>Score</span><strong id="score">0000</strong></div>
+            <div><span>Streak</span><strong id="streak">00</strong></div>
+            <div><span>Lives</span><strong id="lives">3</strong></div>
+            <div><span>Best</span><strong id="bestScore">0000</strong></div>
+          </div>
+
+          <div class="screen-shell">
+            <canvas id="pitchGameCanvas" aria-label="Pitch Gates game board"></canvas>
+            <div class="ready-overlay" id="readyOverlay">
+              <strong>PITCH GATES</strong>
+              <span id="overlayStatus">READY FOR INPUT</span>
+            </div>
+          </div>
+
+          <div class="transport">
+            <div class="source-controls" aria-label="Audio source">
+              <button class="source-btn demo" id="toneBtn" title="Try an automatic silent tone demo">Demo tone</button>
+              <button class="source-btn" id="micBtn" title="Use microphone">Mic</button>
+              <button class="source-btn" id="shareBtn" title="Use shared tab or system audio">Share audio</button>
+              <button class="source-btn" id="fileBtn" title="Use an audio file">Audio file</button>
+              <input id="audioFileInput" class="file-input" type="file" accept="audio/*" />
+              <button class="source-btn stop" id="stopAudioBtn" title="Stop audio input">Stop</button>
+            </div>
+            <button class="start-btn" id="startRoundBtn">Start round</button>
+          </div>
+        </section>
+
+        <aside class="lab-panel">
+          <div class="lab-block live-readout">
+            <div class="block-title">Live Note</div>
+            <strong class="note-display" id="liveNote">--</strong>
+            <div class="readout-row">
+              <div><span>Hz</span><strong id="liveHz">--</strong></div>
+              <div><span>Clarity</span><strong id="liveClarity">--</strong></div>
+            </div>
+            <div class="tuning-meter" id="tuningMeter">
+              <span></span>
+            </div>
+          </div>
+
+          <div class="lab-block">
+            <div class="block-title">Target</div>
+            <strong class="target-display" id="targetNote">C4</strong>
+            <div class="readout-row">
+              <div><span>Gate</span><strong id="gateCount">0/12</strong></div>
+              <div><span>Range</span><strong id="rangeLabel">Mid</strong></div>
+            </div>
+          </div>
+
+          <div class="lab-block">
+            <div class="block-title">Register</div>
+            <div class="segment-control" aria-label="Pitch range">
+              <button data-register="low">Low</button>
+              <button class="active" data-register="mid">Mid</button>
+              <button data-register="high">High</button>
+            </div>
+          </div>
+
+          <div class="lab-block">
+            <div class="block-title">Speed</div>
+            <div class="segment-control" aria-label="Game speed">
+              <button data-speed="easy">Easy</button>
+              <button class="active" data-speed="groove">Groove</button>
+              <button data-speed="rush">Rush</button>
+            </div>
+          </div>
+
+          <div class="lab-block hit-log-block">
+            <div class="block-title">Run Log</div>
+            <div class="hit-log" id="hitLog"></div>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <script type="module" src="./src/pitch-gates.js"></script>
+  </body>
+</html>

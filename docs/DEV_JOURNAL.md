@@ -366,3 +366,27 @@ AudD, ShazamKit, and future recognition/analysis adapters can evolve independent
 Next architecture domino:
 
 Validate archived set/audio-event shapes, then migrate local archive persistence from JSON to SQLite.
+
+## 2026-05-24 - Pitch Gates Arcade Lab
+
+We built the first playable musician-helper tool in the SetScope toolbelt.
+
+What changed:
+
+- Added `pitch-gates.html` with a note-controlled orb-and-gates arcade game, scoring, streaks, lives, registers, and speeds.
+- Added real-time note, octave, frequency, clarity, and tuning readouts powered by a locally bundled Pitchy detector.
+- Added four input paths: silent automatic demo tone, microphone, user-shared audio, and local audio files.
+- Completed rounds now write an `instrument` event into the existing audio-event timeline.
+- Added `docs/PITCH_GATES.md` to define the browser audio boundary and future tuner/instrument-analysis roadmap.
+
+Why this matters:
+
+The bigger product idea is no longer only a roadmap. Pitch Gates is a compact proof that SetScope can be playful, genuinely useful for musicians, and structurally connected to the DJ companion memory layer.
+
+Technical truth worth keeping visible:
+
+A browser cannot silently sample arbitrary computer audio. Users can explicitly share an audio-capable tab or screen when their browser and operating system offer it; microphone and files are reliable web inputs. Instrument-family identification remains a later, confidence-aware analysis problem.
+
+Next toolbelt domino:
+
+Extract a reusable audio input/analyzer session so Pitch Gates, a tuner, and an oscilloscope can share one clean foundation.

@@ -12,6 +12,7 @@ The current MVP supports the essential loop:
 6. Edit metadata manually.
 7. Archive, reload, copy, or export the set.
 8. Track project progress in the dev journal.
+9. Play Pitch Gates with generated, microphone, shared, or uploaded audio and log a practice event.
 
 ## Working Features
 
@@ -32,14 +33,17 @@ The current MVP supports the essential loop:
 - Capture log with provider/status entries.
 - File-backed archive API.
 - Markdown-backed dev journal UI.
+- Pitch Gates minigame with pitch/note/octave readout, gate scoring, demo mode, and timeline event logging.
 
 ## MVP Gaps
 
 - Real AudD token has not been tested in this environment yet.
 - Archive storage is JSON-file based and should move to SQLite before heavy use.
-- Provider payloads are normalized but not schema-validated.
+- Archived set and audio-event payloads are not schema-validated yet.
 - Transition classification is currently manual/provider-stub metadata.
 - Key detection is placeholder metadata, not real audio analysis.
+- Pitch Gates detects stable monophonic pitch; instrument-family classification and chord detection are later work.
+- Shared computer-audio capture depends on explicit browser/OS sharing support and permission.
 - iOS/ShazamKit path is designed conceptually but not implemented.
 
 ## Launch-Quality Checklist
@@ -47,6 +51,7 @@ The current MVP supports the essential loop:
 - Authenticate GitHub CLI and push the repo.
 - Add a real AudD token and run the Test provider workflow.
 - Keep new toolbelt modules writing to the shared audio event timeline.
+- Extract shared real-time audio input plumbing before adding tuner and visualizer modules.
 - Expand schema validation to archived sets and audio events.
 - Add SQLite archive storage.
 - Add a real transition-analysis pass.

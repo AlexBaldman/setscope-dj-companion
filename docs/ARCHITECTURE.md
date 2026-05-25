@@ -3,6 +3,7 @@
 ## Current Shape
 
 - `index.html`: static app shell and semantic UI structure.
+- `pitch-gates.html`: standalone musician-helper arcade surface.
 - `src/styles.css`: visual system, responsive layout, vinyl/sampler/car/CD skin styling.
 - `src/app.js`: app bootstrap and event wiring.
 - `src/state.js`: browser state, hydration, persistence, selected-track state, track mutation helpers.
@@ -10,6 +11,9 @@
 - `src/set-map.js`: canvas set-map drawing and nearest-track selection.
 - `src/audio.js`: imported-audio decoding and BPM estimation.
 - `src/capture.js`: browser mic window recording and API-ready audio payload creation.
+- `src/pitch-gates.js`: pitch detector inputs, canvas game loop, scoring, and timeline event output.
+- `src/pitch-gates.css`: arcade-lab game surface and responsive controls.
+- `src/vendor/pitchy.js`: locally bundled Pitchy detector used without a CDN runtime dependency.
 - `src/workflows.js`: recognition loop, archive save/load, export/copy, mic capture, new-set workflow.
 - `src/dom.js`: DOM element references for the main app.
 - `src/utils.js`: small shared browser utilities.
@@ -41,6 +45,8 @@
 - `/api/health` now returns recognition provider status so the UI can show whether the app is running on the stub, AudD, or the planned native adapter slot.
 - `/api/providers/diagnostics` performs a dry provider setup check without sending audio.
 - The browser can generate a short synthetic WAV to test the provider pipeline without mic permission.
+- Pitch Gates exercises real-time monophonic pitch analysis using mic, selected shared audio, or files, with an automatic silent demo path for smoke testing.
+- Pitch Gates completion writes an `instrument` audio event into the same durable browser timeline as recognition and crate tagging.
 
 ## Main Risks
 
@@ -49,6 +55,7 @@
 - Archive persistence is JSON-file based. This is fine for local prototyping, but concurrent writes, larger archives, and search/filtering should move to SQLite.
 - Provider matches are normalized, clamped, and schema-validated at the server boundary.
 - The frontend state currently mixes durable set data with UI-only state. A small store module would make save/load behavior easier to reason about.
+- Web audio-source capture is permission-scoped: arbitrary computer playback cannot be silently sampled, and shared system-audio choices vary by browser/OS.
 
 ## Recommended Next Refactor
 
@@ -60,6 +67,8 @@
 2. Replace JSON archive with SQLite once saved sets become more than a local demo.
 
 3. Expand schema validation to archived sets and audio events before migrating storage.
+
+4. Establish a reusable audio-analysis session layer as Pitch Gates, tuner, and visualizer tools begin sharing mic/file/shared-audio plumbing.
 
 ## Recognition Adapter Contract
 

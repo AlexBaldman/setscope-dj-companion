@@ -17,6 +17,7 @@ SetScope is a browser prototype for a DJ set watching companion. It captures the
 - markdown-backed dev journal with page-turn UI and paper skins
 - AudD-ready provider adapter with local stub fallback
 - recognition diagnostics and sample-audio provider test workflow
+- Pitch Gates singing game with live note/frequency readout and audio-event logging
 
 Run it locally:
 
@@ -25,6 +26,8 @@ npm run dev
 ```
 
 Then open `http://127.0.0.1:5173`.
+
+Open `http://127.0.0.1:5173/pitch-gates.html` for the first musician-helper minigame. `Demo tone` plays a silent automatic run immediately; microphone, an audio file, or explicitly shared browser/system audio can drive the orb from real sound.
 
 The app can still be opened directly from `index.html`, but the recognition demo uses the local API server.
 
@@ -146,6 +149,7 @@ npm run check
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the current architecture audit and recommended refactor path. See [docs/UI_CREATIVE_DIRECTION.md](docs/UI_CREATIVE_DIRECTION.md) for the visual direction board.
 See [docs/MVP_READINESS.md](docs/MVP_READINESS.md) for the MVP checklist, [docs/AUDIO_TOOLBELT_ROADMAP.md](docs/AUDIO_TOOLBELT_ROADMAP.md) for the larger toolbelt vision, and [docs/GITHUB_PUBLISHING.md](docs/GITHUB_PUBLISHING.md) for GitHub setup.
+See [docs/PITCH_GATES.md](docs/PITCH_GATES.md) for minigame inputs, browser audio boundaries, and the note/instrument roadmap.
 
 ## Product Priorities
 

@@ -1,0 +1,482 @@
+:root {
+  color-scheme: dark;
+  --bg: #101113;
+  --surface: #191a19;
+  --surface-2: #252621;
+  --line: #46473f;
+  --text: #f5efe4;
+  --muted: #9ca2a6;
+  --amber: #f4aa3e;
+  --cyan: #60c7ff;
+  --mint: #6fddb1;
+  --pink: #ed6382;
+  --lime: #b7db63;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--text);
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.016) 0 1px, transparent 1px 4px),
+    linear-gradient(135deg, rgba(237, 99, 130, 0.08), transparent 31%),
+    linear-gradient(320deg, rgba(96, 199, 255, 0.08), transparent 32%),
+    var(--bg);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+button {
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.game-app {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.game-topbar {
+  height: 66px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  background: rgba(16, 17, 19, 0.9);
+}
+
+.back-link,
+.game-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.game-title {
+  flex-direction: column;
+  gap: 2px;
+}
+
+.game-title strong {
+  font-size: 18px;
+  letter-spacing: 0;
+}
+
+.game-title span {
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.mini-disc {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, var(--amber) 0 13%, #12151a 14% 21%, transparent 22%),
+    repeating-radial-gradient(circle, #2d3035 0 2px, #111318 3px 5px);
+}
+
+.lcd-pill {
+  min-width: 104px;
+  min-height: 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #394635;
+  border-radius: 6px;
+  background: #111b11;
+  color: #77936f;
+  font: 700 11px ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.lcd-pill.active {
+  color: var(--lime);
+  box-shadow: 0 0 13px rgba(183, 219, 99, 0.18);
+}
+
+.game-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 284px;
+  gap: 14px;
+  padding: 14px;
+  min-height: 0;
+}
+
+.cabinet,
+.lab-panel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  min-width: 0;
+}
+
+.cabinet {
+  padding: 14px;
+  display: grid;
+  grid-template-rows: auto minmax(380px, 1fr) auto;
+  grid-template-areas:
+    "score"
+    "screen"
+    "transport";
+  gap: 12px;
+  box-shadow: inset 0 2px 0 rgba(244, 170, 62, 0.13);
+}
+
+.score-rack {
+  grid-area: score;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.score-rack div,
+.lab-block {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-2);
+  padding: 10px;
+}
+
+.score-rack div:nth-child(1) {
+  border-top-color: var(--cyan);
+}
+
+.score-rack div:nth-child(2) {
+  border-top-color: var(--mint);
+}
+
+.score-rack div:nth-child(3) {
+  border-top-color: var(--pink);
+}
+
+.score-rack div:nth-child(4) {
+  border-top-color: var(--amber);
+}
+
+.score-rack span,
+.readout-row span,
+.block-title {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.score-rack strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--cyan);
+  font: 800 23px ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.screen-shell {
+  grid-area: screen;
+  min-height: 380px;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  border: 8px solid #08090b;
+  background: #10151b;
+  box-shadow: inset 0 0 0 1px rgba(244, 170, 62, 0.18);
+}
+
+#pitchGameCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 380px;
+  background:
+    linear-gradient(180deg, rgba(96, 199, 255, 0.05), transparent 54%),
+    #10151b;
+}
+
+.ready-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  background: rgba(8, 9, 11, 0.48);
+}
+
+.ready-overlay.hidden {
+  display: none;
+}
+
+.ready-overlay strong {
+  color: var(--amber);
+  font: 900 38px ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.ready-overlay span {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.transport {
+  grid-area: transport;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.source-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.source-btn,
+.start-btn,
+.segment-control button {
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.file-input {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.source-btn:active,
+.start-btn:active,
+.segment-control button:active {
+  transform: translateY(1px);
+}
+
+.source-btn:hover,
+.segment-control button:hover,
+.segment-control button.active {
+  border-color: rgba(96, 199, 255, 0.6);
+  color: var(--text);
+}
+
+.source-btn.demo {
+  color: var(--cyan);
+  border-color: rgba(96, 199, 255, 0.38);
+}
+
+.source-btn.stop:hover {
+  border-color: rgba(237, 99, 130, 0.65);
+}
+
+.start-btn {
+  background: var(--amber);
+  border-color: transparent;
+  color: #16120b;
+  min-width: 144px;
+}
+
+.lab-panel {
+  padding: 12px;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  overflow: auto;
+}
+
+.lab-block:nth-child(1) {
+  border-left-color: var(--cyan);
+}
+
+.lab-block:nth-child(2) {
+  border-left-color: var(--amber);
+}
+
+.lab-block:nth-child(3) {
+  border-left-color: var(--pink);
+}
+
+.lab-block:nth-child(4) {
+  border-left-color: var(--mint);
+}
+
+.note-display,
+.target-display {
+  display: block;
+  margin: 9px 0 12px;
+  font: 900 52px ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--cyan);
+}
+
+.target-display {
+  color: var(--amber);
+}
+
+.readout-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.readout-row strong {
+  display: block;
+  margin-top: 5px;
+  font: 750 16px ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.tuning-meter {
+  position: relative;
+  margin-top: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background:
+    linear-gradient(90deg, var(--pink), var(--amber) 28%, var(--mint) 48% 52%, var(--amber) 72%, var(--pink));
+}
+
+.tuning-meter span {
+  position: absolute;
+  left: var(--needle, 50%);
+  top: -4px;
+  width: 4px;
+  height: 20px;
+  border-radius: 4px;
+  transform: translateX(-50%);
+  background: var(--text);
+  box-shadow: 0 0 7px var(--text);
+}
+
+.segment-control {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.segment-control button {
+  min-height: 36px;
+  padding: 0 5px;
+  font-size: 11px;
+}
+
+.hit-log {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.hit-item {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 7px;
+  min-height: 31px;
+  align-items: center;
+  padding: 5px 7px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 11px;
+}
+
+.hit-item strong {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.hit-item span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.hit-item.hit strong {
+  color: var(--mint);
+}
+
+.hit-item.miss strong {
+  color: var(--pink);
+}
+
+@media (max-width: 860px) {
+  .game-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .cabinet {
+    grid-template-rows: auto minmax(350px, 52vh) auto;
+  }
+
+  .lab-panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hit-log-block {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 560px) {
+  .game-topbar {
+    height: auto;
+    flex-wrap: wrap;
+  }
+
+  .game-title {
+    order: -1;
+    width: 100%;
+  }
+
+  .score-rack {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .transport {
+    flex-direction: column;
+  }
+
+  .source-controls {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .start-btn {
+    width: 100%;
+  }
+
+  .cabinet {
+    grid-template-areas:
+      "score"
+      "transport"
+      "screen";
+    grid-template-rows: auto auto minmax(285px, 44vh);
+  }
+
+  .screen-shell,
+  #pitchGameCanvas {
+    min-height: 285px;
+  }
+
+  .lab-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .ready-overlay strong {
+    font-size: 28px;
+  }
+}

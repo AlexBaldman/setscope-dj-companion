@@ -39,12 +39,14 @@ The core primitive is the **audio event timeline**. Recognition, ShazamKit, BPM 
 
 ### Musician Helpers
 
-- Singing pitch detector.
+- Pitch Gates singing game: playable first slice with note/frequency/octave detection, scoring, and event logging.
 - Guitar/bass tuner.
 - Note finder.
 - Interval trainer.
 - Chord recognition.
 - Call-and-response ear training.
+
+Pitch Gates is now the first working musician-helper experiment. Its input model is intentionally honest: microphone, local audio file, or audio explicitly shared through the browser; future native apps can expand platform capture options.
 
 ### DJ Practice Tools
 
