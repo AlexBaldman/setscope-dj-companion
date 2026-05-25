@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SetScope DJ Companion</title>
     <link rel="stylesheet" href="./src/styles.css" />
+    <link rel="stylesheet" href="./src/theme.css" />
   </head>
   <body>
     <div class="app">
@@ -24,6 +25,9 @@
         </div>
 
         <div class="actions">
+          <button class="theme-toggle" data-theme-toggle aria-label="Switch to light mode" title="Switch to light mode">
+            <img src="./assets/theme/lightning-bulb-toggle-ui.png" alt="" />
+          </button>
           <a class="quiet-btn" href="./pitch-gates.html" title="Open Pitch Gates">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M4 17c3-7 5-10 8-10s4 7 8 3" />
@@ -415,6 +419,7 @@
     </div>
 
     <div class="toast" id="toast">Saved</div>
+    <script type="module" src="./src/theme.js"></script>
     <script type="module" src="./src/app.js"></script>
   </body>
 </html>

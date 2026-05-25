@@ -4,7 +4,7 @@
 
 SetScope can become an arcade of musical attention: small, engrossing challenges where listening, performing, reacting, and DJ technique are the controllers. Pitch Gates is the first proof. The scalable product is not a list of unrelated minigames; it is a challenge system that can turn audio features and human gestures into playable rounds, then remember what the player learned.
 
-The emotional target is the immediacy of rhythm games and tense reactive sequences: hear it, understand it, respond in time. We can study broad interaction patterns from music and narrative games while building original mechanics, visuals, names, sounds, and stories.
+The emotional target is the immediacy of rhythm games and tense reactive sequences: hear it, understand it, respond in time. Influences can be acknowledged plainly: `Rock Band`, `Guitar Hero`, `DJ Hero`, and `PaRappa the Rapper` for musical performance languages; `Fahrenheit` and `Heavy Rain` for intense timed reaction grammar. We should build original mechanics, visuals, names, sounds, and stories rather than replica screens or borrowed assets.
 
 ## Control Languages
 
@@ -44,6 +44,7 @@ Every arcade mode should use a small shared grammar:
 - Difficulty should teach a musical idea: octave control, beat placement, phrasing, scratch rhythm, sample recognition, or sound design.
 - Performance analytics should help, not shame: accuracy, timing drift, vocal range, progress, and useful next exercises.
 - Music and pop-culture energy belong in original art direction and curation; do not reproduce protected characters, branded game interfaces, hardware trade dress, or copyrighted recordings without rights.
+- The interface may wink knowingly through genre, control grammar, cabinet-era materials, and comedic homage. It must remain unmistakably a SetScope world, not a counterfeit franchise screen.
 
 ## Recommended Build Order
 

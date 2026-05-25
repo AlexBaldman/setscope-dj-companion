@@ -413,3 +413,22 @@ We can learn from interaction patterns and emotional pacing while designing orig
 Next arcade domino:
 
 Turn Pitch Gates audio input and round outcomes into reusable input/session and performance-event contracts, then prototype `Needle Drop Rescue`.
+
+## 2026-05-25 - Lightning Bulb Theme And Native Path
+
+We turned two big creative/technical instincts into product decisions.
+
+What changed:
+
+- Added an original fine-ink light bulb toggle illustration with a bright lightning-bolt filament.
+- Added a persistent light/dark mode shared by the DJ cockpit, Pitch Gates, and the Dev Journal.
+- Added `docs/PLATFORM_STRATEGY.md`: browser-first today, native SwiftUI/ShazamKit/AVAudioEngine for the serious iOS version, and a Tauri-first desktop capture spike with Electron held as an evidence-driven alternative.
+- Made the Arcade Lab inspirations explicit while keeping its visual expression and game content original.
+
+Why this matters:
+
+SetScope should wear its influences loudly and lovingly without being an imitation. Meanwhile, its platform strategy should protect the hard part of the vision: reliable musical listening and input. Portable schemas let the web prototype move fast while native audio implementations later deliver the magic cleanly.
+
+Next engineering domino:
+
+Extract `AudioInputSession`, `AnalysisFrame`, and `PerformanceEvent` contracts from Pitch Gates so the next game and the future native adapters begin on the same foundation.

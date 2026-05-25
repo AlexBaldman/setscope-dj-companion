@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SetScope Dev Journal</title>
     <link rel="stylesheet" href="./src/journal.css" />
+    <link rel="stylesheet" href="./src/theme.css" />
   </head>
   <body data-paper="notebook">
     <div class="journal-app">
@@ -15,6 +16,9 @@
           <span>Markdown progress log</span>
         </div>
         <div class="journal-actions">
+          <button class="theme-toggle" data-theme-toggle aria-label="Switch to light mode" title="Switch to light mode">
+            <img src="./assets/theme/lightning-bulb-toggle-ui.png" alt="" />
+          </button>
           <button id="prevBtn" title="Previous page">Prev</button>
           <button id="nextBtn" title="Next page">Next</button>
           <button id="saveBtn" title="Save markdown">Save</button>
@@ -63,6 +67,7 @@
       </main>
     </div>
 
+    <script type="module" src="./src/theme.js"></script>
     <script type="module" src="./src/journal.js"></script>
   </body>
 </html>

@@ -151,6 +151,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the current architecture au
 See [docs/MVP_READINESS.md](docs/MVP_READINESS.md) for the MVP checklist, [docs/AUDIO_TOOLBELT_ROADMAP.md](docs/AUDIO_TOOLBELT_ROADMAP.md) for the larger toolbelt vision, and [docs/GITHUB_PUBLISHING.md](docs/GITHUB_PUBLISHING.md) for GitHub setup.
 See [docs/PITCH_GATES.md](docs/PITCH_GATES.md) for minigame inputs, browser audio boundaries, and the note/instrument roadmap.
 See [docs/ARCADE_LAB_ROADMAP.md](docs/ARCADE_LAB_ROADMAP.md) for the multi-minigame control system and next playable modes.
+See [docs/PLATFORM_STRATEGY.md](docs/PLATFORM_STRATEGY.md) for the native iOS and desktop packaging recommendation.
 
 ## Product Priorities
 

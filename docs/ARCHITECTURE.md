@@ -14,6 +14,8 @@
 - `src/pitch-gates.js`: pitch detector inputs, canvas game loop, scoring, and timeline event output.
 - `src/pitch-gates.css`: arcade-lab game surface and responsive controls.
 - `src/vendor/pitchy.js`: locally bundled Pitchy detector used without a CDN runtime dependency.
+- `src/theme.js` and `src/theme.css`: persisted cross-surface theme control and light-mode treatment.
+- `assets/theme/lightning-bulb-toggle-ui.png`: original inked lightning-filament theme-toggle illustration.
 - `src/workflows.js`: recognition loop, archive save/load, export/copy, mic capture, new-set workflow.
 - `src/dom.js`: DOM element references for the main app.
 - `src/utils.js`: small shared browser utilities.
@@ -69,6 +71,8 @@
 3. Expand schema validation to archived sets and audio events before migrating storage.
 
 4. Establish a reusable audio-analysis session layer as Pitch Gates, tuner, and visualizer tools begin sharing mic/file/shared-audio plumbing.
+
+5. Preserve portable schemas and challenge definitions for a native SwiftUI/ShazamKit iOS application and a Tauri-first desktop capture spike; see `docs/PLATFORM_STRATEGY.md`.
 
 ## Recognition Adapter Contract
 
