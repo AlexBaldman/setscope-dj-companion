@@ -77,6 +77,13 @@ Pitch Gates is now the first working musician-helper experiment. Its input model
 - Analog mono bass toy.
 - Groovebox sketchpad.
 
+### Arcade Lab
+
+- A shared challenge engine for musical minigames rather than unrelated one-offs.
+- Pitch-controlled play, beat tapping, pad/button pattern reflex, transition timing, scratch gestures, ear-training decisions, and synth-patch challenges.
+- Every run can store compact performance events in the audio-event timeline and connect practice back to a set or track.
+- See `docs/ARCADE_LAB_ROADMAP.md` for the control vocabulary and recommended build order.
+
 ## Novel Feature Ideas
 
 - "What is THAT?" button that captures the last few seconds, recognizes the song, and starts a crate note.

@@ -390,3 +390,26 @@ A browser cannot silently sample arbitrary computer audio. Users can explicitly 
 Next toolbelt domino:
 
 Extract a reusable audio input/analyzer session so Pitch Gates, a tuner, and an oscilloscope can share one clean foundation.
+
+## 2026-05-25 - Arcade Lab Control Languages
+
+We captured the next expansion of the toolbelt: many kinds of playful musical control, sharing one memory layer.
+
+What changed:
+
+- Added `docs/ARCADE_LAB_ROADMAP.md`.
+- Defined control languages for pitch, beat timing, phrase decisions, rapid pad/button patterns, scratch gestures, ear decisions, and tone shaping.
+- Defined shared future primitives: `InputAdapter`, `FeatureFrame`, `ChallengeDefinition`, `PerformanceEvent`, and timeline memory writes.
+- Identified an original pattern-reflex mode, `Needle Drop Rescue`, as a smart second game after Pitch Gates.
+
+Why this matters:
+
+Rhythm games and reactive story games reveal the same powerful principle: timed input makes attention exhilarating. For SetScope, that can mean learning to hear pitch, beats, phrasing, transitions, scratching, samples, and synthesis through play. A common challenge architecture keeps that vision coherent and lets every game deepen the user's musical memory.
+
+Creative boundary:
+
+We can learn from interaction patterns and emotional pacing while designing original game names, prompts, visuals, sounds, narrative framing, and equipment-inspired surfaces.
+
+Next arcade domino:
+
+Turn Pitch Gates audio input and round outcomes into reusable input/session and performance-event contracts, then prototype `Needle Drop Rescue`.
