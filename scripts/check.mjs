@@ -85,7 +85,7 @@ assert(pitchGatesJs.includes("getUserMedia"), "pitch-gates.js should allow micro
 assert(pitchGatesJs.includes("getDisplayMedia"), "pitch-gates.js should allow explicitly shared audio");
 assert(pitchGatesJs.includes("useAudioFile"), "pitch-gates.js should allow audio files");
 assert(pitchGatesJs.includes("useDemoTone"), "pitch-gates.js should expose an immediate demo");
-assert(pitchGatesJs.includes("logAudioEvent"), "Pitch Gates rounds should write timeline events");
+assert(pitchGatesJs.includes("persistAudioEvent"), "Pitch Gates rounds should safely append timeline events");
 assert(pitchGatesCss.includes(".screen-shell"), "pitch-gates.css should style its game screen");
 assert(pitchGatesCss.includes("@media (max-width: 560px)"), "Pitch Gates should include mobile styling");
 assert(pitchVendor.includes("PitchDetector"), "bundled pitch detector should be present");
@@ -98,6 +98,7 @@ assert(themeCss.includes("data-theme=\"light\""), "theme.css should include ligh
 assert(state.includes("./fixtures.js"), "state.js should import shared fixtures");
 assert(state.includes("tagSelectedTrack"), "state.js should support crate tags");
 assert(state.includes("logAudioEvent"), "state.js should support audio event logging");
+assert(state.includes("persistAudioEvent"), "state.js should persist external audio events without overwriting a newer draft");
 assert(state.includes("mergeSelectedDuplicate"), "state.js should support duplicate merging");
 assert(js.includes("./workflows.js"), "app.js should wire workflows");
 assert(js.includes("./render.js"), "app.js should wire rendering");

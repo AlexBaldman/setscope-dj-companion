@@ -1,5 +1,5 @@
 import { PitchDetector } from "./vendor/pitchy.js";
-import { logAudioEvent, persist } from "./state.js";
+import { persistAudioEvent } from "./state.js";
 
 const canvas = document.querySelector("#pitchGameCanvas");
 const context = canvas.getContext("2d");
@@ -304,13 +304,12 @@ function endRound() {
   els.bestScore.textContent = formatScore(best);
   els.overlayStatus.textContent = `Score ${formatScore(game.score)} / streak ${game.bestStreak}`;
   els.readyOverlay.classList.remove("hidden");
-  logAudioEvent({
+  persistAudioEvent({
     type: "instrument",
     time: "--:--",
     title: "Pitch Gates run",
     detail: `${sourceLabel} / ${registers[register].label} / ${game.score} pts / streak ${game.bestStreak}`,
   });
-  persist();
   renderGame();
 }
 

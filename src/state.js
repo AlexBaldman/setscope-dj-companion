@@ -254,7 +254,19 @@ export function logCapture(match, trackId) {
 }
 
 export function logAudioEvent(event) {
-  state.audioEvents.unshift({
+  state.audioEvents.unshift(createAudioEvent(event));
+  state.audioEvents = state.audioEvents.slice(0, 100);
+}
+
+export function persistAudioEvent(event) {
+  const latest = loadState();
+  latest.audioEvents = [createAudioEvent(event), ...(Array.isArray(latest.audioEvents) ? latest.audioEvents : [])].slice(0, 100);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(latest));
+  state.audioEvents = latest.audioEvents;
+}
+
+function createAudioEvent(event) {
+  return {
     id: uid(),
     type: event.type || "note",
     trackId: event.trackId || "",
@@ -262,8 +274,7 @@ export function logAudioEvent(event) {
     title: event.title || "Audio event",
     detail: event.detail || "",
     createdAt: new Date().toISOString(),
-  });
-  state.audioEvents = state.audioEvents.slice(0, 100);
+  };
 }
 
 export function nextTimecode() {

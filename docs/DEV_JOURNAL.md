@@ -432,3 +432,18 @@ SetScope should wear its influences loudly and lovingly without being an imitati
 Next engineering domino:
 
 Extract `AudioInputSession`, `AnalysisFrame`, and `PerformanceEvent` contracts from Pitch Gates so the next game and the future native adapters begin on the same foundation.
+
+## 2026-05-27 - MVP Functional Hardening
+
+We ran a functional QA pass across the DJ deck, journal, shared theme, provider sample workflow, archive lifecycle, and Pitch Gates on desktop and mobile. The pass exposed one serious cross-tab persistence issue: finishing a Pitch Gates round from an older tab could write its stale copy of the set draft back over newer edits made in the cockpit.
+
+What changed:
+
+- Added `persistAudioEvent` so toolbelt activities append to the latest saved draft without replacing newer tracks, capture history, or archive state.
+- Updated Pitch Gates round completion to use the append-only event path.
+- Added a state persistence regression test that simulates an edit made after the game tab opens.
+- Verified track edit/tag/duplicate merge, provider sample logging, copy/export, archive/load/new set, journal paging and paper selection, theme persistence, Pitch Gates scoring, API smoke routes, and mobile layout.
+
+Why this matters:
+
+SetScope is becoming a connected toolbelt. Its tools must be able to contribute observations and game outcomes without becoming a risk to the DJ set timeline the user is collecting.
