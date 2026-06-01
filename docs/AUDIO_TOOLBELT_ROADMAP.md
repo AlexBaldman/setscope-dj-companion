@@ -8,6 +8,12 @@ The main rule: every tool should feed the same memory layer. A tuner, oscillosco
 
 The core primitive is the **audio event timeline**. Recognition, ShazamKit, BPM estimation, transition detection, tuners, visualizers, synth toys, and learning drills should all be able to write structured events into one timeline. That keeps the product from becoming disconnected toys.
 
+The first reusable implementation now lives in:
+
+- `src/audio-session.js`: browser input lifecycle for mic, shared audio, files, and generated tones.
+- `src/pitch-analysis.js`: real-time pitch analysis frames and musical pitch helpers.
+- `src/performance-events.js`: structured practice/game events persisted into the shared audio timeline.
+
 ## Toolbelt Modules
 
 ### Audio Event Timeline
@@ -46,7 +52,7 @@ The core primitive is the **audio event timeline**. Recognition, ShazamKit, BPM 
 - Chord recognition.
 - Call-and-response ear training.
 
-Pitch Gates is now the first working musician-helper experiment. Its input model is intentionally honest: microphone, local audio file, or audio explicitly shared through the browser; future native apps can expand platform capture options.
+Pitch Gates is now the first working musician-helper experiment and the first client of the shared audio-toolbelt foundation. Its input model is intentionally honest: microphone, local audio file, generated demo tone, or audio explicitly shared through the browser; future native apps can expand platform capture options behind the same concepts.
 
 ### DJ Practice Tools
 

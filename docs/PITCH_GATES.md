@@ -7,7 +7,7 @@ Pitch Gates is SetScope's first playable musician helper: sing or play a single 
 - Live monophonic pitch detection with note name, octave, frequency in Hz, and detection clarity.
 - Orb-and-gate game loop with score, streak, lives, three pitch registers, and three speeds.
 - A silent `Demo tone` input that follows gates automatically so the interaction is instantly testable.
-- Completed rounds write an `instrument` event into SetScope's saved toolbelt timeline.
+- Completed rounds write a structured `instrument` performance event into SetScope's saved toolbelt timeline.
 
 ## Audio Inputs
 
@@ -30,7 +30,7 @@ It does not yet identify which instrument created a sound. Instrument classifica
 
 ## Next Iterations
 
-1. Add a tuner and oscilloscope view powered by the same audio input session.
+1. Add a tuner and oscilloscope view powered by `src/audio-session.js` and `src/pitch-analysis.js`.
 2. Store note hits and misses as richer practice events, not only round summaries.
 3. Add guided scales, interval drills, call-and-response phrases, and vocal-range calibration.
 4. Prototype instrument-family classification for clean samples, with transparent confidence.
@@ -39,3 +39,5 @@ It does not yet identify which instrument created a sound. Instrument classifica
 ## Implementation Note
 
 Pitch detection uses [Pitchy](https://github.com/ianprime0509/pitchy), bundled locally for the static browser app. The project retains a small, dependency-light frontend while avoiding a hand-written pitch detector.
+
+The game now delegates browser source lifecycle to `src/audio-session.js`, pitch frames to `src/pitch-analysis.js`, and completed run summaries to `src/performance-events.js`. That keeps Pitch Gates focused on gameplay while making the audio pipeline reusable by the next toolbelt module.

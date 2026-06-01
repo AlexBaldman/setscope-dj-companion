@@ -273,6 +273,7 @@ function createAudioEvent(event) {
     time: event.time || "--:--",
     title: event.title || "Audio event",
     detail: event.detail || "",
+    metadata: event.metadata || null,
     createdAt: new Date().toISOString(),
   };
 }

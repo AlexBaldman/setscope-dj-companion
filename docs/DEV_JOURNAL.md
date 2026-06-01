@@ -447,3 +447,23 @@ What changed:
 Why this matters:
 
 SetScope is becoming a connected toolbelt. Its tools must be able to contribute observations and game outcomes without becoming a risk to the DJ set timeline the user is collecting.
+
+## 2026-05-31 - Audio Toolbelt Foundation
+
+We extracted the first reusable audio-toolbelt foundation from Pitch Gates.
+
+What changed:
+
+- Added `src/audio-session.js` for microphone, shared audio, file playback, and generated demo-tone lifecycle.
+- Added `src/pitch-analysis.js` for Pitchy-backed analysis frames plus shared MIDI, frequency, and note helpers.
+- Added `src/performance-events.js` for structured performance events that persist into the existing audio-event timeline with metadata.
+- Refactored Pitch Gates so it uses those shared modules instead of owning all audio setup and pitch math inline.
+- Added `scripts/audio-toolbelt.test.mjs` to cover pitch helpers, performance-event mapping, and persisted metadata.
+
+Why this matters:
+
+Pitch Gates is no longer a one-off. The same source/session/analyzer/event path can now power a tuner, oscilloscope, note finder, vocal practice game, future arcade modes, and native iOS/desktop audio adapters.
+
+Next toolbelt domino:
+
+Build the first tiny tuner/oscilloscope panel on top of these modules to prove the foundation works outside Pitch Gates.

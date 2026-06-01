@@ -1,5 +1,6 @@
-import { PitchDetector } from "./vendor/pitchy.js";
-import { persistAudioEvent } from "./state.js";
+import { createAudioInputSession } from "./audio-session.js";
+import { createPitchGatesCompletionEvent, persistPerformanceEvent } from "./performance-events.js";
+import { createPitchAnalyzer, isPitchedFrame, midiToNote } from "./pitch-analysis.js";
 
 const canvas = document.querySelector("#pitchGameCanvas");
 const context = canvas.getContext("2d");
@@ -35,21 +36,19 @@ const scaleSteps = [0, 2, 4, 5, 7, 9, 12];
 const totalGates = 12;
 const bufferLength = 2048;
 
-let audioContext;
-let analyser;
-let detector;
-let inputStream;
-let sourceNode;
-let playbackElement;
-let playbackUrl;
-let toneOscillator;
-let toneGain;
+const audioSession = createAudioInputSession({
+  bufferLength,
+  onEnded: () => {
+    currentFrame = null;
+    updatePitchReadout();
+    setAudioStatus("INPUT OFF", false);
+  },
+});
+const pitchAnalyzer = createPitchAnalyzer({ bufferLength });
 let animationId;
-let timeDomainBuffer = new Float32Array(bufferLength);
 let register = "mid";
 let speed = "groove";
-let sourceLabel = "none";
-let currentPitch = null;
+let currentFrame = null;
 let game = createGame();
 
 els.bestScore.textContent = formatScore(Number(localStorage.getItem("setscope-pitch-best") || 0));
@@ -86,10 +85,10 @@ window.addEventListener("resize", () => {
 
 async function useMicrophone() {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
-    });
-    await attachStream(stream, "MIC");
+    await audioSession.useMicrophone();
+    pitchAnalyzer.reset();
+    setAudioStatus("MIC READY", true);
+    startAnimation();
   } catch {
     setAudioStatus("MIC BLOCKED", false);
   }
@@ -97,58 +96,20 @@ async function useMicrophone() {
 
 async function useSharedAudio() {
   try {
-    const stream = await navigator.mediaDevices.getDisplayMedia({
-      video: true,
-      audio: true,
-      preferCurrentTab: true,
-      systemAudio: "include",
-    });
-    if (!stream.getAudioTracks().length) {
-      stream.getTracks().forEach((track) => track.stop());
-      setAudioStatus("NO AUDIO SHARED", false);
-      return;
-    }
-    await attachStream(stream, "SHARED");
-  } catch {
-    setAudioStatus("SHARE ENDED", false);
+    await audioSession.useSharedAudio();
+    pitchAnalyzer.reset();
+    setAudioStatus("SHARED READY", true);
+    startAnimation();
+  } catch (error) {
+    setAudioStatus(error.message === "shared_audio_missing" ? "NO AUDIO SHARED" : "SHARE ENDED", false);
   }
-}
-
-async function attachStream(stream, label) {
-  stopAudio();
-  audioContext = new AudioContext();
-  await audioContext.resume();
-  analyser = audioContext.createAnalyser();
-  analyser.fftSize = bufferLength;
-  detector = PitchDetector.forFloat32Array(bufferLength);
-  inputStream = stream;
-  sourceNode = audioContext.createMediaStreamSource(stream);
-  sourceNode.connect(analyser);
-  inputStream.getTracks().forEach((track) => {
-    track.addEventListener("ended", () => stopAudio());
-  });
-  sourceLabel = label;
-  setAudioStatus(`${label} READY`, true);
-  startAnimation();
 }
 
 async function useAudioFile(file) {
   if (!file) return;
   try {
-    stopAudio();
-    audioContext = new AudioContext();
-    await audioContext.resume();
-    analyser = audioContext.createAnalyser();
-    analyser.fftSize = bufferLength;
-    detector = PitchDetector.forFloat32Array(bufferLength);
-    playbackUrl = URL.createObjectURL(file);
-    playbackElement = new Audio(playbackUrl);
-    playbackElement.loop = true;
-    sourceNode = audioContext.createMediaElementSource(playbackElement);
-    sourceNode.connect(analyser);
-    sourceNode.connect(audioContext.destination);
-    sourceLabel = "FILE";
-    await playbackElement.play();
+    await audioSession.useAudioFile(file);
+    pitchAnalyzer.reset();
     setAudioStatus("FILE READY", true);
     startAnimation();
   } catch {
@@ -158,23 +119,8 @@ async function useAudioFile(file) {
 
 async function useDemoTone() {
   try {
-    stopAudio();
-    audioContext = new AudioContext();
-    await audioContext.resume();
-    analyser = audioContext.createAnalyser();
-    analyser.fftSize = bufferLength;
-    detector = PitchDetector.forFloat32Array(bufferLength);
-    toneOscillator = audioContext.createOscillator();
-    toneGain = audioContext.createGain();
-    toneOscillator.type = "sine";
-    toneGain.gain.value = 0;
-    toneOscillator.frequency.value = midiToFrequency(registers[register].base);
-    toneOscillator.connect(analyser);
-    analyser.connect(toneGain);
-    toneGain.connect(audioContext.destination);
-    toneOscillator.start();
-    sourceNode = toneOscillator;
-    sourceLabel = "DEMO";
+    await audioSession.useDemoTone({ midi: registers[register].base });
+    pitchAnalyzer.reset();
     setAudioStatus("DEMO READY", true);
     startAnimation();
   } catch {
@@ -184,24 +130,8 @@ async function useDemoTone() {
 }
 
 function stopAudio() {
-  inputStream?.getTracks().forEach((track) => track.stop());
-  playbackElement?.pause();
-  toneOscillator?.stop();
-  if (playbackUrl) URL.revokeObjectURL(playbackUrl);
-  sourceNode?.disconnect();
-  toneGain?.disconnect();
-  audioContext?.close();
-  inputStream = null;
-  sourceNode = null;
-  playbackElement = null;
-  playbackUrl = null;
-  toneOscillator = null;
-  toneGain = null;
-  audioContext = null;
-  analyser = null;
-  detector = null;
-  currentPitch = null;
-  sourceLabel = "none";
+  audioSession.stop();
+  currentFrame = null;
   updatePitchReadout();
   setAudioStatus("INPUT OFF", false);
 }
@@ -231,25 +161,14 @@ function update(now) {
     advanceGame(deltaSeconds);
   }
   drawFrame();
-  if (game.running || analyser) {
+  if (game.running || audioSession.isActive()) {
     animationId = requestAnimationFrame(update);
   }
 }
 
 function readPitch() {
-  if (!analyser || !detector || !audioContext) {
-    currentPitch = null;
-    updatePitchReadout();
-    return;
-  }
-  analyser.getFloatTimeDomainData(timeDomainBuffer);
-  const [frequency, clarity] = detector.findPitch(timeDomainBuffer, audioContext.sampleRate);
-  if (!Number.isFinite(frequency) || clarity < 0.82 || frequency < 45 || frequency > 1600) {
-    currentPitch = null;
-  } else {
-    const midi = frequencyToMidi(frequency);
-    currentPitch = { frequency, clarity, midi };
-  }
+  const frame = pitchAnalyzer.readFrame(audioSession);
+  currentFrame = isPitchedFrame(frame) ? frame : null;
   updatePitchReadout();
 }
 
@@ -278,7 +197,7 @@ function advanceGame(deltaSeconds) {
 function scoreGate(gate) {
   gate.evaluated = true;
   game.resolved += 1;
-  const distance = currentPitch ? Math.abs(currentPitch.midi - gate.targetMidi) : Infinity;
+  const distance = currentFrame ? Math.abs(currentFrame.midi - gate.targetMidi) : Infinity;
   const passed = distance <= speeds[speed].tolerance;
   gate.passed = passed;
   if (passed) {
@@ -304,12 +223,18 @@ function endRound() {
   els.bestScore.textContent = formatScore(best);
   els.overlayStatus.textContent = `Score ${formatScore(game.score)} / streak ${game.bestStreak}`;
   els.readyOverlay.classList.remove("hidden");
-  persistAudioEvent({
-    type: "instrument",
-    time: "--:--",
-    title: "Pitch Gates run",
-    detail: `${sourceLabel} / ${registers[register].label} / ${game.score} pts / streak ${game.bestStreak}`,
+  const performanceEvent = createPitchGatesCompletionEvent({
+    sourceLabel: audioSession.getSourceLabel(),
+    register: registers[register].label,
+    speed,
+    score: game.score,
+    streak: game.bestStreak,
+    resolved: game.resolved,
+    totalGates,
+    lives: game.lives,
   });
+  persistPerformanceEvent(performanceEvent);
+  appendPerformanceLog(performanceEvent);
   renderGame();
 }
 
@@ -356,12 +281,12 @@ function drawGates(height) {
 }
 
 function drawOrb(height) {
-  const targetY = currentPitch ? midiToY(currentPitch.midi, height) : height / 2;
+  const targetY = currentFrame ? midiToY(currentFrame.midi, height) : height / 2;
   game.orbY += (targetY - game.orbY) * 0.28;
   context.beginPath();
-  context.fillStyle = currentPitch ? "#6ec6ff" : "rgba(110,198,255,0.46)";
-  context.shadowColor = currentPitch ? "#6ec6ff" : "transparent";
-  context.shadowBlur = currentPitch ? 18 : 0;
+  context.fillStyle = currentFrame ? "#6ec6ff" : "rgba(110,198,255,0.46)";
+  context.shadowColor = currentFrame ? "#6ec6ff" : "transparent";
+  context.shadowBlur = currentFrame ? 18 : 0;
   context.arc(orbX(), game.orbY, 13, 0, Math.PI * 2);
   context.fill();
   context.shadowBlur = 0;
@@ -377,18 +302,18 @@ function renderGame() {
 }
 
 function updatePitchReadout() {
-  if (!currentPitch) {
+  if (!currentFrame) {
     els.liveNote.textContent = "--";
     els.liveHz.textContent = "--";
     els.liveClarity.textContent = "--";
     els.tuningMeter.style.setProperty("--needle", "50%");
     return;
   }
-  const roundedMidi = Math.round(currentPitch.midi);
-  const cents = (currentPitch.midi - roundedMidi) * 100;
+  const roundedMidi = Math.round(currentFrame.midi);
+  const cents = (currentFrame.midi - roundedMidi) * 100;
   els.liveNote.textContent = midiToNote(roundedMidi);
-  els.liveHz.textContent = currentPitch.frequency.toFixed(1);
-  els.liveClarity.textContent = `${Math.round(currentPitch.clarity * 100)}%`;
+  els.liveHz.textContent = currentFrame.frequency.toFixed(1);
+  els.liveClarity.textContent = `${Math.round(currentFrame.clarity * 100)}%`;
   els.tuningMeter.style.setProperty("--needle", `${Math.max(4, Math.min(96, 50 + cents / 2))}%`);
 }
 
@@ -398,6 +323,10 @@ function appendLog(status, text) {
   entry.innerHTML = `<strong>${status}</strong><span>${text}</span>`;
   els.hitLog.prepend(entry);
   while (els.hitLog.children.length > 7) els.hitLog.lastElementChild.remove();
+}
+
+function appendPerformanceLog(event) {
+  appendLog("RUN", `${event.sourceLabel} / ${event.score} pts / streak ${event.streak}`);
 }
 
 function createGame() {
@@ -440,25 +369,10 @@ function orbX() {
   return Math.min(108, canvas.clientWidth * 0.2);
 }
 
-function frequencyToMidi(frequency) {
-  return 69 + 12 * Math.log2(frequency / 440);
-}
-
-function midiToNote(midi) {
-  const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-  const rounded = Math.round(midi);
-  return `${notes[((rounded % 12) + 12) % 12]}${Math.floor(rounded / 12) - 1}`;
-}
-
-function midiToFrequency(midi) {
-  return 440 * 2 ** ((midi - 69) / 12);
-}
-
 function syncDemoToneToTarget() {
-  if (!toneOscillator || !audioContext) return;
   const nextGate = game.gates.find((gate) => !gate.evaluated);
   const targetMidi = nextGate?.targetMidi ?? registers[register].base;
-  toneOscillator.frequency.setTargetAtTime(midiToFrequency(targetMidi), audioContext.currentTime, 0.025);
+  audioSession.setDemoFrequency(targetMidi);
 }
 
 function formatScore(score) {

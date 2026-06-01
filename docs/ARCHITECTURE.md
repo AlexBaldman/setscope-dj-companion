@@ -10,7 +10,10 @@
 - `src/render.js`: timeline, inspector, summary, capture log, archive list, and current-track rendering.
 - `src/set-map.js`: canvas set-map drawing and nearest-track selection.
 - `src/audio.js`: imported-audio decoding and BPM estimation.
+- `src/audio-session.js`: reusable browser audio source lifecycle for toolbelt modules.
 - `src/capture.js`: browser mic window recording and API-ready audio payload creation.
+- `src/pitch-analysis.js`: Pitchy-backed pitch frames and musical pitch helpers.
+- `src/performance-events.js`: structured toolbelt practice/game event persistence.
 - `src/pitch-gates.js`: pitch detector inputs, canvas game loop, scoring, and timeline event output.
 - `src/pitch-gates.css`: arcade-lab game surface and responsive controls.
 - `src/vendor/pitchy.js`: locally bundled Pitchy detector used without a CDN runtime dependency.
@@ -49,6 +52,7 @@
 - The browser can generate a short synthetic WAV to test the provider pipeline without mic permission.
 - Pitch Gates exercises real-time monophonic pitch analysis using mic, selected shared audio, or files, with an automatic silent demo path for smoke testing.
 - Pitch Gates completion writes an `instrument` audio event into the same durable browser timeline as recognition and crate tagging.
+- Shared toolbelt modules now separate browser source lifecycle, pitch analysis frames, and structured performance-event persistence.
 
 ## Main Risks
 
@@ -70,7 +74,7 @@
 
 3. Expand schema validation to archived sets and audio events before migrating storage.
 
-4. Establish a reusable audio-analysis session layer as Pitch Gates, tuner, and visualizer tools begin sharing mic/file/shared-audio plumbing.
+4. Build a small tuner/oscilloscope panel on the reusable audio-analysis session layer, then move additional games and musician helpers onto the same contract.
 
 5. Preserve portable schemas and challenge definitions for a native SwiftUI/ShazamKit iOS application and a Tauri-first desktop capture spike; see `docs/PLATFORM_STRATEGY.md`.
 
