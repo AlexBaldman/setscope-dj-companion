@@ -36,7 +36,7 @@ The first reusable implementation now lives in:
 
 ### Listening Lab
 
-- Audio Lab: first tuner/oscilloscope utility with demo, mic, shared-audio, and file inputs.
+- Audio Lab: tuner/oscilloscope utility with demo, mic, shared-audio, file inputs, target-note hold practice, gain, time-scale, and freeze.
 - Oscilloscope.
 - Spectrogram.
 - Beat grid.

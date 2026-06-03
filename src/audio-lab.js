@@ -1,6 +1,6 @@
 import { createAudioInputSession } from "./audio-session.js";
 import { createPerformanceEvent, persistPerformanceEvent } from "./performance-events.js";
-import { createPitchAnalyzer, isPitchedFrame, midiToNote } from "./pitch-analysis.js";
+import { createPitchAnalyzer, isPitchedFrame, midiToFrequency, midiToNote } from "./pitch-analysis.js";
 
 const bufferLength = 2048;
 const canvas = document.querySelector("#scopeCanvas");
@@ -20,17 +20,34 @@ const els = {
   audioStatus: document.querySelector("#audioStatus"),
   centValue: document.querySelector("#centValue"),
   clarityValue: document.querySelector("#clarityValue"),
+  freezeScopeBtn: document.querySelector("#freezeScopeBtn"),
+  gainControl: document.querySelector("#gainControl"),
+  gainValue: document.querySelector("#gainValue"),
+  holdDetail: document.querySelector("#holdDetail"),
+  holdMeter: document.querySelector("#holdMeter"),
+  holdStatus: document.querySelector("#holdStatus"),
   liveHz: document.querySelector("#liveHz"),
   liveMidi: document.querySelector("#liveMidi"),
   liveNote: document.querySelector("#liveNote"),
   snapshotDetail: document.querySelector("#snapshotDetail"),
   snapshotStatus: document.querySelector("#snapshotStatus"),
   sourceLabel: document.querySelector("#sourceLabel"),
+  targetNote: document.querySelector("#targetNote"),
+  timeScaleControl: document.querySelector("#timeScaleControl"),
+  timeScaleValue: document.querySelector("#timeScaleValue"),
   tuningMeter: document.querySelector("#tuningMeter"),
 };
 
+const targetHoldMs = 2000;
+const targetToleranceCents = 8;
 let animationId;
 let selectedDemoMidi = 57;
+let targetMidi = 57;
+let scopeGain = 2;
+let timeScale = 1;
+let scopeFrozen = false;
+let holdStartedAt = null;
+let holdLocked = false;
 let currentFrame = null;
 
 resizeCanvas();
@@ -44,11 +61,28 @@ document.querySelector("#fileBtn").addEventListener("click", () => document.quer
 document.querySelector("#audioFileInput").addEventListener("change", (event) => useAudioFile(event.target.files[0]));
 document.querySelector("#stopAudioBtn").addEventListener("click", stopAudio);
 document.querySelector("#logSnapshotBtn").addEventListener("click", logSnapshot);
+els.freezeScopeBtn.addEventListener("click", toggleFreezeScope);
+els.gainControl.addEventListener("input", () => {
+  scopeGain = Number(els.gainControl.value);
+  els.gainValue.textContent = `${scopeGain}x`;
+});
+els.timeScaleControl.addEventListener("input", () => {
+  timeScale = Number(els.timeScaleControl.value);
+  els.timeScaleValue.textContent = `${timeScale}x`;
+});
 document.querySelectorAll("[data-demo-midi]").forEach((button) => {
   button.addEventListener("click", () => {
     selectedDemoMidi = Number(button.dataset.demoMidi);
     setActive(document.querySelectorAll("[data-demo-midi]"), button);
     audioSession.setDemoFrequency(selectedDemoMidi);
+  });
+});
+document.querySelectorAll("[data-target-midi]").forEach((button) => {
+  button.addEventListener("click", () => {
+    targetMidi = Number(button.dataset.targetMidi);
+    setActive(document.querySelectorAll("[data-target-midi]"), button);
+    els.targetNote.textContent = midiToNote(targetMidi);
+    resetHold();
   });
 });
 window.addEventListener("resize", () => {
@@ -118,7 +152,8 @@ function update() {
   const frame = pitchAnalyzer.readFrame(audioSession);
   currentFrame = isPitchedFrame(frame) ? frame : null;
   renderFrame();
-  drawScope();
+  updateHoldState();
+  if (!scopeFrozen) drawScope();
   if (audioSession.isActive()) {
     animationId = requestAnimationFrame(update);
   }
@@ -134,10 +169,11 @@ function renderFrame() {
     els.clarityValue.textContent = "--";
     els.centValue.textContent = "--";
     els.tuningMeter.style.setProperty("--needle", "50%");
+    resetHold();
     return;
   }
   const roundedMidi = Math.round(currentFrame.midi);
-  const cents = (currentFrame.midi - roundedMidi) * 100;
+  const cents = centsFromTarget(currentFrame.midi, targetMidi);
   els.liveNote.textContent = midiToNote(roundedMidi);
   els.liveHz.textContent = currentFrame.frequency.toFixed(1);
   els.liveMidi.textContent = String(roundedMidi);
@@ -156,6 +192,7 @@ function drawScope() {
   context.clearRect(0, 0, width, height);
   context.fillStyle = "#07100c";
   context.fillRect(0, 0, width, height);
+  drawCenterLine(width, height);
 
   const analyser = audioSession.getAnalyser();
   if (!analyser) {
@@ -163,15 +200,17 @@ function drawScope() {
     return;
   }
   analyser.getFloatTimeDomainData(scopeBuffer);
+  const sampleCount = Math.max(256, Math.floor(scopeBuffer.length / timeScale));
   context.strokeStyle = currentFrame ? "#7ef7ae" : "rgba(126, 247, 174, 0.42)";
   context.lineWidth = 2;
   context.beginPath();
-  scopeBuffer.forEach((sample, index) => {
-    const x = (index / (scopeBuffer.length - 1)) * width;
-    const y = height / 2 + sample * (height * 0.42);
+  for (let index = 0; index < sampleCount; index += 1) {
+    const sample = scopeBuffer[index] || 0;
+    const x = (index / (sampleCount - 1)) * width;
+    const y = height / 2 + sample * scopeGain * (height * 0.22);
     if (index === 0) context.moveTo(x, y);
     else context.lineTo(x, y);
-  });
+  }
   context.stroke();
 }
 
@@ -188,27 +227,88 @@ function drawIdleTrace(width, height) {
   context.stroke();
 }
 
+function drawCenterLine(width, height) {
+  context.strokeStyle = "rgba(126, 247, 174, 0.14)";
+  context.lineWidth = 1;
+  context.beginPath();
+  context.moveTo(0, height / 2);
+  context.lineTo(width, height / 2);
+  context.stroke();
+}
+
 function logSnapshot() {
+  if (!currentFrame) {
+    els.snapshotStatus.textContent = "Need signal";
+    els.snapshotDetail.textContent = "Start demo, mic, shared audio, or a file first.";
+    return;
+  }
   const sourceLabel = audioSession.getSourceLabel();
-  const note = currentFrame ? midiToNote(Math.round(currentFrame.midi)) : "--";
-  const frequency = currentFrame ? currentFrame.frequency.toFixed(1) : "--";
-  const clarity = currentFrame ? Math.round(currentFrame.clarity * 100) : 0;
+  const note = midiToNote(Math.round(currentFrame.midi));
+  const frequency = currentFrame.frequency.toFixed(1);
+  const clarity = Math.round(currentFrame.clarity * 100);
+  const cents = Math.round(centsFromTarget(currentFrame.midi, targetMidi));
   persistPerformanceEvent(createPerformanceEvent({
     modeId: "audio-lab",
-    score: clarity,
+    score: holdLocked ? 100 : clarity,
     sourceLabel,
     details: {
       game: "Audio Lab",
       note,
       frequency,
       clarity,
+      cents,
+      targetNote: midiToNote(targetMidi),
+      targetFrequency: midiToFrequency(targetMidi).toFixed(1),
+      stableHold: holdLocked,
+      scopeGain,
+      timeScale,
     },
     evidence: {
-      summary: `${sourceLabel.toUpperCase()} / ${note} / ${frequency} Hz / ${clarity}%`,
+      summary: `${sourceLabel.toUpperCase()} / ${note} to ${midiToNote(targetMidi)} / ${frequency} Hz / ${clarity}%`,
     },
   }));
   els.snapshotStatus.textContent = "Logged";
-  els.snapshotDetail.textContent = `${note} / ${frequency} Hz / ${clarity}%`;
+  els.snapshotDetail.textContent = `${note} -> ${midiToNote(targetMidi)} / ${frequency} Hz / ${clarity}%`;
+}
+
+function updateHoldState(now = performance.now()) {
+  if (!currentFrame) return;
+  const cents = centsFromTarget(currentFrame.midi, targetMidi);
+  const stable = Math.abs(cents) <= targetToleranceCents;
+  if (!stable) {
+    holdStartedAt = null;
+    holdLocked = false;
+    renderHold(0, "Find target", `Aim for ${midiToNote(targetMidi)} within ${targetToleranceCents} cents`);
+    return;
+  }
+  holdStartedAt = holdStartedAt || now;
+  const progress = Math.min(1, (now - holdStartedAt) / targetHoldMs);
+  holdLocked = progress >= 1;
+  renderHold(progress, holdLocked ? "Locked" : "Hold steady", `${Math.round(progress * 100)}% stable on ${midiToNote(targetMidi)}`);
+}
+
+function resetHold() {
+  holdStartedAt = null;
+  holdLocked = false;
+  renderHold(0, "Hold target", `Within ${targetToleranceCents} cents for ${targetHoldMs / 1000} seconds`);
+}
+
+function renderHold(progress, status, detail) {
+  els.holdMeter.style.setProperty("--hold", `${Math.round(progress * 100)}%`);
+  els.holdStatus.textContent = status;
+  els.holdDetail.textContent = detail;
+}
+
+function toggleFreezeScope() {
+  scopeFrozen = !scopeFrozen;
+  els.freezeScopeBtn.classList.toggle("active", scopeFrozen);
+  els.freezeScopeBtn.setAttribute("aria-pressed", String(scopeFrozen));
+  els.freezeScopeBtn.textContent = scopeFrozen ? "Live scope" : "Freeze";
+  if (!scopeFrozen) drawScope();
+}
+
+function centsFromTarget(midi, target) {
+  return (midi - target) * 100;
 }
 
 function setAudioStatus(text, active) {

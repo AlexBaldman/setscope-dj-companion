@@ -484,3 +484,18 @@ What changed:
 Why this matters:
 
 SetScope now has both a game and a utility using the same audio backbone. That makes the product feel less like a single experiment and more like a real musical toolbelt.
+
+## 2026-06-02 - Audio Lab Utility Upgrade
+
+We pushed Audio Lab beyond a passive tuner/scope and into a more useful practice surface.
+
+What changed:
+
+- Added target-note selection and cents-to-target readout.
+- Added a 2-second stable-hold meter so tuning becomes an active practice challenge.
+- Added oscilloscope gain, time-scale, and freeze controls.
+- Logged Audio Lab snapshots with richer metadata: target note, cents, stability, gain, and time scale.
+
+Why this matters:
+
+The first utility now teaches, not just displays. It gives singers and instrumentalists a tiny goal loop while keeping the raw audio visualization available for curiosity and debugging.

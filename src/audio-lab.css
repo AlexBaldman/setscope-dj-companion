@@ -30,7 +30,7 @@
 
 .scope-header {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -101,6 +101,59 @@
   border-top-color: var(--scope-blue);
 }
 
+.lab-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.hold-meter {
+  height: 12px;
+  margin: 4px 0 10px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  background: #07100c;
+}
+
+.hold-meter span {
+  display: block;
+  width: var(--hold, 0%);
+  height: 100%;
+  background: linear-gradient(90deg, var(--scope-blue), var(--scope-green));
+  transition: width 110ms ease;
+}
+
+.snapshot-readout.compact {
+  min-height: 74px;
+}
+
+.lab-slider {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 36px;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.lab-slider input {
+  width: 100%;
+  accent-color: var(--scope-green);
+}
+
+.lab-slider strong {
+  color: var(--text);
+  font: 800 12px ui-monospace, SFMono-Regular, Menlo, monospace;
+  text-align: right;
+}
+
+.source-btn.active {
+  color: var(--scope-green);
+  border-color: rgba(126, 247, 174, 0.62);
+}
+
 .snapshot-readout span {
   margin-top: 8px;
   min-height: 36px;
@@ -144,6 +197,11 @@
   }
 
   .scope-header {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .lab-actions {
+    display: grid;
     grid-template-columns: 1fr;
   }
 }

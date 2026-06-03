@@ -86,6 +86,11 @@ assert(audioLabHtml.includes("src/audio-lab.js"), "audio-lab.html should load au
 assert(audioLabHtml.includes("id=\"scopeCanvas\""), "audio-lab.html should include oscilloscope canvas");
 assert(audioLabHtml.includes("id=\"logSnapshotBtn\""), "audio-lab.html should include snapshot logging");
 assert(audioLabHtml.includes("data-demo-midi=\"57\""), "audio-lab.html should include demo pitch controls");
+assert(audioLabHtml.includes("data-target-midi=\"57\""), "audio-lab.html should include tuner target controls");
+assert(audioLabHtml.includes("id=\"gainControl\""), "audio-lab.html should include scope gain control");
+assert(audioLabHtml.includes("id=\"timeScaleControl\""), "audio-lab.html should include scope time control");
+assert(audioLabHtml.includes("id=\"freezeScopeBtn\""), "audio-lab.html should include scope freeze control");
+assert(audioLabHtml.includes("id=\"holdMeter\""), "audio-lab.html should include tuner hold meter");
 assert(audioLabHtml.includes("data-theme-toggle"), "Audio Lab should include the illustrated theme toggle");
 assert(audioLabHtml.includes("src/theme.js"), "Audio Lab should load shared theme behavior");
 assert(pitchGatesHtml.includes("id=\"pitchGameCanvas\""), "pitch-gates.html should include its game canvas");
@@ -131,7 +136,15 @@ assert(audioLabJs.includes("createAudioInputSession"), "audio-lab.js should use 
 assert(audioLabJs.includes("createPitchAnalyzer"), "audio-lab.js should use the shared pitch analyzer");
 assert(audioLabJs.includes("persistPerformanceEvent"), "audio-lab.js should persist structured events");
 assert(audioLabJs.includes("drawScope"), "audio-lab.js should draw the oscilloscope trace");
+assert(audioLabJs.includes("drawCenterLine"), "audio-lab.js should draw an oscilloscope center line");
+assert(audioLabJs.includes("scopeGain"), "audio-lab.js should control oscilloscope gain");
+assert(audioLabJs.includes("timeScale"), "audio-lab.js should control oscilloscope time scale");
+assert(audioLabJs.includes("toggleFreezeScope"), "audio-lab.js should freeze the scope trace");
+assert(audioLabJs.includes("Need signal"), "audio-lab.js should prevent empty snapshot logs");
+assert(audioLabJs.includes("updateHoldState"), "audio-lab.js should track tuner hold stability");
 assert(audioLabCss.includes(".scope-screen"), "audio-lab.css should style the oscilloscope screen");
+assert(audioLabCss.includes(".hold-meter"), "audio-lab.css should style tuner hold progress");
+assert(audioLabCss.includes(".lab-slider"), "audio-lab.css should style scope controls");
 assert(audioSession.includes("createAudioInputSession"), "audio-session.js should expose reusable audio input sessions");
 assert(audioSession.includes("getUserMedia"), "audio-session.js should allow microphone input");
 assert(audioSession.includes("getDisplayMedia"), "audio-session.js should allow explicitly shared audio");

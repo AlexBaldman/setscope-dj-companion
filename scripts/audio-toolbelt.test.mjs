@@ -50,6 +50,11 @@ persistPerformanceEvent({
     note: "A4",
     frequency: "440.0",
     clarity: 97,
+    cents: 0,
+    targetNote: "A4",
+    stableHold: true,
+    scopeGain: 2,
+    timeScale: 1,
   },
   evidence: {
     summary: "DEMO / A4 / 440.0 Hz / 97%",
@@ -60,5 +65,7 @@ const labDraft = JSON.parse(localStorage.getItem("setscope-draft-v1"));
 assert.equal(labDraft.audioEvents[0].title, "Audio Lab run");
 assert.equal(labDraft.audioEvents[0].type, "analysis");
 assert.equal(labDraft.audioEvents[0].metadata.modeId, "audio-lab");
+assert.equal(labDraft.audioEvents[0].metadata.details.stableHold, true);
+assert.equal(labDraft.audioEvents[0].metadata.details.targetNote, "A4");
 
 console.log("Audio toolbelt checks passed");

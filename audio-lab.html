@@ -43,6 +43,10 @@
               <span>Cents</span>
               <strong id="centValue">--</strong>
             </div>
+            <div>
+              <span>Target</span>
+              <strong id="targetNote">A3</strong>
+            </div>
           </div>
 
           <div class="scope-screen">
@@ -59,7 +63,10 @@
               <input id="audioFileInput" class="file-input" type="file" accept="audio/*" />
               <button class="source-btn stop" id="stopAudioBtn" title="Stop audio input">Stop</button>
             </div>
-            <button class="start-btn" id="logSnapshotBtn">Log snapshot</button>
+            <div class="lab-actions">
+              <button class="source-btn" id="freezeScopeBtn" aria-pressed="false">Freeze</button>
+              <button class="start-btn" id="logSnapshotBtn">Log snapshot</button>
+            </div>
           </div>
         </section>
 
@@ -83,6 +90,37 @@
               <button class="active" data-demo-midi="57">A3</button>
               <button data-demo-midi="69">A4</button>
             </div>
+          </div>
+
+          <div class="lab-block">
+            <div class="block-title">Tuner Target</div>
+            <div class="segment-control target-control" aria-label="Target note">
+              <button data-target-midi="48">C3</button>
+              <button class="active" data-target-midi="57">A3</button>
+              <button data-target-midi="64">E4</button>
+              <button data-target-midi="69">A4</button>
+            </div>
+            <div class="hold-meter" id="holdMeter">
+              <span></span>
+            </div>
+            <div class="snapshot-readout compact">
+              <strong id="holdStatus">Hold target</strong>
+              <span id="holdDetail">Within 8 cents for 2 seconds</span>
+            </div>
+          </div>
+
+          <div class="lab-block">
+            <div class="block-title">Scope Controls</div>
+            <label class="lab-slider">
+              <span>Gain</span>
+              <input id="gainControl" type="range" min="1" max="6" step="0.5" value="2" />
+              <strong id="gainValue">2x</strong>
+            </label>
+            <label class="lab-slider">
+              <span>Time</span>
+              <input id="timeScaleControl" type="range" min="1" max="4" step="1" value="1" />
+              <strong id="timeScaleValue">1x</strong>
+            </label>
           </div>
 
           <div class="lab-block">
