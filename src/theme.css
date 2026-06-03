@@ -173,6 +173,14 @@
   gap: 9px;
 }
 
+.tool-link {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface-2);
+}
+
 @media (min-width: 761px) and (max-width: 1340px) {
   .topbar .actions .quiet-btn {
     width: 40px;
@@ -193,5 +201,9 @@
   .theme-toggle img {
     width: 44px;
     height: 44px;
+  }
+
+  .game-tools .tool-link {
+    display: none;
   }
 }

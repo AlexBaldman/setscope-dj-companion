@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Audio Lab - SetScope</title>
+    <link rel="stylesheet" href="./src/pitch-gates.css" />
+    <link rel="stylesheet" href="./src/audio-lab.css" />
+    <link rel="stylesheet" href="./src/theme.css" />
+  </head>
+  <body>
+    <div class="game-app audio-lab-app">
+      <header class="game-topbar">
+        <a class="back-link" href="./index.html">
+          <span class="mini-disc"></span>
+          SetScope
+        </a>
+        <div class="game-title">
+          <strong>Audio Lab</strong>
+          <span>Tuner + Scope</span>
+        </div>
+        <div class="game-tools">
+          <a class="back-link tool-link" href="./pitch-gates.html">Arcade</a>
+          <div class="lcd-pill" id="audioStatus">INPUT OFF</div>
+          <button class="theme-toggle" data-theme-toggle aria-label="Switch to light mode" title="Switch to light mode">
+            <img src="./assets/theme/lightning-bulb-toggle-ui.png" alt="" />
+          </button>
+        </div>
+      </header>
+
+      <main class="audio-lab-layout">
+        <section class="scope-rig">
+          <div class="scope-header">
+            <div>
+              <span>Signal</span>
+              <strong id="sourceLabel">NONE</strong>
+            </div>
+            <div>
+              <span>Clarity</span>
+              <strong id="clarityValue">--</strong>
+            </div>
+            <div>
+              <span>Cents</span>
+              <strong id="centValue">--</strong>
+            </div>
+          </div>
+
+          <div class="scope-screen">
+            <canvas id="scopeCanvas" aria-label="Oscilloscope display"></canvas>
+            <div class="scope-grid" aria-hidden="true"></div>
+          </div>
+
+          <div class="transport">
+            <div class="source-controls" aria-label="Audio source">
+              <button class="source-btn demo" id="toneBtn" title="Try an automatic silent tone demo">Demo tone</button>
+              <button class="source-btn" id="micBtn" title="Use microphone">Mic</button>
+              <button class="source-btn" id="shareBtn" title="Use shared tab or system audio">Share audio</button>
+              <button class="source-btn" id="fileBtn" title="Use an audio file">Audio file</button>
+              <input id="audioFileInput" class="file-input" type="file" accept="audio/*" />
+              <button class="source-btn stop" id="stopAudioBtn" title="Stop audio input">Stop</button>
+            </div>
+            <button class="start-btn" id="logSnapshotBtn">Log snapshot</button>
+          </div>
+        </section>
+
+        <aside class="lab-panel audio-readout-panel">
+          <div class="lab-block note-card">
+            <div class="block-title">Live Note</div>
+            <strong class="note-display" id="liveNote">--</strong>
+            <div class="readout-row">
+              <div><span>Hz</span><strong id="liveHz">--</strong></div>
+              <div><span>MIDI</span><strong id="liveMidi">--</strong></div>
+            </div>
+            <div class="tuning-meter" id="tuningMeter">
+              <span></span>
+            </div>
+          </div>
+
+          <div class="lab-block">
+            <div class="block-title">Demo Pitch</div>
+            <div class="segment-control" aria-label="Demo pitch">
+              <button data-demo-midi="48">C3</button>
+              <button class="active" data-demo-midi="57">A3</button>
+              <button data-demo-midi="69">A4</button>
+            </div>
+          </div>
+
+          <div class="lab-block">
+            <div class="block-title">Snapshot</div>
+            <div class="snapshot-readout">
+              <strong id="snapshotStatus">Ready</strong>
+              <span id="snapshotDetail">--</span>
+            </div>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <script type="module" src="./src/theme.js"></script>
+    <script type="module" src="./src/audio-lab.js"></script>
+  </body>
+</html>

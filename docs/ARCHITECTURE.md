@@ -3,6 +3,7 @@
 ## Current Shape
 
 - `index.html`: static app shell and semantic UI structure.
+- `audio-lab.html`: standalone tuner and oscilloscope Listening Lab surface.
 - `pitch-gates.html`: standalone musician-helper arcade surface.
 - `src/styles.css`: visual system, responsive layout, vinyl/sampler/car/CD skin styling.
 - `src/app.js`: app bootstrap and event wiring.
@@ -10,6 +11,7 @@
 - `src/render.js`: timeline, inspector, summary, capture log, archive list, and current-track rendering.
 - `src/set-map.js`: canvas set-map drawing and nearest-track selection.
 - `src/audio.js`: imported-audio decoding and BPM estimation.
+- `src/audio-lab.js` and `src/audio-lab.css`: tuner/oscilloscope tool built on shared audio modules.
 - `src/audio-session.js`: reusable browser audio source lifecycle for toolbelt modules.
 - `src/capture.js`: browser mic window recording and API-ready audio payload creation.
 - `src/pitch-analysis.js`: Pitchy-backed pitch frames and musical pitch helpers.
@@ -53,6 +55,7 @@
 - Pitch Gates exercises real-time monophonic pitch analysis using mic, selected shared audio, or files, with an automatic silent demo path for smoke testing.
 - Pitch Gates completion writes an `instrument` audio event into the same durable browser timeline as recognition and crate tagging.
 - Shared toolbelt modules now separate browser source lifecycle, pitch analysis frames, and structured performance-event persistence.
+- Audio Lab proves those shared modules on a second utility surface and writes `analysis` snapshots into the toolbelt timeline.
 
 ## Main Risks
 

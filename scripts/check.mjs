@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 
 const html = await readFile("index.html", "utf8");
+const audioLabHtml = await readFile("audio-lab.html", "utf8");
 const js = await readFile("src/app.js", "utf8");
 const css = await readFile("src/styles.css", "utf8");
 const api = await readFile("src/api.js", "utf8");
@@ -8,6 +9,8 @@ const workflows = await readFile("src/workflows.js", "utf8");
 const state = await readFile("src/state.js", "utf8");
 const render = await readFile("src/render.js", "utf8");
 const audio = await readFile("src/audio.js", "utf8");
+const audioLabJs = await readFile("src/audio-lab.js", "utf8");
+const audioLabCss = await readFile("src/audio-lab.css", "utf8");
 const audioSession = await readFile("src/audio-session.js", "utf8");
 const capture = await readFile("src/capture.js", "utf8");
 const setMap = await readFile("src/set-map.js", "utf8");
@@ -32,6 +35,7 @@ const providerSchema = await readFile("server/provider-schema.mjs", "utf8");
 const normalizer = await readFile("server/provider-normalizer.mjs", "utf8");
 const provider = await readFile("server/recognition-provider.mjs", "utf8");
 const archiveStore = await readFile("server/archive-store.mjs", "utf8");
+const audioLabDoc = await readFile("docs/AUDIO_LAB.md", "utf8");
 
 assert(html.includes("./src/styles.css"), "index.html should load src/styles.css");
 assert(html.includes("./src/app.js"), "index.html should load src/app.js");
@@ -48,6 +52,7 @@ assert(html.includes("id=\"audioEventLog\""), "index.html should include audio e
 assert(html.includes("data-quick-tag=\"heater\""), "index.html should include quick crate tags");
 assert(html.includes("id=\"mergeDuplicateBtn\""), "index.html should include duplicate merge action");
 assert(html.includes("./pitch-gates.html"), "index.html should link to Pitch Gates");
+assert(html.includes("./audio-lab.html"), "index.html should link to Audio Lab");
 assert(html.includes("data-theme-toggle"), "index.html should include the illustrated theme toggle");
 assert(html.includes("src/theme.js"), "index.html should load shared theme behavior");
 assert(css.includes(".set-map"), "styles.css should include set map styles");
@@ -77,12 +82,19 @@ assert(journalJs.includes("saveJournal"), "journal.js should save markdown sourc
 assert(journalCss.includes("body[data-paper=\"graph\"]"), "journal.css should include graph paper skin");
 assert(journalHtml.includes("data-theme-toggle"), "journal.html should include the illustrated theme toggle");
 assert(journalHtml.includes("src/theme.js"), "journal.html should load shared theme behavior");
+assert(audioLabHtml.includes("src/audio-lab.js"), "audio-lab.html should load audio-lab.js");
+assert(audioLabHtml.includes("id=\"scopeCanvas\""), "audio-lab.html should include oscilloscope canvas");
+assert(audioLabHtml.includes("id=\"logSnapshotBtn\""), "audio-lab.html should include snapshot logging");
+assert(audioLabHtml.includes("data-demo-midi=\"57\""), "audio-lab.html should include demo pitch controls");
+assert(audioLabHtml.includes("data-theme-toggle"), "Audio Lab should include the illustrated theme toggle");
+assert(audioLabHtml.includes("src/theme.js"), "Audio Lab should load shared theme behavior");
 assert(pitchGatesHtml.includes("id=\"pitchGameCanvas\""), "pitch-gates.html should include its game canvas");
 assert(pitchGatesHtml.includes("id=\"toneBtn\""), "pitch-gates.html should include demo tone input");
 assert(pitchGatesHtml.includes("id=\"micBtn\""), "pitch-gates.html should include mic input");
 assert(pitchGatesHtml.includes("id=\"shareBtn\""), "pitch-gates.html should include shared audio input");
 assert(pitchGatesHtml.includes("id=\"fileBtn\""), "pitch-gates.html should include audio-file input");
 assert(pitchGatesHtml.includes("id=\"startRoundBtn\""), "pitch-gates.html should include a round control");
+assert(pitchGatesHtml.includes("./audio-lab.html"), "Pitch Gates should link to Audio Lab");
 assert(pitchGatesHtml.includes("src/pitch-gates.js"), "pitch-gates.html should load its game module");
 assert(pitchAnalysis.includes("PitchDetector"), "pitch-analysis.js should use pitch detection");
 assert(pitchGatesJs.includes("useAudioFile"), "pitch-gates.js should allow audio files");
@@ -115,6 +127,11 @@ assert(render.includes("renderAudioEvents"), "render.js should render audio even
 assert(render.includes("renderTrackTags"), "render.js should render crate tags");
 assert(render.includes("renderDuplicateReview"), "render.js should render duplicate review");
 assert(audio.includes("estimateBpm"), "audio.js should include BPM analysis");
+assert(audioLabJs.includes("createAudioInputSession"), "audio-lab.js should use the shared audio session");
+assert(audioLabJs.includes("createPitchAnalyzer"), "audio-lab.js should use the shared pitch analyzer");
+assert(audioLabJs.includes("persistPerformanceEvent"), "audio-lab.js should persist structured events");
+assert(audioLabJs.includes("drawScope"), "audio-lab.js should draw the oscilloscope trace");
+assert(audioLabCss.includes(".scope-screen"), "audio-lab.css should style the oscilloscope screen");
 assert(audioSession.includes("createAudioInputSession"), "audio-session.js should expose reusable audio input sessions");
 assert(audioSession.includes("getUserMedia"), "audio-session.js should allow microphone input");
 assert(audioSession.includes("getDisplayMedia"), "audio-session.js should allow explicitly shared audio");
@@ -123,7 +140,9 @@ assert(pitchAnalysis.includes("createPitchAnalyzer"), "pitch-analysis.js should 
 assert(pitchAnalysis.includes("midiToNote"), "pitch-analysis.js should expose musical pitch helpers");
 assert(performanceEvents.includes("createPerformanceEvent"), "performance-events.js should create structured performance events");
 assert(performanceEvents.includes("metadata"), "performance-events.js should map performance data into audio-event metadata");
+assert(performanceEvents.includes("audioEventTypeForMode"), "performance-events.js should map modes to audio event types");
 assert(audioToolbeltTest.includes("Audio toolbelt checks passed"), "audio-toolbelt.test.mjs should cover toolbelt contracts");
+assert(audioLabDoc.includes("Audio Lab"), "docs/AUDIO_LAB.md should document Audio Lab");
 assert(capture.includes("MediaRecorder"), "capture.js should use MediaRecorder for mic windows");
 assert(capture.includes("dataUrl"), "capture.js should encode audio windows for API transport");
 assert(capture.includes("createSampleAudioPayload"), "capture.js should generate sample provider audio");

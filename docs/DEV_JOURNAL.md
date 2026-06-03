@@ -467,3 +467,20 @@ Pitch Gates is no longer a one-off. The same source/session/analyzer/event path 
 Next toolbelt domino:
 
 Build the first tiny tuner/oscilloscope panel on top of these modules to prove the foundation works outside Pitch Gates.
+
+## 2026-06-02 - Audio Lab First Tool
+
+We built the first Listening Lab surface on the shared audio-toolbelt foundation.
+
+What changed:
+
+- Added `audio-lab.html`, a compact tuner and oscilloscope tool.
+- Added `src/audio-lab.js` and `src/audio-lab.css`.
+- Audio Lab uses `createAudioInputSession`, `createPitchAnalyzer`, and `persistPerformanceEvent`, proving the foundation works outside Pitch Gates.
+- The deck now links to Audio Lab, and Pitch Gates links back to it.
+- Audio Lab snapshots persist as structured `analysis` events with note, frequency, clarity, source, and mode metadata.
+- Added `docs/AUDIO_LAB.md` and expanded checks to cover the new page.
+
+Why this matters:
+
+SetScope now has both a game and a utility using the same audio backbone. That makes the product feel less like a single experiment and more like a real musical toolbelt.
