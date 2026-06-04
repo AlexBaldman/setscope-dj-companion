@@ -13,6 +13,7 @@
 - `src/audio.js`: imported-audio decoding and BPM estimation.
 - `src/audio-lab.js` and `src/audio-lab.css`: tuner/oscilloscope tool built on shared audio modules.
 - `src/audio-session.js`: reusable browser audio source lifecycle for toolbelt modules.
+- `src/audio-widgets.js`: reusable tuner presets, level analysis, zero-crossing trigger helpers, and practice stat persistence.
 - `src/capture.js`: browser mic window recording and API-ready audio payload creation.
 - `src/pitch-analysis.js`: Pitchy-backed pitch frames and musical pitch helpers.
 - `src/performance-events.js`: structured toolbelt practice/game event persistence.
@@ -20,6 +21,7 @@
 - `src/pitch-gates.css`: arcade-lab game surface and responsive controls.
 - `src/vendor/pitchy.js`: locally bundled Pitchy detector used without a CDN runtime dependency.
 - `src/theme.js` and `src/theme.css`: persisted cross-surface theme control and light-mode treatment.
+- `src/tool-registry.js`: shared SetScope tool rack and registered tool metadata.
 - `assets/theme/lightning-bulb-toggle-ui.png`: original inked lightning-filament theme-toggle illustration.
 - `src/workflows.js`: recognition loop, archive save/load, export/copy, mic capture, new-set workflow.
 - `src/dom.js`: DOM element references for the main app.
@@ -56,6 +58,8 @@
 - Pitch Gates completion writes an `instrument` audio event into the same durable browser timeline as recognition and crate tagging.
 - Shared toolbelt modules now separate browser source lifecycle, pitch analysis frames, and structured performance-event persistence.
 - Audio Lab proves those shared modules on a second utility surface and writes `analysis` snapshots into the toolbelt timeline.
+- A shared tool registry now gives each surface the same navigation rack.
+- Audio Lab now includes reusable widget primitives: tuner presets, level metering, zero-crossing trigger behavior, daily practice streaks, and set-track attachment.
 
 ## Main Risks
 
@@ -77,7 +81,7 @@
 
 3. Expand schema validation to archived sets and audio events before migrating storage.
 
-4. Build a small tuner/oscilloscope panel on the reusable audio-analysis session layer, then move additional games and musician helpers onto the same contract.
+4. Promote the reusable Audio Lab controls into smaller component modules as the next musician helpers arrive.
 
 5. Preserve portable schemas and challenge definitions for a native SwiftUI/ShazamKit iOS application and a Tauri-first desktop capture spike; see `docs/PLATFORM_STRATEGY.md`.
 

@@ -181,6 +181,52 @@
   background: var(--surface-2);
 }
 
+.tool-rack {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.tool-rack-item {
+  min-width: 74px;
+  min-height: 42px;
+  padding: 6px 9px;
+  display: grid;
+  align-content: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-2, var(--panel-2));
+  color: var(--muted);
+}
+
+.tool-rack-item span,
+.tool-rack-item strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tool-rack-item span {
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.tool-rack-item strong {
+  margin-top: 2px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tool-rack-item.active {
+  color: var(--text);
+  border-color: rgba(117, 215, 182, 0.56);
+  box-shadow: inset 0 0 0 1px rgba(117, 215, 182, 0.12);
+}
+
 @media (min-width: 761px) and (max-width: 1340px) {
   .topbar .actions .quiet-btn {
     width: 40px;
@@ -204,6 +250,15 @@
   }
 
   .game-tools .tool-link {
+    display: none;
+  }
+
+  .tool-rack.compact .tool-rack-item {
+    min-width: 44px;
+    padding: 6px;
+  }
+
+  .tool-rack.compact .tool-rack-item strong {
     display: none;
   }
 }

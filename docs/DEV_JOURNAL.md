@@ -499,3 +499,20 @@ What changed:
 Why this matters:
 
 The first utility now teaches, not just displays. It gives singers and instrumentalists a tiny goal loop while keeping the raw audio visualization available for curiosity and debugging.
+
+## 2026-06-02 - Tool Rack and Audio Lab Practice Sprint
+
+We turned the expert-panel audit into another implementation pass focused on reusable architecture and more musician-useful controls.
+
+What changed:
+
+- Added a shared tool registry and tool rack across SetScope, Pitch Gates, Audio Lab, and Journal.
+- Added reusable audio widget helpers for tuner presets, level metering, zero-crossing trigger alignment, cents math, and practice storage.
+- Added Audio Lab instrument presets for chromatic, guitar, bass, and voice targets.
+- Added input gain calibration, RMS/peak meters, and triggered oscilloscope mode.
+- Added daily practice count and streak tracking for stable target locks.
+- Let Audio Lab snapshots attach to an existing set timeline track and preserve that timestamp/track id in the audio-event timeline.
+
+Why this matters:
+
+The toolbelt is getting a spine. New games and utilities can now share navigation, shared musical widget logic, and a memory path back into the DJ set instead of becoming isolated experiments.

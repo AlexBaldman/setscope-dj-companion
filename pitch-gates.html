@@ -19,7 +19,7 @@
           <span>Arcade Lab</span>
         </div>
         <div class="game-tools">
-          <a class="back-link tool-link" href="./audio-lab.html">Lab</a>
+          <nav class="tool-rack compact" data-tool-rack data-current-tool="pitch-gates" aria-label="SetScope tools"></nav>
           <div class="lcd-pill" id="audioStatus">INPUT OFF</div>
           <button class="theme-toggle" data-theme-toggle aria-label="Switch to light mode" title="Switch to light mode">
             <img src="./assets/theme/lightning-bulb-toggle-ui.png" alt="" />
@@ -106,6 +106,7 @@
     </div>
 
     <script type="module" src="./src/theme.js"></script>
+    <script type="module" src="./src/tool-registry.js"></script>
     <script type="module" src="./src/pitch-gates.js"></script>
   </body>
 </html>

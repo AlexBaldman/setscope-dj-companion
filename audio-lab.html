@@ -20,7 +20,7 @@
           <span>Tuner + Scope</span>
         </div>
         <div class="game-tools">
-          <a class="back-link tool-link" href="./pitch-gates.html">Arcade</a>
+          <nav class="tool-rack compact" data-tool-rack data-current-tool="audio-lab" aria-label="SetScope tools"></nav>
           <div class="lcd-pill" id="audioStatus">INPUT OFF</div>
           <button class="theme-toggle" data-theme-toggle aria-label="Switch to light mode" title="Switch to light mode">
             <img src="./assets/theme/lightning-bulb-toggle-ui.png" alt="" />
@@ -47,6 +47,14 @@
               <span>Target</span>
               <strong id="targetNote">A3</strong>
             </div>
+            <div>
+              <span>RMS</span>
+              <strong id="rmsValue">--</strong>
+            </div>
+            <div>
+              <span>Peak</span>
+              <strong id="peakValue">--</strong>
+            </div>
           </div>
 
           <div class="scope-screen">
@@ -65,6 +73,7 @@
             </div>
             <div class="lab-actions">
               <button class="source-btn" id="freezeScopeBtn" aria-pressed="false">Freeze</button>
+              <button class="source-btn" id="triggerScopeBtn" aria-pressed="false">Trigger</button>
               <button class="start-btn" id="logSnapshotBtn">Log snapshot</button>
             </div>
           </div>
@@ -94,6 +103,12 @@
 
           <div class="lab-block">
             <div class="block-title">Tuner Target</div>
+            <div class="segment-control preset-control" aria-label="Instrument preset">
+              <button class="active" data-preset="chromatic">Chromatic</button>
+              <button data-preset="guitar">Guitar</button>
+              <button data-preset="bass">Bass</button>
+              <button data-preset="voice">Voice</button>
+            </div>
             <div class="segment-control target-control" aria-label="Target note">
               <button data-target-midi="48">C3</button>
               <button class="active" data-target-midi="57">A3</button>
@@ -112,6 +127,11 @@
           <div class="lab-block">
             <div class="block-title">Scope Controls</div>
             <label class="lab-slider">
+              <span>Input</span>
+              <input id="inputGainControl" type="range" min="0.5" max="3" step="0.1" value="1" />
+              <strong id="inputGainValue">1x</strong>
+            </label>
+            <label class="lab-slider">
               <span>Gain</span>
               <input id="gainControl" type="range" min="1" max="6" step="0.5" value="2" />
               <strong id="gainValue">2x</strong>
@@ -121,10 +141,28 @@
               <input id="timeScaleControl" type="range" min="1" max="4" step="1" value="1" />
               <strong id="timeScaleValue">1x</strong>
             </label>
+            <div class="level-strip" aria-label="Input level meters">
+              <span id="rmsMeter"></span>
+              <i id="peakMeter"></i>
+            </div>
+          </div>
+
+          <div class="lab-block">
+            <div class="block-title">Practice</div>
+            <div class="snapshot-readout compact">
+              <strong id="practiceStatus">Daily 0/5</strong>
+              <span id="practiceDetail">Lock a target to start a streak.</span>
+            </div>
           </div>
 
           <div class="lab-block">
             <div class="block-title">Snapshot</div>
+            <label class="track-attach">
+              <span>Attach</span>
+              <select id="trackAttachSelect">
+                <option value="">Set timeline</option>
+              </select>
+            </label>
             <div class="snapshot-readout">
               <strong id="snapshotStatus">Ready</strong>
               <span id="snapshotDetail">--</span>
@@ -135,6 +173,7 @@
     </div>
 
     <script type="module" src="./src/theme.js"></script>
+    <script type="module" src="./src/tool-registry.js"></script>
     <script type="module" src="./src/audio-lab.js"></script>
   </body>
 </html>

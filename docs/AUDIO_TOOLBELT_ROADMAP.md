@@ -12,7 +12,9 @@ The first reusable implementation now lives in:
 
 - `src/audio-session.js`: browser input lifecycle for mic, shared audio, files, and generated tones.
 - `src/pitch-analysis.js`: real-time pitch analysis frames and musical pitch helpers.
+- `src/audio-widgets.js`: reusable tuner presets, level metering, zero-crossing trigger helpers, and practice stat storage.
 - `src/performance-events.js`: structured practice/game events persisted into the shared audio timeline.
+- `src/tool-registry.js`: shared tool rack navigation across SetScope, Pitch Gates, Audio Lab, and Journal.
 
 ## Toolbelt Modules
 
@@ -36,7 +38,7 @@ The first reusable implementation now lives in:
 
 ### Listening Lab
 
-- Audio Lab: tuner/oscilloscope utility with demo, mic, shared-audio, file inputs, target-note hold practice, gain, time-scale, and freeze.
+- Audio Lab: tuner/oscilloscope utility with demo, mic, shared-audio, file inputs, target-note hold practice, instrument presets, level meters, input gain, time-scale, trigger, freeze, streaks, and track-attached snapshots.
 - Oscilloscope.
 - Spectrogram.
 - Beat grid.

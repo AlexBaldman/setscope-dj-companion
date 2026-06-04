@@ -30,7 +30,7 @@
 
 .scope-header {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -152,6 +152,66 @@
 .source-btn.active {
   color: var(--scope-green);
   border-color: rgba(126, 247, 174, 0.62);
+}
+
+.preset-control {
+  margin-bottom: 8px;
+}
+
+.target-control {
+  flex-wrap: wrap;
+}
+
+.level-strip {
+  position: relative;
+  height: 16px;
+  margin-top: 12px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  background:
+    linear-gradient(90deg, rgba(126, 247, 174, 0.18), rgba(240, 173, 78, 0.2), rgba(242, 111, 145, 0.25)),
+    #07100c;
+}
+
+.level-strip span,
+.level-strip i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  display: block;
+}
+
+.level-strip span {
+  width: var(--rms, 0%);
+  background: rgba(126, 247, 174, 0.74);
+  transition: width 100ms ease;
+}
+
+.level-strip i {
+  width: 2px;
+  left: var(--peak, 0%);
+  background: #fff2a5;
+  box-shadow: 0 0 10px rgba(255, 242, 165, 0.6);
+}
+
+.track-attach {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.track-attach select {
+  width: 100%;
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface-2);
+  color: var(--text);
 }
 
 .snapshot-readout span {

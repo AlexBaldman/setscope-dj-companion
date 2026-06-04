@@ -1,6 +1,16 @@
 import { persistAudioEvent } from "./state.js";
 
-export function createPerformanceEvent({ modeId, status = "complete", score = 0, streak = 0, sourceLabel = "none", details = {}, evidence = {} } = {}) {
+export function createPerformanceEvent({
+  modeId,
+  status = "complete",
+  score = 0,
+  streak = 0,
+  sourceLabel = "none",
+  trackId = "",
+  time = "--:--",
+  details = {},
+  evidence = {},
+} = {}) {
   return {
     kind: "performance",
     modeId: modeId || "unknown-mode",
@@ -8,6 +18,8 @@ export function createPerformanceEvent({ modeId, status = "complete", score = 0,
     score: Number(score) || 0,
     streak: Number(streak) || 0,
     sourceLabel,
+    trackId,
+    time,
     details,
     evidence,
     createdAt: new Date().toISOString(),
@@ -37,7 +49,8 @@ export function createPitchGatesCompletionEvent({ sourceLabel, register, speed, 
 export function persistPerformanceEvent(event) {
   persistAudioEvent({
     type: audioEventTypeForMode(event.modeId),
-    time: "--:--",
+    trackId: event.trackId,
+    time: event.time || "--:--",
     title: event.details?.game ? `${event.details.game} run` : "Performance run",
     detail: event.evidence?.summary || `${event.sourceLabel} / ${event.score} pts / streak ${event.streak}`,
     metadata: event,
