@@ -516,3 +516,19 @@ What changed:
 Why this matters:
 
 The toolbelt is getting a spine. New games and utilities can now share navigation, shared musical widget logic, and a memory path back into the DJ set instead of becoming isolated experiments.
+
+## 2026-06-04 - Cockpit Toolbelt Signals
+
+We made the main DJ cockpit aware of attached toolbelt events, starting with Audio Lab snapshots.
+
+What changed:
+
+- Added a state helper for retrieving audio events attached to a specific track.
+- Added compact toolbelt badges to set timeline rows.
+- Added selected-track toolbelt signals inside the Set Moment inspector.
+- Upgraded Toolbelt Events cards with metadata chips for note, target, cents, stable locks, RMS, and peak values.
+- Extended tests and project checks around attached event lookup and cockpit rendering hooks.
+
+Why this matters:
+
+The main cockpit is becoming the command center. Audio Lab, Pitch Gates, recognition, tags, and future toys can now leave visible evidence on the actual set timeline instead of disappearing into a generic activity feed.

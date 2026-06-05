@@ -91,6 +91,7 @@ Pitch Gates is now the first working musician-helper experiment and the first cl
 - A shared challenge engine for musical minigames rather than unrelated one-offs.
 - Pitch-controlled play, beat tapping, pad/button pattern reflex, transition timing, scratch gestures, ear-training decisions, and synth-patch challenges.
 - Every run can store compact performance events in the audio-event timeline and connect practice back to a set or track.
+- Attached toolbelt events now surface inside the main cockpit as timeline-row badges, selected-track signals, and richer event cards.
 - See `docs/ARCADE_LAB_ROADMAP.md` for the control vocabulary and recommended build order.
 
 ## Novel Feature Ideas

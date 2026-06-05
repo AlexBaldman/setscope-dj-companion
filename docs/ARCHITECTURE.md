@@ -8,7 +8,7 @@
 - `src/styles.css`: visual system, responsive layout, vinyl/sampler/car/CD skin styling.
 - `src/app.js`: app bootstrap and event wiring.
 - `src/state.js`: browser state, hydration, persistence, selected-track state, track mutation helpers.
-- `src/render.js`: timeline, inspector, summary, capture log, archive list, and current-track rendering.
+- `src/render.js`: timeline, inspector, summary, capture log, archive list, current-track rendering, and attached toolbelt signal rendering.
 - `src/set-map.js`: canvas set-map drawing and nearest-track selection.
 - `src/audio.js`: imported-audio decoding and BPM estimation.
 - `src/audio-lab.js` and `src/audio-lab.css`: tuner/oscilloscope tool built on shared audio modules.
@@ -60,6 +60,7 @@
 - Audio Lab proves those shared modules on a second utility surface and writes `analysis` snapshots into the toolbelt timeline.
 - A shared tool registry now gives each surface the same navigation rack.
 - Audio Lab now includes reusable widget primitives: tuner presets, level metering, zero-crossing trigger behavior, daily practice streaks, and set-track attachment.
+- The main cockpit now derives attached toolbelt signals from `state.audioEvents`, showing compact badges on timeline rows, richer selected-track moments, and metadata chips in the Toolbelt Events panel.
 
 ## Main Risks
 

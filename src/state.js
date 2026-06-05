@@ -80,6 +80,14 @@ export function visibleTracks() {
   });
 }
 
+export function audioEventsForTrack(trackOrId, limit = 6) {
+  const id = typeof trackOrId === "string" ? trackOrId : trackOrId?.id;
+  if (!id) return [];
+  return state.audioEvents
+    .filter((event) => event.trackId === id)
+    .slice(0, limit);
+}
+
 export function addTrack(track = {}) {
   const created = {
     id: uid(),

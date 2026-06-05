@@ -66,6 +66,9 @@ assert(css.includes(".provider-chain"), "styles.css should include provider chai
 assert(css.includes(".confidence-meter"), "styles.css should include confidence meter styles");
 assert(css.includes("stickerLand"), "styles.css should include capture sticker animation");
 assert(css.includes(".audio-event-log"), "styles.css should include audio event log styles");
+assert(css.includes(".event-meta-strip"), "styles.css should include rich toolbelt event metadata styles");
+assert(css.includes(".track-event-strip"), "styles.css should include timeline toolbelt signal styles");
+assert(css.includes(".moment-toolbelt"), "styles.css should include selected-track toolbelt signal styles");
 assert(css.includes(".quick-tag-grid"), "styles.css should include quick tag styles");
 assert(css.includes(".duplicate-panel"), "styles.css should include duplicate review styles");
 assert(workflows.includes("requestRecognition"), "workflows.js should include the recognition client");
@@ -137,6 +140,7 @@ assert(state.includes("tagSelectedTrack"), "state.js should support crate tags")
 assert(state.includes("logAudioEvent"), "state.js should support audio event logging");
 assert(state.includes("persistAudioEvent"), "state.js should persist external audio events without overwriting a newer draft");
 assert(state.includes("metadata"), "state.js should preserve structured event metadata");
+assert(state.includes("audioEventsForTrack"), "state.js should expose attached toolbelt events by track");
 assert(state.includes("mergeSelectedDuplicate"), "state.js should support duplicate merging");
 assert(js.includes("./workflows.js"), "app.js should wire workflows");
 assert(js.includes("./render.js"), "app.js should wire rendering");
@@ -145,6 +149,9 @@ assert(js.includes("refreshProviderDiagnostics"), "app.js should refresh provide
 assert(render.includes("createRenderer"), "render.js should export renderer factory");
 assert(render.includes("renderConfidenceMeter"), "render.js should update confidence meter");
 assert(render.includes("renderAudioEvents"), "render.js should render audio events");
+assert(render.includes("renderTrackEventStrip"), "render.js should render timeline toolbelt signal badges");
+assert(render.includes("renderTrackToolbeltMoments"), "render.js should render selected-track toolbelt signals");
+assert(render.includes("renderEventMetadata"), "render.js should render rich toolbelt event metadata");
 assert(render.includes("renderTrackTags"), "render.js should render crate tags");
 assert(render.includes("renderDuplicateReview"), "render.js should render duplicate review");
 assert(audio.includes("estimateBpm"), "audio.js should include BPM analysis");

@@ -1,5 +1,6 @@
 import { drawSetMap } from "./set-map.js";
 import {
+  audioEventsForTrack,
   getSelectedId,
   getSelectedTrack,
   findNearbyDuplicate,
@@ -46,6 +47,7 @@ export function createRenderer(els, handlers) {
     els.timeline.innerHTML = "";
     const tracks = visibleTracks();
     tracks.forEach((track) => {
+      const events = audioEventsForTrack(track, 3);
       const row = document.createElement("button");
       row.className = `track-row ${track.id === getSelectedId() ? "active" : ""} ${track.needsReview ? "needs-review" : ""}`;
       row.style.setProperty("--wave", `${track.wave || 50}%`);
@@ -56,6 +58,7 @@ export function createRenderer(els, handlers) {
           <div class="artist-name">${escapeHtml(track.artist)}</div>
           <div class="track-detail">${escapeHtml(track.era)} / ${escapeHtml(track.label)}</div>
           <div class="mini-wave"></div>
+          ${renderTrackEventStrip(events)}
         </div>
         <div class="tag bpm">${track.bpm} BPM</div>
         <div class="tag">${escapeHtml(track.transition)}</div>
@@ -83,10 +86,12 @@ export function createRenderer(els, handlers) {
     els.artwork.style.setProperty("--art-c", colors[2]);
     els.intelTitle.textContent = track.title;
     els.intelSummary.textContent = track.notes;
+    const trackEvents = audioEventsForTrack(track, 5);
     els.momentList.innerHTML = `
       <li>${track.time} entry with ${track.transition.toLowerCase()} transition</li>
       <li>${track.bpm} BPM, Camelot ${track.key}</li>
       <li>${track.confidence || 76}% recognition confidence</li>
+      ${renderTrackToolbeltMoments(trackEvents)}
     `;
     els.dnaGrid.innerHTML = `
       <div class="dna-row"><span>Era</span><strong>${escapeHtml(track.era)}</strong></div>
@@ -164,11 +169,12 @@ export function createRenderer(els, handlers) {
     els.audioEventLog.innerHTML = events
       .map(
         (event) => `
-          <button class="event-item" data-event-track-id="${escapeHtml(event.trackId || "")}">
+          <button class="event-item ${event.trackId ? "attached" : ""}" data-event-track-id="${escapeHtml(event.trackId || "")}">
             <div class="event-type">${escapeHtml(event.type)}</div>
             <div>
               <strong>${escapeHtml(event.title)}</strong>
               <span>${escapeHtml(event.time)} / ${escapeHtml(event.detail)}</span>
+              ${renderEventMetadata(event)}
             </div>
           </button>
         `,
@@ -233,6 +239,73 @@ export function createRenderer(els, handlers) {
     if (!duplicate) return;
     els.duplicateText.textContent = `${duplicate.time} / ${duplicate.title} may be the same captured moment.`;
   }
+}
+
+function renderTrackEventStrip(events) {
+  if (!events.length) return "";
+  return `
+    <div class="track-event-strip" aria-label="Attached toolbelt events">
+      ${events.map((event) => `<span class="event-chip ${escapeHtml(event.type)}">${escapeHtml(shortEventLabel(event))}</span>`).join("")}
+    </div>
+  `;
+}
+
+function renderTrackToolbeltMoments(events) {
+  if (!events.length) return `<li class="moment-muted">No attached toolbelt signals yet</li>`;
+  return `
+    <li class="moment-toolbelt">
+      <strong>Toolbelt signals</strong>
+      <div class="moment-event-list">
+        ${events
+          .map(
+            (event) => `
+              <span>
+                <b>${escapeHtml(shortEventLabel(event))}</b>
+                ${escapeHtml(formatEventSignal(event))}
+              </span>
+            `,
+          )
+          .join("")}
+      </div>
+    </li>
+  `;
+}
+
+function renderEventMetadata(event) {
+  const details = event.metadata?.details;
+  if (!details) return "";
+  const chips = [
+    details.note && details.targetNote ? `${details.note} to ${details.targetNote}` : "",
+    Number.isFinite(details.cents) ? `${details.cents > 0 ? "+" : ""}${details.cents} cents` : "",
+    details.stableHold ? "locked" : "",
+    Number.isFinite(details.rms) ? `RMS ${details.rms}%` : "",
+    Number.isFinite(details.peak) ? `peak ${details.peak}%` : "",
+  ].filter(Boolean);
+  if (!chips.length) return "";
+  return `<div class="event-meta-strip">${chips.map((chip) => `<i>${escapeHtml(chip)}</i>`).join("")}</div>`;
+}
+
+function shortEventLabel(event) {
+  if (event.metadata?.modeId === "audio-lab") return "Lab";
+  if (event.metadata?.modeId === "pitch-gates") return "Arcade";
+  if (event.type === "recognition") return "ID";
+  if (event.type === "tag") return "Tag";
+  return event.type || "Event";
+}
+
+function formatEventSignal(event) {
+  const details = event.metadata?.details;
+  if (!details) return event.detail || event.title;
+  if (event.metadata?.modeId === "audio-lab") {
+    const pitch = details.note && details.targetNote ? `${details.note} to ${details.targetNote}` : details.note || "pitch";
+    const cents = Number.isFinite(details.cents) ? `, ${details.cents > 0 ? "+" : ""}${details.cents} cents` : "";
+    const hold = details.stableHold ? ", stable lock" : "";
+    return `${pitch}${cents}${hold}`;
+  }
+  if (event.metadata?.modeId === "pitch-gates") {
+    return `${details.score || event.metadata.score || 0} pts, streak ${details.streak || event.metadata.streak || 0}`;
+  }
+  return event.detail || event.title;
 }
 
 function setTrackColors(track) {

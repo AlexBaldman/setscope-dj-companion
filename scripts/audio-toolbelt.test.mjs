@@ -13,7 +13,7 @@ globalThis.localStorage = {
 const { midiToFrequency, midiToNote, frequencyToMidi, isPitchedFrame } = await import("../src/pitch-analysis.js");
 const { analyzeLevel, centsFromMidiTarget, findZeroCrossingIndex, tunerPresets } = await import("../src/audio-widgets.js");
 const { createPitchGatesCompletionEvent, persistPerformanceEvent } = await import("../src/performance-events.js");
-const { state } = await import("../src/state.js");
+const { audioEventsForTrack, state } = await import("../src/state.js");
 
 assert.equal(midiToNote(69), "A4");
 assert.equal(Math.round(midiToFrequency(69)), 440);
@@ -84,5 +84,7 @@ assert.equal(labDraft.audioEvents[0].metadata.modeId, "audio-lab");
 assert.equal(labDraft.audioEvents[0].metadata.details.stableHold, true);
 assert.equal(labDraft.audioEvents[0].metadata.details.targetNote, "A4");
 assert.equal(labDraft.audioEvents[0].metadata.details.triggerScope, true);
+assert.equal(audioEventsForTrack("track-123")[0].title, "Audio Lab run");
+assert.equal(audioEventsForTrack({ id: "missing-track" }).length, 0);
 
 console.log("Audio toolbelt checks passed");
