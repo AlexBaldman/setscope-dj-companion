@@ -532,3 +532,19 @@ What changed:
 Why this matters:
 
 The main cockpit is becoming the command center. Audio Lab, Pitch Gates, recognition, tags, and future toys can now leave visible evidence on the actual set timeline instead of disappearing into a generic activity feed.
+
+## 2026-06-05 - Event Detail Drawer and Promote To Notes
+
+We made toolbelt events actionable from the main cockpit.
+
+What changed:
+
+- Added a Toolbelt Event detail drawer with structured metadata, event summary, and attached-track selector.
+- Event cards now open the drawer instead of only jumping to a track.
+- Added event reassignment so unattached or misattached signals can be moved to the right set moment.
+- Added "Add to notes" so a tool signal can become durable track annotation.
+- Added state and test coverage for event lookup, reassignment, and note promotion.
+
+Why this matters:
+
+Toolbelt outputs are now part of the user's musical memory. A tuner lock, game run, recognition capture, or future visualizer marker can be turned into a human-readable set note without leaving the cockpit.

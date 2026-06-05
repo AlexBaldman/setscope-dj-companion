@@ -88,6 +88,37 @@ export function audioEventsForTrack(trackOrId, limit = 6) {
     .slice(0, limit);
 }
 
+export function getAudioEventById(id) {
+  return state.audioEvents.find((event) => event.id === id) || null;
+}
+
+export function reassignAudioEvent(eventId, trackId) {
+  const event = getAudioEventById(eventId);
+  if (!event) return null;
+  const track = state.tracks.find((item) => item.id === trackId);
+  event.trackId = track?.id || "";
+  event.time = track?.time || "--:--";
+  event.metadata = {
+    ...(event.metadata || {}),
+    trackId: event.trackId,
+    time: event.time,
+  };
+  return event;
+}
+
+export function promoteAudioEventToTrackNotes(eventId) {
+  const event = getAudioEventById(eventId);
+  const track = event?.trackId ? state.tracks.find((item) => item.id === event.trackId) : null;
+  if (!event || !track) return null;
+  normalizeTrack(track);
+  const note = formatAudioEventNote(event);
+  if (!track.notes.includes(note)) {
+    track.notes = `${track.notes.trim()}\n\n${note}`.trim();
+  }
+  selectedId = track.id;
+  return track;
+}
+
 export function addTrack(track = {}) {
   const created = {
     id: uid(),
@@ -284,6 +315,20 @@ function createAudioEvent(event) {
     metadata: event.metadata || null,
     createdAt: new Date().toISOString(),
   };
+}
+
+function formatAudioEventNote(event) {
+  const details = event.metadata?.details || {};
+  const parts = [
+    details.note && details.targetNote ? `${details.note} to ${details.targetNote}` : "",
+    Number.isFinite(details.cents) ? `${details.cents > 0 ? "+" : ""}${details.cents} cents` : "",
+    details.stableHold ? "stable lock" : "",
+    Number.isFinite(details.rms) ? `RMS ${details.rms}%` : "",
+    Number.isFinite(details.peak) ? `peak ${details.peak}%` : "",
+    details.preset ? `${details.preset} preset` : "",
+  ].filter(Boolean);
+  const signal = parts.length ? parts.join(" / ") : event.detail;
+  return `Toolbelt note (${event.title}, ${event.time}): ${signal}`;
 }
 
 export function nextTimecode() {

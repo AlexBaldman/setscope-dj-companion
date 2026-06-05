@@ -1121,6 +1121,125 @@ body[data-skin="cd"] .platter {
   text-transform: uppercase;
 }
 
+.event-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 12;
+  width: min(420px, 100vw);
+  height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  border-left: 1px solid var(--line);
+  background:
+    linear-gradient(180deg, rgba(117, 215, 182, 0.08), transparent 34%),
+    var(--panel);
+  box-shadow: -22px 0 60px rgba(0, 0, 0, 0.35);
+  transform: translateX(100%);
+  transition: transform 180ms ease;
+}
+
+.event-drawer.open {
+  transform: translateX(0);
+}
+
+.event-drawer-head {
+  min-height: 86px;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  border-bottom: 1px solid var(--line);
+}
+
+.event-drawer-head span {
+  display: block;
+  color: var(--mint);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.event-drawer-head h2 {
+  margin: 5px 0 0;
+  font-size: 20px;
+  line-height: 1.1;
+}
+
+.event-drawer-body {
+  min-height: 0;
+  overflow: auto;
+  padding: 16px;
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+
+.event-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.event-detail-grid div {
+  min-height: 62px;
+  padding: 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(15, 14, 12, 0.28);
+}
+
+.event-detail-grid span,
+.event-track-field span {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.event-detail-grid strong {
+  display: block;
+  margin-top: 6px;
+  overflow: hidden;
+  color: var(--text);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.event-detail-copy {
+  padding: 12px;
+  border: 1px solid rgba(117, 215, 182, 0.28);
+  border-radius: 8px;
+  color: var(--text);
+  background: rgba(117, 215, 182, 0.08);
+  line-height: 1.45;
+}
+
+.event-track-field {
+  display: grid;
+  gap: 7px;
+}
+
+.event-track-field select {
+  min-height: 40px;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--text);
+}
+
+.event-drawer-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
 .timeline-footer {
   border-top: 1px solid var(--line);
   padding: 12px 14px;

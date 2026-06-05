@@ -5,10 +5,13 @@ import { applySkin, createRenderer, makeBars } from "./render.js";
 import { nearestTrackFromMap } from "./set-map.js";
 import {
   addTrack as addStateTrack,
+  getAudioEventById,
   getSelectedTrack,
   mergeSelectedDuplicate,
   nextTimecode,
   persist,
+  promoteAudioEventToTrackNotes,
+  reassignAudioEvent,
   saveSelectedTrack,
   setSelectedId,
   setSelectedTransition,
@@ -20,12 +23,16 @@ import { createWorkflows } from "./workflows.js";
 import { showToast } from "./utils.js";
 
 let workflows;
+let selectedAudioEventId = "";
 
 const renderer = createRenderer(els, {
   onSelectTrack(id) {
     if (!id) return;
     setSelectedId(id);
     renderer.render();
+  },
+  onOpenAudioEvent(id) {
+    openAudioEvent(id);
   },
   onLoadArchivedSet(id) {
     workflows.loadArchivedSet(id);
@@ -141,6 +148,41 @@ function selectFromSetMap(event) {
   renderer.render();
 }
 
+function openAudioEvent(id) {
+  selectedAudioEventId = id;
+  const event = getAudioEventById(id);
+  if (event?.trackId) setSelectedId(event.trackId);
+  renderer.render();
+  renderer.renderEventDetail(event);
+}
+
+function closeAudioEvent() {
+  selectedAudioEventId = "";
+  renderer.renderEventDetail(null);
+}
+
+function reassignSelectedAudioEvent() {
+  if (!selectedAudioEventId) return;
+  const event = reassignAudioEvent(selectedAudioEventId, els.eventTrackSelect.value);
+  if (!event) return;
+  if (event.trackId) setSelectedId(event.trackId);
+  renderer.render();
+  renderer.renderEventDetail(getAudioEventById(selectedAudioEventId));
+  showToast(els, event.trackId ? "Event attached" : "Event unattached");
+}
+
+function promoteSelectedAudioEvent() {
+  if (!selectedAudioEventId) return;
+  const track = promoteAudioEventToTrackNotes(selectedAudioEventId);
+  if (!track) {
+    showToast(els, "Attach event first");
+    return;
+  }
+  renderer.render();
+  renderer.renderEventDetail(getAudioEventById(selectedAudioEventId));
+  showToast(els, "Signal added to notes");
+}
+
 document.querySelector("#saveTrackBtn").addEventListener("click", saveSelected);
 document.querySelector("#addTrackBtn").addEventListener("click", addManualTrack);
 document.querySelector("#sortBtn").addEventListener("click", sortTracks);
@@ -171,6 +213,9 @@ document.querySelector("#exportBtn").addEventListener("click", workflows.exportD
 document.querySelector("#newSetBtn").addEventListener("click", workflows.newSet);
 document.querySelector("#copySetlistBtn").addEventListener("click", workflows.copySetlist);
 document.querySelector("#mergeDuplicateBtn").addEventListener("click", mergeDuplicateMoment);
+document.querySelector("#closeEventDrawerBtn").addEventListener("click", closeAudioEvent);
+document.querySelector("#reassignEventBtn").addEventListener("click", reassignSelectedAudioEvent);
+document.querySelector("#promoteEventBtn").addEventListener("click", promoteSelectedAudioEvent);
 
 els.timelineSearch.addEventListener("input", (event) => {
   state.query = event.target.value;

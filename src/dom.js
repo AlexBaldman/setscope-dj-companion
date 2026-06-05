@@ -55,4 +55,10 @@ export const els = {
   tagButtons: document.querySelectorAll("[data-quick-tag]"),
   duplicatePanel: document.querySelector("#duplicatePanel"),
   duplicateText: document.querySelector("#duplicateText"),
+  eventDrawer: document.querySelector("#eventDrawer"),
+  eventDrawerBody: document.querySelector("#eventDrawerBody"),
+  eventDrawerKicker: document.querySelector("#eventDrawerKicker"),
+  eventDrawerMeta: document.querySelector("#eventDrawerMeta"),
+  eventDrawerTitle: document.querySelector("#eventDrawerTitle"),
+  eventTrackSelect: document.querySelector("#eventTrackSelect"),
 };

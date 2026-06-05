@@ -169,7 +169,7 @@ export function createRenderer(els, handlers) {
     els.audioEventLog.innerHTML = events
       .map(
         (event) => `
-          <button class="event-item ${event.trackId ? "attached" : ""}" data-event-track-id="${escapeHtml(event.trackId || "")}">
+          <button class="event-item ${event.trackId ? "attached" : ""}" data-event-id="${escapeHtml(event.id)}" data-event-track-id="${escapeHtml(event.trackId || "")}">
             <div class="event-type">${escapeHtml(event.type)}</div>
             <div>
               <strong>${escapeHtml(event.title)}</strong>
@@ -180,9 +180,28 @@ export function createRenderer(els, handlers) {
         `,
       )
       .join("");
-    els.audioEventLog.querySelectorAll("[data-event-track-id]").forEach((button) => {
-      button.addEventListener("click", () => handlers.onSelectTrack(button.dataset.eventTrackId));
+    els.audioEventLog.querySelectorAll("[data-event-id]").forEach((button) => {
+      button.addEventListener("click", () => handlers.onOpenAudioEvent(button.dataset.eventId));
     });
+  }
+
+  function renderEventDetail(event) {
+    const open = Boolean(event);
+    els.eventDrawer.classList.toggle("open", open);
+    els.eventDrawer.setAttribute("aria-hidden", String(!open));
+    if (!event) {
+      els.eventDrawerKicker.textContent = "Toolbelt event";
+      els.eventDrawerTitle.textContent = "No event selected";
+      els.eventDrawerMeta.innerHTML = "";
+      els.eventDrawerBody.textContent = "Select a toolbelt event to inspect its signal.";
+      renderEventTrackOptions(null);
+      return;
+    }
+    els.eventDrawerKicker.textContent = `${event.type || "event"} / ${event.time || "--:--"}`;
+    els.eventDrawerTitle.textContent = event.title || "Toolbelt event";
+    els.eventDrawerBody.textContent = formatEventDrawerBody(event);
+    els.eventDrawerMeta.innerHTML = renderEventDetailGrid(event);
+    renderEventTrackOptions(event);
   }
 
   function renderArchiveList() {
@@ -209,7 +228,7 @@ export function createRenderer(els, handlers) {
     });
   }
 
-  return { render, renderTimeline, renderArchiveList };
+  return { render, renderTimeline, renderArchiveList, renderEventDetail };
 
   function renderConfidenceMeter(confidence) {
     const activeBars = Math.round(Math.max(0, Math.min(100, confidence)) / 12.5);
@@ -238,6 +257,17 @@ export function createRenderer(els, handlers) {
     els.duplicatePanel.hidden = !duplicate;
     if (!duplicate) return;
     els.duplicateText.textContent = `${duplicate.time} / ${duplicate.title} may be the same captured moment.`;
+  }
+
+  function renderEventTrackOptions(event) {
+    els.eventTrackSelect.innerHTML = `<option value="">Unattached</option>`;
+    state.tracks.map(normalizeTrack).forEach((track) => {
+      const option = document.createElement("option");
+      option.value = track.id;
+      option.textContent = `${track.time} / ${track.title}`;
+      option.selected = event?.trackId === track.id;
+      els.eventTrackSelect.appendChild(option);
+    });
   }
 }
 
@@ -283,6 +313,43 @@ function renderEventMetadata(event) {
   ].filter(Boolean);
   if (!chips.length) return "";
   return `<div class="event-meta-strip">${chips.map((chip) => `<i>${escapeHtml(chip)}</i>`).join("")}</div>`;
+}
+
+function renderEventDetailGrid(event) {
+  const details = event.metadata?.details || {};
+  const rows = [
+    ["Type", event.type],
+    ["Track time", event.time],
+    ["Source", event.metadata?.sourceLabel || details.sourceLabel || event.metadata?.sourceLabel],
+    ["Mode", event.metadata?.modeId],
+    ["Score", event.metadata?.score],
+    ["Note", details.note],
+    ["Target", details.targetNote],
+    ["Cents", Number.isFinite(details.cents) ? `${details.cents > 0 ? "+" : ""}${details.cents}` : ""],
+    ["Stable", details.stableHold ? "Yes" : ""],
+    ["RMS", Number.isFinite(details.rms) ? `${details.rms}%` : ""],
+    ["Peak", Number.isFinite(details.peak) ? `${details.peak}%` : ""],
+    ["Preset", details.preset],
+  ].filter(([, value]) => value !== undefined && value !== null && value !== "");
+  return rows
+    .map(([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`)
+    .join("");
+}
+
+function formatEventDrawerBody(event) {
+  const details = event.metadata?.details || {};
+  if (event.metadata?.modeId === "audio-lab") {
+    const pitch = details.note && details.targetNote ? `${details.note} aimed at ${details.targetNote}` : details.note || "Pitch signal";
+    const stability = details.stableHold ? "held steady enough to lock" : "not locked yet";
+    const level = [Number.isFinite(details.rms) ? `RMS ${details.rms}%` : "", Number.isFinite(details.peak) ? `peak ${details.peak}%` : ""]
+      .filter(Boolean)
+      .join(", ");
+    return `${pitch}; ${stability}${level ? `; ${level}` : ""}. ${event.detail || ""}`.trim();
+  }
+  if (event.metadata?.modeId === "pitch-gates") {
+    return `Pitch Gates run with ${event.metadata.score || 0} points and streak ${event.metadata.streak || 0}. ${event.detail || ""}`.trim();
+  }
+  return event.detail || event.metadata?.evidence?.summary || "No extra metadata captured yet.";
 }
 
 function shortEventLabel(event) {

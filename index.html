@@ -426,6 +426,33 @@
       </main>
     </div>
 
+    <aside class="event-drawer" id="eventDrawer" aria-hidden="true" aria-label="Toolbelt event details">
+      <div class="event-drawer-head">
+        <div>
+          <span id="eventDrawerKicker">Toolbelt event</span>
+          <h2 id="eventDrawerTitle">No event selected</h2>
+        </div>
+        <button class="icon-btn" id="closeEventDrawerBtn" title="Close event details">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="event-drawer-body">
+        <div class="event-detail-grid" id="eventDrawerMeta"></div>
+        <div class="event-detail-copy" id="eventDrawerBody">Select a toolbelt event to inspect its signal.</div>
+        <label class="event-track-field">
+          <span>Attached track</span>
+          <select id="eventTrackSelect"></select>
+        </label>
+        <div class="event-drawer-actions">
+          <button class="quiet-btn" id="reassignEventBtn">Reassign</button>
+          <button class="primary-btn" id="promoteEventBtn">Add to notes</button>
+        </div>
+      </div>
+    </aside>
+
     <div class="toast" id="toast">Saved</div>
     <script type="module" src="./src/theme.js"></script>
     <script type="module" src="./src/tool-registry.js"></script>

@@ -13,7 +13,13 @@ globalThis.localStorage = {
 const { midiToFrequency, midiToNote, frequencyToMidi, isPitchedFrame } = await import("../src/pitch-analysis.js");
 const { analyzeLevel, centsFromMidiTarget, findZeroCrossingIndex, tunerPresets } = await import("../src/audio-widgets.js");
 const { createPitchGatesCompletionEvent, persistPerformanceEvent } = await import("../src/performance-events.js");
-const { audioEventsForTrack, state } = await import("../src/state.js");
+const {
+  audioEventsForTrack,
+  getAudioEventById,
+  promoteAudioEventToTrackNotes,
+  reassignAudioEvent,
+  state,
+} = await import("../src/state.js");
 
 assert.equal(midiToNote(69), "A4");
 assert.equal(Math.round(midiToFrequency(69)), 440);
@@ -86,5 +92,36 @@ assert.equal(labDraft.audioEvents[0].metadata.details.targetNote, "A4");
 assert.equal(labDraft.audioEvents[0].metadata.details.triggerScope, true);
 assert.equal(audioEventsForTrack("track-123")[0].title, "Audio Lab run");
 assert.equal(audioEventsForTrack({ id: "missing-track" }).length, 0);
+
+const firstTrack = state.tracks[0];
+persistPerformanceEvent({
+  kind: "performance",
+  modeId: "audio-lab",
+  score: 100,
+  sourceLabel: "DEMO",
+  trackId: firstTrack.id,
+  time: firstTrack.time,
+  details: {
+    game: "Audio Lab",
+    note: "E4",
+    targetNote: "E4",
+    cents: 0,
+    stableHold: true,
+    rms: 40,
+    peak: 76,
+    preset: "Guitar",
+  },
+  evidence: {
+    summary: "DEMO / E4 to E4 / locked",
+  },
+});
+
+const attachedEvent = state.audioEvents[0];
+assert.equal(getAudioEventById(attachedEvent.id).trackId, firstTrack.id);
+assert.equal(promoteAudioEventToTrackNotes(attachedEvent.id).notes.includes("Toolbelt note"), true);
+assert.equal(promoteAudioEventToTrackNotes("missing-event"), null);
+const reassigned = reassignAudioEvent(attachedEvent.id, state.tracks[1].id);
+assert.equal(reassigned.trackId, state.tracks[1].id);
+assert.equal(reassigned.time, state.tracks[1].time);
 
 console.log("Audio toolbelt checks passed");
