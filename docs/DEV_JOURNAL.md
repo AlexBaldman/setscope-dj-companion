@@ -548,3 +548,19 @@ What changed:
 Why this matters:
 
 Toolbelt outputs are now part of the user's musical memory. A tuner lock, game run, recognition capture, or future visualizer marker can be turned into a human-readable set note without leaving the cockpit.
+
+## 2026-06-18 - Signal Labels and Timeline Filters
+
+We made the cockpit's toolbelt memory navigable.
+
+What changed:
+
+- Added timeline signal filters for all tracks, tracks with signals, analysis events, instrument events, practice labels, and review labels.
+- Added quick labels in the event drawer: practice, tuning, transition, sample, and review.
+- Event labels now render as metadata chips and participate in timeline filtering.
+- Persisted `signalFilter` in state so the cockpit remembers the current signal view.
+- Added tests for event label toggling and label-driven visible-track filtering.
+
+Why this matters:
+
+As the toolbelt grows, the problem shifts from "can we capture interesting signals?" to "can we find the right signal later?" This turns the cockpit into a searchable musical evidence board instead of an activity feed.

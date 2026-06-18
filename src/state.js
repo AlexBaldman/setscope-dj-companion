@@ -7,6 +7,7 @@ export const state = hydrateState(loadState());
 state.skin = state.skin || "vinyl";
 state.query = state.query || "";
 state.reviewOnly = state.reviewOnly || false;
+state.signalFilter = state.signalFilter || "all";
 state.recognitionCursor = state.recognitionCursor || 0;
 state.captureLog = state.captureLog || [];
 state.audioEvents = state.audioEvents || [];
@@ -76,7 +77,8 @@ export function visibleTracks() {
       .toLowerCase();
     const queryMatch = !query || searchable.includes(query);
     const reviewMatch = !state.reviewOnly || track.needsReview;
-    return queryMatch && reviewMatch;
+    const signalMatch = trackMatchesSignalFilter(track, state.signalFilter);
+    return queryMatch && reviewMatch && signalMatch;
   });
 }
 
@@ -90,6 +92,26 @@ export function audioEventsForTrack(trackOrId, limit = 6) {
 
 export function getAudioEventById(id) {
   return state.audioEvents.find((event) => event.id === id) || null;
+}
+
+export function audioEventLabels(event) {
+  if (Array.isArray(event?.labels)) return event.labels;
+  if (Array.isArray(event?.metadata?.labels)) return event.metadata.labels;
+  return [];
+}
+
+export function toggleAudioEventLabel(eventId, label) {
+  const event = getAudioEventById(eventId);
+  if (!event || !label) return null;
+  const labels = new Set(audioEventLabels(event));
+  if (labels.has(label)) labels.delete(label);
+  else labels.add(label);
+  event.labels = [...labels];
+  event.metadata = {
+    ...(event.metadata || {}),
+    labels: event.labels,
+  };
+  return event;
 }
 
 export function reassignAudioEvent(eventId, trackId) {
@@ -308,6 +330,7 @@ function createAudioEvent(event) {
   return {
     id: uid(),
     type: event.type || "note",
+    labels: Array.isArray(event.labels) ? event.labels : Array.isArray(event.metadata?.labels) ? event.metadata.labels : [],
     trackId: event.trackId || "",
     time: event.time || "--:--",
     title: event.title || "Audio event",
@@ -315,6 +338,13 @@ function createAudioEvent(event) {
     metadata: event.metadata || null,
     createdAt: new Date().toISOString(),
   };
+}
+
+function trackMatchesSignalFilter(track, filter) {
+  if (!filter || filter === "all") return true;
+  const events = audioEventsForTrack(track, 100);
+  if (filter === "with-events") return events.length > 0;
+  return events.some((event) => event.type === filter || event.metadata?.modeId === filter || audioEventLabels(event).includes(filter));
 }
 
 function formatAudioEventNote(event) {

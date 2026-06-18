@@ -93,6 +93,7 @@ Pitch Gates is now the first working musician-helper experiment and the first cl
 - Every run can store compact performance events in the audio-event timeline and connect practice back to a set or track.
 - Attached toolbelt events now surface inside the main cockpit as timeline-row badges, selected-track signals, and richer event cards.
 - Event cards now open a detail drawer with reassignment and promote-to-track-notes actions.
+- Event labels and timeline signal filters make tool outputs findable as the set archive grows.
 - See `docs/ARCADE_LAB_ROADMAP.md` for the control vocabulary and recommended build order.
 
 ## Novel Feature Ideas

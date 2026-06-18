@@ -1,5 +1,6 @@
 import { drawSetMap } from "./set-map.js";
 import {
+  audioEventLabels,
   audioEventsForTrack,
   getSelectedId,
   getSelectedTrack,
@@ -73,6 +74,9 @@ export function createRenderer(els, handlers) {
     const progress = Math.min(100, Math.max(8, state.tracks.length * 13));
     els.progressFill.style.width = `${progress}%`;
     els.reviewToggle.classList.toggle("active", state.reviewOnly);
+    els.signalFilterButtons.forEach((button) => {
+      button.classList.toggle("active", button.dataset.signalFilter === state.signalFilter);
+    });
     els.timelineSearch.value = state.query;
     renderSummary();
     drawSetMap(els.setMapCanvas, state.tracks.map(normalizeTrack), getSelectedId());
@@ -188,12 +192,15 @@ export function createRenderer(els, handlers) {
   function renderEventDetail(event) {
     const open = Boolean(event);
     els.eventDrawer.classList.toggle("open", open);
+    els.eventDrawer.style.right = "auto";
+    els.eventDrawer.style.left = open ? "max(0px, calc(100vw - 420px))" : "100vw";
     els.eventDrawer.setAttribute("aria-hidden", String(!open));
     if (!event) {
       els.eventDrawerKicker.textContent = "Toolbelt event";
       els.eventDrawerTitle.textContent = "No event selected";
       els.eventDrawerMeta.innerHTML = "";
       els.eventDrawerBody.textContent = "Select a toolbelt event to inspect its signal.";
+      renderEventLabelButtons(null);
       renderEventTrackOptions(null);
       return;
     }
@@ -201,6 +208,7 @@ export function createRenderer(els, handlers) {
     els.eventDrawerTitle.textContent = event.title || "Toolbelt event";
     els.eventDrawerBody.textContent = formatEventDrawerBody(event);
     els.eventDrawerMeta.innerHTML = renderEventDetailGrid(event);
+    renderEventLabelButtons(event);
     renderEventTrackOptions(event);
   }
 
@@ -269,6 +277,13 @@ export function createRenderer(els, handlers) {
       els.eventTrackSelect.appendChild(option);
     });
   }
+
+  function renderEventLabelButtons(event) {
+    const labels = new Set(audioEventLabels(event));
+    els.eventLabelButtons.forEach((button) => {
+      button.classList.toggle("active", labels.has(button.dataset.eventLabel));
+    });
+  }
 }
 
 function renderTrackEventStrip(events) {
@@ -302,14 +317,14 @@ function renderTrackToolbeltMoments(events) {
 }
 
 function renderEventMetadata(event) {
-  const details = event.metadata?.details;
-  if (!details) return "";
+  const details = event.metadata?.details || {};
   const chips = [
     details.note && details.targetNote ? `${details.note} to ${details.targetNote}` : "",
     Number.isFinite(details.cents) ? `${details.cents > 0 ? "+" : ""}${details.cents} cents` : "",
     details.stableHold ? "locked" : "",
     Number.isFinite(details.rms) ? `RMS ${details.rms}%` : "",
     Number.isFinite(details.peak) ? `peak ${details.peak}%` : "",
+    ...audioEventLabels(event),
   ].filter(Boolean);
   if (!chips.length) return "";
   return `<div class="event-meta-strip">${chips.map((chip) => `<i>${escapeHtml(chip)}</i>`).join("")}</div>`;
@@ -330,6 +345,7 @@ function renderEventDetailGrid(event) {
     ["RMS", Number.isFinite(details.rms) ? `${details.rms}%` : ""],
     ["Peak", Number.isFinite(details.peak) ? `${details.peak}%` : ""],
     ["Preset", details.preset],
+    ["Labels", audioEventLabels(event).join(", ")],
   ].filter(([, value]) => value !== undefined && value !== null && value !== "");
   return rows
     .map(([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`)

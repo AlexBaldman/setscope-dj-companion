@@ -18,6 +18,7 @@ import {
   sortTracksInPlace,
   state,
   tagSelectedTrack,
+  toggleAudioEventLabel,
 } from "./state.js";
 import { createWorkflows } from "./workflows.js";
 import { showToast } from "./utils.js";
@@ -183,6 +184,21 @@ function promoteSelectedAudioEvent() {
   showToast(els, "Signal added to notes");
 }
 
+function setSignalFilter(filter) {
+  state.signalFilter = filter || "all";
+  renderer.renderTimeline();
+  persist();
+}
+
+function toggleSelectedEventLabel(label) {
+  if (!selectedAudioEventId) return;
+  const event = toggleAudioEventLabel(selectedAudioEventId, label);
+  if (!event) return;
+  renderer.render();
+  renderer.renderEventDetail(getAudioEventById(selectedAudioEventId));
+  showToast(els, event.labels.includes(label) ? `${label} label` : `${label} removed`);
+}
+
 document.querySelector("#saveTrackBtn").addEventListener("click", saveSelected);
 document.querySelector("#addTrackBtn").addEventListener("click", addManualTrack);
 document.querySelector("#sortBtn").addEventListener("click", sortTracks);
@@ -226,6 +242,12 @@ els.reviewToggle.addEventListener("click", () => {
   state.reviewOnly = !state.reviewOnly;
   renderer.renderTimeline();
   persist();
+});
+els.signalFilterButtons.forEach((button) => {
+  button.addEventListener("click", () => setSignalFilter(button.dataset.signalFilter));
+});
+els.eventLabelButtons.forEach((button) => {
+  button.addEventListener("click", () => toggleSelectedEventLabel(button.dataset.eventLabel));
 });
 els.skinButtons.forEach((button) => {
   button.addEventListener("click", () => {

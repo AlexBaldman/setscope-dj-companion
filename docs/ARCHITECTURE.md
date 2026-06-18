@@ -62,6 +62,7 @@
 - Audio Lab now includes reusable widget primitives: tuner presets, level metering, zero-crossing trigger behavior, daily practice streaks, and set-track attachment.
 - The main cockpit now derives attached toolbelt signals from `state.audioEvents`, showing compact badges on timeline rows, richer selected-track moments, and metadata chips in the Toolbelt Events panel.
 - Toolbelt events can now be inspected in a drawer, reassigned to a track, and promoted into durable track notes.
+- Toolbelt events can be labeled, and the set timeline can be filtered by signal type or label.
 
 ## Main Risks
 

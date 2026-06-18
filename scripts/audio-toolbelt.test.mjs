@@ -15,10 +15,12 @@ const { analyzeLevel, centsFromMidiTarget, findZeroCrossingIndex, tunerPresets }
 const { createPitchGatesCompletionEvent, persistPerformanceEvent } = await import("../src/performance-events.js");
 const {
   audioEventsForTrack,
+  toggleAudioEventLabel,
   getAudioEventById,
   promoteAudioEventToTrackNotes,
   reassignAudioEvent,
   state,
+  visibleTracks,
 } = await import("../src/state.js");
 
 assert.equal(midiToNote(69), "A4");
@@ -123,5 +125,11 @@ assert.equal(promoteAudioEventToTrackNotes("missing-event"), null);
 const reassigned = reassignAudioEvent(attachedEvent.id, state.tracks[1].id);
 assert.equal(reassigned.trackId, state.tracks[1].id);
 assert.equal(reassigned.time, state.tracks[1].time);
+assert.deepEqual(toggleAudioEventLabel(attachedEvent.id, "practice").labels, ["practice"]);
+state.signalFilter = "practice";
+assert.equal(visibleTracks().some((track) => track.id === state.tracks[1].id), true);
+assert.deepEqual(toggleAudioEventLabel(attachedEvent.id, "practice").labels, []);
+assert.equal(visibleTracks().some((track) => track.id === state.tracks[1].id), false);
+state.signalFilter = "all";
 
 console.log("Audio toolbelt checks passed");

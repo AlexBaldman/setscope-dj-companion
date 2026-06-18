@@ -60,5 +60,7 @@ export const els = {
   eventDrawerKicker: document.querySelector("#eventDrawerKicker"),
   eventDrawerMeta: document.querySelector("#eventDrawerMeta"),
   eventDrawerTitle: document.querySelector("#eventDrawerTitle"),
+  eventLabelButtons: document.querySelectorAll("[data-event-label]"),
   eventTrackSelect: document.querySelector("#eventTrackSelect"),
+  signalFilterButtons: document.querySelectorAll("[data-signal-filter]"),
 };

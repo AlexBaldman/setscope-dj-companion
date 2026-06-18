@@ -293,6 +293,14 @@
               </svg>
               Review
             </button>
+            <div class="signal-filter-rack" aria-label="Toolbelt signal filter">
+              <button class="active" data-signal-filter="all">All</button>
+              <button data-signal-filter="with-events">Signals</button>
+              <button data-signal-filter="analysis">Analysis</button>
+              <button data-signal-filter="instrument">Instrument</button>
+              <button data-signal-filter="practice">Practice</button>
+              <button data-signal-filter="review">Review</button>
+            </div>
           </div>
           <div class="set-map-shell">
             <canvas class="set-map" id="setMapCanvas"></canvas>
@@ -446,6 +454,16 @@
           <span>Attached track</span>
           <select id="eventTrackSelect"></select>
         </label>
+        <div class="event-label-rack" aria-label="Event labels">
+          <span>Labels</span>
+          <div>
+            <button data-event-label="practice">Practice</button>
+            <button data-event-label="tuning">Tuning</button>
+            <button data-event-label="transition">Transition</button>
+            <button data-event-label="sample">Sample</button>
+            <button data-event-label="review">Review</button>
+          </div>
+        </div>
         <div class="event-drawer-actions">
           <button class="quiet-btn" id="reassignEventBtn">Reassign</button>
           <button class="primary-btn" id="promoteEventBtn">Add to notes</button>

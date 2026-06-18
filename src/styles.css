@@ -937,6 +937,32 @@ body[data-skin="cd"] .platter {
   gap: 10px;
 }
 
+.signal-filter-rack {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.signal-filter-rack button,
+.event-label-rack button {
+  min-height: 30px;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(15, 14, 12, 0.22);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.signal-filter-rack button.active,
+.event-label-rack button.active {
+  color: var(--text);
+  border-color: rgba(117, 215, 182, 0.52);
+  background: rgba(117, 215, 182, 0.12);
+}
+
 .search-input {
   height: 38px;
 }
@@ -1124,7 +1150,7 @@ body[data-skin="cd"] .platter {
 .event-drawer {
   position: fixed;
   top: 0;
-  right: 0;
+  right: -420px;
   z-index: 12;
   width: min(420px, 100vw);
   height: 100vh;
@@ -1135,12 +1161,11 @@ body[data-skin="cd"] .platter {
     linear-gradient(180deg, rgba(117, 215, 182, 0.08), transparent 34%),
     var(--panel);
   box-shadow: -22px 0 60px rgba(0, 0, 0, 0.35);
-  transform: translateX(100%);
-  transition: transform 180ms ease;
+  transition: right 180ms ease, left 180ms ease;
 }
 
 .event-drawer.open {
-  transform: translateX(0);
+  right: 0 !important;
 }
 
 .event-drawer-head {
@@ -1232,6 +1257,25 @@ body[data-skin="cd"] .platter {
   border-radius: 8px;
   background: var(--panel-2);
   color: var(--text);
+}
+
+.event-label-rack {
+  display: grid;
+  gap: 7px;
+}
+
+.event-label-rack > span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.event-label-rack > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .event-drawer-actions {
