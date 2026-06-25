@@ -34,6 +34,7 @@ The current MVP supports the essential loop:
 - File-backed archive API.
 - Markdown-backed dev journal UI.
 - Pitch Gates minigame with pitch/note/octave readout, gate scoring, demo mode, and timeline event logging.
+- Browser QA now covers page overflow, semantic headings, unlabeled controls, missing assets, duplicate IDs, and core cockpit event flows.
 
 ## MVP Gaps
 
@@ -56,6 +57,7 @@ The current MVP supports the essential loop:
 - Add SQLite archive storage.
 - Add a real transition-analysis pass.
 - Add basic accessibility checks for keyboard focus and reduced motion.
+- Keep the no-horizontal-overflow and labeled-control browser audit green across every top-level surface.
 - Decide public/private repo status and license.
 
 ## Verification Commands

@@ -564,3 +564,19 @@ What changed:
 Why this matters:
 
 As the toolbelt grows, the problem shifts from "can we capture interesting signals?" to "can we find the right signal later?" This turns the cockpit into a searchable musical evidence board instead of an activity feed.
+
+## 2026-06-25 - Product QA Tightening Pass
+
+We ran a full product-health pass across the cockpit, Audio Lab, Pitch Gates, and Dev Journal.
+
+What changed:
+
+- Fixed cockpit horizontal overflow caused by dense topbar actions and offscreen hidden controls.
+- Switched the event drawer to an in-viewport visibility model so it stays clickable without widening the document.
+- Added semantic page headings to Audio Lab, Pitch Gates, and Dev Journal.
+- Added labels for hidden file inputs and journal editor fields.
+- Extended static checks to guard against unlabeled controls, missing headings, drawer-position regressions, and header overflow regressions.
+
+Why this matters:
+
+The app is moving from "cool prototype surfaces" toward a dependable toolbelt. Cleaner semantics, no stray horizontal scroll, and explicit regression checks make every future music toy easier to ship without slowly roughing up the cockpit.

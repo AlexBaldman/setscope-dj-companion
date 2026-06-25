@@ -53,6 +53,7 @@ assert(html.includes("id=\"archiveList\""), "index.html should include archive l
 assert(html.includes("id=\"audioEventLog\""), "index.html should include audio event log");
 assert(html.includes("id=\"eventDrawer\""), "index.html should include the toolbelt event detail drawer");
 assert(html.includes("id=\"eventTrackSelect\""), "index.html should include event reassignment select");
+assert(html.includes("aria-label=\"Import audio file\""), "index.html should label the hidden audio import input");
 assert(html.includes("data-signal-filter=\"analysis\""), "index.html should include signal filter controls");
 assert(html.includes("data-event-label=\"practice\""), "index.html should include event label controls");
 assert(html.includes("id=\"promoteEventBtn\""), "index.html should include promote-to-notes action");
@@ -73,6 +74,9 @@ assert(css.includes("stickerLand"), "styles.css should include capture sticker a
 assert(css.includes(".audio-event-log"), "styles.css should include audio event log styles");
 assert(css.includes(".event-meta-strip"), "styles.css should include rich toolbelt event metadata styles");
 assert(css.includes(".event-drawer"), "styles.css should include toolbelt event drawer styles");
+assert(css.includes("visibility: hidden"), "styles.css should hide the event drawer without document overflow");
+assert(css.includes("flex-wrap: wrap"), "styles.css should allow the cockpit header actions to wrap instead of overflowing");
+assert(css.includes("clip-path: inset(50%)"), "styles.css should hide file inputs without off-document positioning");
 assert(css.includes(".signal-filter-rack"), "styles.css should include signal filter styles");
 assert(css.includes(".event-label-rack"), "styles.css should include event label styles");
 assert(css.includes(".track-event-strip"), "styles.css should include timeline toolbelt signal styles");
@@ -92,13 +96,19 @@ assert(smokeApi.includes("/api/health"), "smoke-api.mjs should check API health"
 assert(smokeApi.includes("/api/recognize"), "smoke-api.mjs should check recognition");
 assert(journalHtml.includes("src/journal.js"), "journal.html should load journal.js");
 assert(journalHtml.includes("data-paper=\"notebook\""), "journal.html should default to notebook paper");
+assert(journalHtml.includes("<h1>Dev Journal</h1>"), "journal.html should expose a semantic page heading");
+assert(journalHtml.includes("aria-label=\"Entry title\""), "journal.html should label the editable title");
+assert(journalHtml.includes("aria-label=\"Entry body\""), "journal.html should label the editable body");
+assert(journalHtml.includes("aria-label=\"Markdown source\""), "journal.html should label the source editor");
 assert(journalJs.includes("parseJournal"), "journal.js should parse markdown entries");
 assert(journalJs.includes("saveJournal"), "journal.js should save markdown source");
 assert(journalCss.includes("body[data-paper=\"graph\"]"), "journal.css should include graph paper skin");
 assert(journalHtml.includes("data-theme-toggle"), "journal.html should include the illustrated theme toggle");
 assert(journalHtml.includes("src/theme.js"), "journal.html should load shared theme behavior");
 assert(audioLabHtml.includes("src/audio-lab.js"), "audio-lab.html should load audio-lab.js");
+assert(audioLabHtml.includes("<h1>Audio Lab</h1>"), "audio-lab.html should expose a semantic page heading");
 assert(audioLabHtml.includes("id=\"scopeCanvas\""), "audio-lab.html should include oscilloscope canvas");
+assert(audioLabHtml.includes("aria-label=\"Choose audio file\""), "audio-lab.html should label the hidden audio file input");
 assert(audioLabHtml.includes("id=\"logSnapshotBtn\""), "audio-lab.html should include snapshot logging");
 assert(audioLabHtml.includes("data-demo-midi=\"57\""), "audio-lab.html should include demo pitch controls");
 assert(audioLabHtml.includes("data-target-midi=\"57\""), "audio-lab.html should include tuner target controls");
@@ -118,10 +128,12 @@ assert(audioLabHtml.includes("src/tool-registry.js"), "Audio Lab should load the
 assert(audioLabHtml.includes("data-theme-toggle"), "Audio Lab should include the illustrated theme toggle");
 assert(audioLabHtml.includes("src/theme.js"), "Audio Lab should load shared theme behavior");
 assert(pitchGatesHtml.includes("id=\"pitchGameCanvas\""), "pitch-gates.html should include its game canvas");
+assert(pitchGatesHtml.includes("<h1>Pitch Gates</h1>"), "pitch-gates.html should expose a semantic page heading");
 assert(pitchGatesHtml.includes("id=\"toneBtn\""), "pitch-gates.html should include demo tone input");
 assert(pitchGatesHtml.includes("id=\"micBtn\""), "pitch-gates.html should include mic input");
 assert(pitchGatesHtml.includes("id=\"shareBtn\""), "pitch-gates.html should include shared audio input");
 assert(pitchGatesHtml.includes("id=\"fileBtn\""), "pitch-gates.html should include audio-file input");
+assert(pitchGatesHtml.includes("aria-label=\"Choose audio file\""), "pitch-gates.html should label the hidden audio file input");
 assert(pitchGatesHtml.includes("id=\"startRoundBtn\""), "pitch-gates.html should include a round control");
 assert(pitchGatesHtml.includes("data-tool-rack") && toolRegistry.includes("./audio-lab.html"), "Pitch Gates should link to Audio Lab through the tool rack");
 assert(pitchGatesHtml.includes("data-tool-rack"), "Pitch Gates should include the shared tool rack");
@@ -171,6 +183,7 @@ assert(render.includes("renderTrackEventStrip"), "render.js should render timeli
 assert(render.includes("renderTrackToolbeltMoments"), "render.js should render selected-track toolbelt signals");
 assert(render.includes("renderEventMetadata"), "render.js should render rich toolbelt event metadata");
 assert(render.includes("renderEventDetail"), "render.js should render toolbelt event detail drawer");
+assert(!render.includes("eventDrawer.style.left"), "render.js should leave drawer positioning to CSS");
 assert(render.includes("renderEventLabelButtons"), "render.js should render event label buttons");
 assert(render.includes("renderTrackTags"), "render.js should render crate tags");
 assert(render.includes("renderDuplicateReview"), "render.js should render duplicate review");

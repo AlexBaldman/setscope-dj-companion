@@ -192,8 +192,6 @@ export function createRenderer(els, handlers) {
   function renderEventDetail(event) {
     const open = Boolean(event);
     els.eventDrawer.classList.toggle("open", open);
-    els.eventDrawer.style.right = "auto";
-    els.eventDrawer.style.left = open ? "max(0px, calc(100vw - 420px))" : "100vw";
     els.eventDrawer.setAttribute("aria-hidden", String(!open));
     if (!event) {
       els.eventDrawerKicker.textContent = "Toolbelt event";

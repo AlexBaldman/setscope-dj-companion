@@ -12,7 +12,7 @@
       <header class="journal-topbar">
         <a class="back-link" href="./index.html">SetScope</a>
         <div>
-          <strong>Dev Journal</strong>
+          <h1>Dev Journal</h1>
           <span>Markdown progress log</span>
         </div>
         <div class="journal-actions">
@@ -51,8 +51,8 @@
                   <button id="moveDownBtn" title="Move entry down">Down</button>
                 </div>
               </div>
-              <input id="entryTitle" class="entry-title" />
-              <textarea id="entryBody" class="entry-body"></textarea>
+              <input id="entryTitle" class="entry-title" aria-label="Entry title" />
+              <textarea id="entryBody" class="entry-body" aria-label="Entry body"></textarea>
             </section>
           </article>
 
@@ -61,7 +61,7 @@
               <span>Markdown Source</span>
               <span id="saveStatus">Loaded</span>
             </div>
-            <textarea id="markdownSource" class="markdown-source"></textarea>
+            <textarea id="markdownSource" class="markdown-source" aria-label="Markdown source"></textarea>
           </div>
         </section>
       </main>

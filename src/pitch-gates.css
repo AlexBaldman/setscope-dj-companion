@@ -70,8 +70,10 @@ a {
   gap: 2px;
 }
 
-.game-title strong {
+.game-title h1 {
+  margin: 0;
   font-size: 18px;
+  line-height: 1.1;
   letter-spacing: 0;
 }
 
@@ -258,10 +260,11 @@ a {
 
 .file-input {
   position: absolute;
-  left: -9999px;
   width: 1px;
   height: 1px;
+  clip-path: inset(50%);
   opacity: 0;
+  overflow: hidden;
   pointer-events: none;
 }
 
