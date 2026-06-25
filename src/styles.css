@@ -846,6 +846,148 @@ body[data-skin="cd"] .platter {
   text-overflow: ellipsis;
 }
 
+.set-coach {
+  display: grid;
+  gap: 12px;
+  border-color: rgba(117, 215, 182, 0.26);
+  background:
+    linear-gradient(135deg, rgba(117, 215, 182, 0.1), transparent 42%),
+    rgba(15, 14, 12, 0.18);
+}
+
+.coach-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.coach-head h2 {
+  margin: 0;
+}
+
+.coach-head p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.coach-score {
+  min-width: 68px;
+  min-height: 68px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(240, 173, 78, 0.45);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(240, 173, 78, 0.22), rgba(15, 14, 12, 0.72) 58%),
+    var(--panel-2);
+}
+
+.coach-score strong {
+  color: var(--amber);
+  font-size: 26px;
+  line-height: 1;
+}
+
+.coach-score span {
+  margin-top: -8px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.coach-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.coach-stat-grid div {
+  min-width: 0;
+  padding: 8px 7px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(244, 239, 230, 0.05);
+}
+
+.coach-stat-grid span,
+.coach-action strong {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.coach-stat-grid strong {
+  display: block;
+  margin-top: 2px;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.coach-action-list,
+.coach-prompt-list {
+  display: grid;
+  gap: 7px;
+}
+
+.coach-action {
+  width: 100%;
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 3px 10px;
+  align-items: center;
+  padding: 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(34, 32, 29, 0.72);
+  color: var(--text);
+  text-align: left;
+}
+
+.coach-action span {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.coach-action strong {
+  grid-column: 1 / -1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.coach-action i {
+  grid-row: 1;
+  grid-column: 2;
+  padding: 4px 7px;
+  border: 1px solid rgba(117, 215, 182, 0.32);
+  border-radius: 999px;
+  color: var(--mint);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.coach-prompt-list p {
+  margin: 0;
+  padding-left: 10px;
+  border-left: 2px solid rgba(240, 173, 78, 0.52);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .tag-list {
   display: flex;
   flex-wrap: wrap;

@@ -38,6 +38,9 @@ const renderer = createRenderer(els, {
   onLoadArchivedSet(id) {
     workflows.loadArchivedSet(id);
   },
+  onCoachAction(dataset) {
+    runCoachAction(dataset);
+  },
 });
 
 workflows = createWorkflows(els, {
@@ -197,6 +200,33 @@ function toggleSelectedEventLabel(label) {
   renderer.render();
   renderer.renderEventDetail(getAudioEventById(selectedAudioEventId));
   showToast(els, event.labels.includes(label) ? `${label} label` : `${label} removed`);
+}
+
+function runCoachAction(dataset) {
+  const action = dataset.coachAction;
+  if (action === "review") {
+    state.reviewOnly = true;
+    state.signalFilter = "all";
+    if (dataset.trackId) setSelectedId(dataset.trackId);
+    renderer.render();
+    showToast(els, "Review lane armed");
+    return;
+  }
+  if (action === "signals") {
+    state.reviewOnly = false;
+    state.signalFilter = "with-events";
+    renderer.render();
+    showToast(els, "Signal lane open");
+    return;
+  }
+  if (action === "label-event") {
+    if (dataset.eventId) openAudioEvent(dataset.eventId);
+    showToast(els, "Pick the label that makes it searchable");
+    return;
+  }
+  if (action === "practice") {
+    window.location.href = "./pitch-gates.html";
+  }
 }
 
 document.querySelector("#saveTrackBtn").addEventListener("click", saveSelected);

@@ -13,6 +13,7 @@ globalThis.localStorage = {
 const { midiToFrequency, midiToNote, frequencyToMidi, isPitchedFrame } = await import("../src/pitch-analysis.js");
 const { analyzeLevel, centsFromMidiTarget, findZeroCrossingIndex, tunerPresets } = await import("../src/audio-widgets.js");
 const { createPitchGatesCompletionEvent, persistPerformanceEvent } = await import("../src/performance-events.js");
+const { createSetCoachModel } = await import("../src/set-coach.js");
 const {
   audioEventsForTrack,
   toggleAudioEventLabel,
@@ -131,5 +132,12 @@ assert.equal(visibleTracks().some((track) => track.id === state.tracks[1].id), t
 assert.deepEqual(toggleAudioEventLabel(attachedEvent.id, "practice").labels, []);
 assert.equal(visibleTracks().some((track) => track.id === state.tracks[1].id), false);
 state.signalFilter = "all";
+
+const coach = createSetCoachModel();
+assert.equal(Number.isFinite(coach.readinessScore), true);
+assert.equal(coach.stats.trackCount, state.tracks.length);
+assert.equal(coach.actions.length > 0, true);
+assert.equal(coach.prompts.length, 3);
+assert.equal(coach.actions.some((action) => action.action === "review" || action.action === "signals" || action.action === "practice"), true);
 
 console.log("Audio toolbelt checks passed");

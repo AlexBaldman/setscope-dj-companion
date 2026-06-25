@@ -9,6 +9,7 @@
 - `src/app.js`: app bootstrap and event wiring.
 - `src/state.js`: browser state, hydration, persistence, selected-track state, track mutation helpers.
 - `src/render.js`: timeline, inspector, summary, capture log, archive list, current-track rendering, attached toolbelt signal rendering, and event detail drawer rendering.
+- `src/set-coach.js`: local set-readiness scoring, ranked next actions, and creative prompts for the cockpit Set Coach.
 - `src/set-map.js`: canvas set-map drawing and nearest-track selection.
 - `src/audio.js`: imported-audio decoding and BPM estimation.
 - `src/audio-lab.js` and `src/audio-lab.css`: tuner/oscilloscope tool built on shared audio modules.
@@ -63,6 +64,7 @@
 - The main cockpit now derives attached toolbelt signals from `state.audioEvents`, showing compact badges on timeline rows, richer selected-track moments, and metadata chips in the Toolbelt Events panel.
 - Toolbelt events can now be inspected in a drawer, reassigned to a track, and promoted into durable track notes.
 - Toolbelt events can be labeled, and the set timeline can be filtered by signal type or label.
+- Set Coach turns the current timeline into a readiness score, ranked next actions, and creative prompts that can steer review mode, signal filtering, and event labeling.
 
 ## Main Risks
 

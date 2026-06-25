@@ -580,3 +580,19 @@ What changed:
 Why this matters:
 
 The app is moving from "cool prototype surfaces" toward a dependable toolbelt. Cleaner semantics, no stray horizontal scroll, and explicit regression checks make every future music toy easier to ship without slowly roughing up the cockpit.
+
+## 2026-06-25 - Set Coach Mission Control
+
+We gave the cockpit a local producer brain.
+
+What changed:
+
+- Added a Set Coach panel that scores set readiness from review count, signal coverage, event labels, confidence, transition variety, and BPM movement.
+- Added ranked coach actions that can jump into review mode, open the signal timeline, or launch the event-label drawer.
+- Added creative prompts that suggest the next listening pass, transition pass, or archive-memory pass.
+- Extracted the scoring and prompt logic into `src/set-coach.js` so future AI narration can sit on top of a real deterministic model.
+- Added structural and behavioral checks for the coach model, panel, score, actions, and prompts.
+
+Why this matters:
+
+The cockpit now tells the user what to do next. That is the product leap: SetScope is no longer only logging evidence, it is starting to conduct the session.

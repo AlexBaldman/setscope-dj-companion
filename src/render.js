@@ -1,4 +1,5 @@
 import { drawSetMap } from "./set-map.js";
+import { createSetCoachModel } from "./set-coach.js";
 import {
   audioEventLabels,
   audioEventsForTrack,
@@ -79,6 +80,7 @@ export function createRenderer(els, handlers) {
     });
     els.timelineSearch.value = state.query;
     renderSummary();
+    renderSetCoach();
     drawSetMap(els.setMapCanvas, state.tracks.map(normalizeTrack), getSelectedId());
   }
 
@@ -137,6 +139,33 @@ export function createRenderer(els, handlers) {
     els.summaryReview.textContent = tracks.filter((track) => track.needsReview).length;
     els.summaryEra.textContent = eras.length ? compactEra(eras) : "--";
     els.summaryMove.textContent = transitions || "--";
+  }
+
+  function renderSetCoach() {
+    const coach = createSetCoachModel();
+    els.coachScore.textContent = coach.readinessScore;
+    els.coachGrade.textContent = coach.grade;
+    els.coachReviewCount.textContent = coach.stats.reviewCount;
+    els.coachSignalCount.textContent = `${coach.stats.signalTracks}/${coach.stats.trackCount}`;
+    els.coachLabelCount.textContent = `${coach.stats.labelCount}/${coach.stats.eventCount}`;
+    els.coachBpmRange.textContent = coach.bpmRange;
+    els.coachActionList.innerHTML = coach.actions
+      .map(
+        (action) => `
+          <button class="coach-action" data-coach-action="${escapeHtml(action.action)}" data-track-id="${escapeHtml(action.trackId || "")}" data-event-id="${escapeHtml(action.eventId || "")}">
+            <span>${escapeHtml(action.title)}</span>
+            <strong>${escapeHtml(action.detail)}</strong>
+            <i>${escapeHtml(action.button)}</i>
+          </button>
+        `,
+      )
+      .join("");
+    els.coachPromptList.innerHTML = coach.prompts
+      .map((prompt) => `<p>${escapeHtml(prompt)}</p>`)
+      .join("");
+    els.coachActionList.querySelectorAll("[data-coach-action]").forEach((button) => {
+      button.addEventListener("click", () => handlers.onCoachAction(button.dataset));
+    });
   }
 
   function renderCaptureLog() {

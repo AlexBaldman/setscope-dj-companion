@@ -31,6 +31,7 @@ The current MVP supports the essential loop:
 - Set map canvas with click-to-select.
 - Track inspector with editable metadata.
 - Capture log with provider/status entries.
+- Set Coach readiness score with ranked next actions and creative prompts.
 - File-backed archive API.
 - Markdown-backed dev journal UI.
 - Pitch Gates minigame with pitch/note/octave readout, gate scoring, demo mode, and timeline event logging.
