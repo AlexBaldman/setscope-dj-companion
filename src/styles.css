@@ -988,6 +988,127 @@ body[data-skin="cd"] .platter {
   line-height: 1.45;
 }
 
+.dj-mentor {
+  display: grid;
+  gap: 12px;
+  border-color: rgba(236, 111, 126, 0.28);
+  background:
+    linear-gradient(140deg, rgba(236, 111, 126, 0.11), transparent 38%),
+    rgba(15, 14, 12, 0.18);
+}
+
+.mentor-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+}
+
+.mentor-head h2 {
+  margin: 0;
+}
+
+.mentor-head p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.mentor-head > span,
+.mentor-readout span {
+  display: inline-grid;
+  min-height: 28px;
+  place-items: center;
+  padding: 0 9px;
+  border: 1px solid rgba(236, 111, 126, 0.42);
+  border-radius: 999px;
+  color: var(--rose);
+  background: rgba(236, 111, 126, 0.09);
+  font-size: 10px;
+  font-weight: 850;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.mentor-readout {
+  display: grid;
+  gap: 8px;
+}
+
+.mentor-readout strong {
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.mentor-lines,
+.mentor-action-list {
+  display: grid;
+  gap: 7px;
+}
+
+.mentor-lines p {
+  margin: 0;
+  display: grid;
+  gap: 3px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(244, 239, 230, 0.05);
+}
+
+.mentor-lines span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.mentor-lines strong {
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.mentor-action {
+  min-height: 50px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 3px 10px;
+  align-items: center;
+  padding: 9px;
+  border: 1px solid rgba(236, 111, 126, 0.28);
+  border-radius: 8px;
+  background: rgba(34, 32, 29, 0.72);
+  color: var(--text);
+  text-align: left;
+}
+
+.mentor-action span {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mentor-action strong {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.mentor-action i {
+  grid-row: 1;
+  grid-column: 2;
+  color: var(--rose);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
 .tag-list {
   display: flex;
   flex-wrap: wrap;
@@ -1397,6 +1518,56 @@ body[data-skin="cd"] .platter {
   color: var(--text);
   background: rgba(117, 215, 182, 0.08);
   line-height: 1.45;
+}
+
+.mentor-move-card {
+  display: grid;
+  gap: 8px;
+  padding: 11px;
+  border: 1px solid rgba(236, 111, 126, 0.28);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(236, 111, 126, 0.11), transparent),
+    rgba(15, 14, 12, 0.28);
+}
+
+.mentor-move-card > span {
+  color: var(--rose);
+  font-size: 10px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.mentor-move-card > strong {
+  color: var(--text);
+  font-size: 15px;
+}
+
+.mentor-move-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.mentor-move-card div {
+  display: grid;
+  gap: 3px;
+  padding-top: 7px;
+  border-top: 1px solid var(--line);
+}
+
+.mentor-move-card b {
+  color: var(--mint);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.mentor-move-card em {
+  color: var(--text);
+  font-size: 12px;
+  font-style: normal;
+  line-height: 1.4;
 }
 
 .event-track-field {

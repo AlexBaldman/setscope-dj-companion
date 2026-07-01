@@ -5,6 +5,7 @@ import { applySkin, createRenderer, makeBars } from "./render.js";
 import { nearestTrackFromMap } from "./set-map.js";
 import {
   addTrack as addStateTrack,
+  appendSelectedTrackNote,
   getAudioEventById,
   getSelectedTrack,
   mergeSelectedDuplicate,
@@ -220,8 +221,16 @@ function runCoachAction(dataset) {
     return;
   }
   if (action === "label-event") {
-    if (dataset.eventId) openAudioEvent(dataset.eventId);
+    if (dataset.coachEventId) openAudioEvent(dataset.coachEventId);
     showToast(els, "Pick the label that makes it searchable");
+    return;
+  }
+  if (action === "mentor-note") {
+    if (dataset.trackId) setSelectedId(dataset.trackId);
+    const track = appendSelectedTrackNote(dataset.mentorNote);
+    if (!track) return;
+    renderer.render();
+    showToast(els, "Mentor note saved");
     return;
   }
   if (action === "practice") {

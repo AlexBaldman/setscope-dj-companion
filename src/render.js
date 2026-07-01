@@ -1,4 +1,5 @@
 import { drawSetMap } from "./set-map.js";
+import { createDjMentorModel, createDjMoveCard } from "./dj-mentor.js";
 import { createSetCoachModel } from "./set-coach.js";
 import {
   audioEventLabels,
@@ -81,6 +82,7 @@ export function createRenderer(els, handlers) {
     els.timelineSearch.value = state.query;
     renderSummary();
     renderSetCoach();
+    renderDjMentor();
     drawSetMap(els.setMapCanvas, state.tracks.map(normalizeTrack), getSelectedId());
   }
 
@@ -152,7 +154,7 @@ export function createRenderer(els, handlers) {
     els.coachActionList.innerHTML = coach.actions
       .map(
         (action) => `
-          <button class="coach-action" data-coach-action="${escapeHtml(action.action)}" data-track-id="${escapeHtml(action.trackId || "")}" data-event-id="${escapeHtml(action.eventId || "")}">
+          <button class="coach-action" data-coach-action="${escapeHtml(action.action)}" data-track-id="${escapeHtml(action.trackId || "")}" data-coach-event-id="${escapeHtml(action.eventId || "")}">
             <span>${escapeHtml(action.title)}</span>
             <strong>${escapeHtml(action.detail)}</strong>
             <i>${escapeHtml(action.button)}</i>
@@ -164,6 +166,30 @@ export function createRenderer(els, handlers) {
       .map((prompt) => `<p>${escapeHtml(prompt)}</p>`)
       .join("");
     els.coachActionList.querySelectorAll("[data-coach-action]").forEach((button) => {
+      button.addEventListener("click", () => handlers.onCoachAction(button.dataset));
+    });
+  }
+
+  function renderDjMentor() {
+    const mentor = createDjMentorModel(getSelectedTrack());
+    els.mentorStoryBeat.textContent = mentor.storyBeat;
+    els.mentorEnergy.textContent = mentor.energy;
+    els.mentorMove.textContent = mentor.move;
+    els.mentorWhy.textContent = mentor.whyItWorks;
+    els.mentorPractice.textContent = mentor.practiceMission;
+    els.mentorDig.textContent = mentor.digPrompt;
+    els.mentorActionList.innerHTML = mentor.actions
+      .map(
+        (action) => `
+          <button class="mentor-action" data-coach-action="${escapeHtml(action.action)}" data-track-id="${escapeHtml(action.trackId || "")}" data-mentor-note="${escapeHtml(action.note || "")}">
+            <span>${escapeHtml(action.title)}</span>
+            <strong>${escapeHtml(action.detail)}</strong>
+            <i>${escapeHtml(action.button)}</i>
+          </button>
+        `,
+      )
+      .join("");
+    els.mentorActionList.querySelectorAll("[data-coach-action]").forEach((button) => {
       button.addEventListener("click", () => handlers.onCoachAction(button.dataset));
     });
   }
@@ -227,6 +253,7 @@ export function createRenderer(els, handlers) {
       els.eventDrawerTitle.textContent = "No event selected";
       els.eventDrawerMeta.innerHTML = "";
       els.eventDrawerBody.textContent = "Select a toolbelt event to inspect its signal.";
+      renderEventMentorCard(null);
       renderEventLabelButtons(null);
       renderEventTrackOptions(null);
       return;
@@ -235,6 +262,7 @@ export function createRenderer(els, handlers) {
     els.eventDrawerTitle.textContent = event.title || "Toolbelt event";
     els.eventDrawerBody.textContent = formatEventDrawerBody(event);
     els.eventDrawerMeta.innerHTML = renderEventDetailGrid(event);
+    renderEventMentorCard(event);
     renderEventLabelButtons(event);
     renderEventTrackOptions(event);
   }
@@ -310,6 +338,22 @@ export function createRenderer(els, handlers) {
     els.eventLabelButtons.forEach((button) => {
       button.classList.toggle("active", labels.has(button.dataset.eventLabel));
     });
+  }
+
+  function renderEventMentorCard(event) {
+    els.eventMentorCard.hidden = !event;
+    if (!event) {
+      els.eventMentorCard.innerHTML = "";
+      return;
+    }
+    const card = createDjMoveCard(event);
+    els.eventMentorCard.innerHTML = `
+      <span>DJ move card / ${escapeHtml(card.storyBeat)}</span>
+      <strong>${escapeHtml(card.move)}</strong>
+      <p>${escapeHtml(card.why)}</p>
+      <div><b>Practice</b><em>${escapeHtml(card.practice)}</em></div>
+      <div><b>Dig</b><em>${escapeHtml(card.dig)}</em></div>
+    `;
   }
 }
 

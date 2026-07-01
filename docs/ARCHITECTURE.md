@@ -10,6 +10,7 @@
 - `src/state.js`: browser state, hydration, persistence, selected-track state, track mutation helpers.
 - `src/render.js`: timeline, inspector, summary, capture log, archive list, current-track rendering, attached toolbelt signal rendering, and event detail drawer rendering.
 - `src/set-coach.js`: local set-readiness scoring, ranked next actions, and creative prompts for the cockpit Set Coach.
+- `src/dj-mentor.js`: deterministic DJ Mentor model for selected-track story beats, practice missions, dig prompts, and event move cards.
 - `src/set-map.js`: canvas set-map drawing and nearest-track selection.
 - `src/audio.js`: imported-audio decoding and BPM estimation.
 - `src/audio-lab.js` and `src/audio-lab.css`: tuner/oscilloscope tool built on shared audio modules.
@@ -65,6 +66,7 @@
 - Toolbelt events can now be inspected in a drawer, reassigned to a track, and promoted into durable track notes.
 - Toolbelt events can be labeled, and the set timeline can be filtered by signal type or label.
 - Set Coach turns the current timeline into a readiness score, ranked next actions, and creative prompts that can steer review mode, signal filtering, and event labeling.
+- DJ Mentor reads selected tracks and toolbelt events to render practice missions, dig prompts, mentor notes, and event move cards.
 
 ## Main Risks
 

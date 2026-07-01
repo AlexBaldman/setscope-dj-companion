@@ -14,7 +14,9 @@ const { midiToFrequency, midiToNote, frequencyToMidi, isPitchedFrame } = await i
 const { analyzeLevel, centsFromMidiTarget, findZeroCrossingIndex, tunerPresets } = await import("../src/audio-widgets.js");
 const { createPitchGatesCompletionEvent, persistPerformanceEvent } = await import("../src/performance-events.js");
 const { createSetCoachModel } = await import("../src/set-coach.js");
+const { createDjMentorModel, createDjMoveCard } = await import("../src/dj-mentor.js");
 const {
+  appendSelectedTrackNote,
   audioEventsForTrack,
   toggleAudioEventLabel,
   getAudioEventById,
@@ -139,5 +141,16 @@ assert.equal(coach.stats.trackCount, state.tracks.length);
 assert.equal(coach.actions.length > 0, true);
 assert.equal(coach.prompts.length, 3);
 assert.equal(coach.actions.some((action) => action.action === "review" || action.action === "signals" || action.action === "practice"), true);
+
+const mentor = createDjMentorModel(state.tracks[1]);
+assert.equal(mentor.selectedTrackId, state.tracks[1].id);
+assert.equal(Boolean(mentor.whyItWorks), true);
+assert.equal(Boolean(mentor.practiceMission), true);
+assert.equal(Boolean(mentor.digPrompt), true);
+assert.equal(mentor.actions.some((action) => action.action === "mentor-note"), true);
+const moveCard = createDjMoveCard(attachedEvent);
+assert.equal(Boolean(moveCard.why), true);
+assert.equal(Boolean(moveCard.practice), true);
+assert.equal(appendSelectedTrackNote("Practice this mentor mission").notes.includes("DJ Mentor: Practice this mentor mission"), true);
 
 console.log("Audio toolbelt checks passed");

@@ -141,6 +141,17 @@ export function promoteAudioEventToTrackNotes(eventId) {
   return track;
 }
 
+export function appendSelectedTrackNote(note) {
+  const track = getSelectedTrack();
+  if (!track || !note) return null;
+  normalizeTrack(track);
+  const mentorNote = `DJ Mentor: ${note}`;
+  if (!track.notes.includes(mentorNote)) {
+    track.notes = `${track.notes.trim()}\n\n${mentorNote}`.trim();
+  }
+  return track;
+}
+
 export function addTrack(track = {}) {
   const created = {
     id: uid(),

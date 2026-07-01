@@ -32,6 +32,7 @@ The current MVP supports the essential loop:
 - Track inspector with editable metadata.
 - Capture log with provider/status entries.
 - Set Coach readiness score with ranked next actions and creative prompts.
+- DJ Mentor panel with selected-track explanation, practice mission, dig prompt, mentor-note persistence, and event drawer move cards.
 - File-backed archive API.
 - Markdown-backed dev journal UI.
 - Pitch Gates minigame with pitch/note/octave readout, gate scoring, demo mode, and timeline event logging.

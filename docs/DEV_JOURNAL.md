@@ -596,3 +596,20 @@ What changed:
 Why this matters:
 
 The cockpit now tells the user what to do next. That is the product leap: SetScope is no longer only logging evidence, it is starting to conduct the session.
+
+## 2026-07-01 - DJ Mentor Layer and Move Cards
+
+We turned Set Coach into a booth-side mentor.
+
+What changed:
+
+- Added a local DJ Mentor model that reads the selected track, transition, tags, toolbelt events, and set position.
+- Added a DJ Mentor cockpit panel with story beat, energy, move read, why-it-works explanation, practice mission, dig prompt, and mentor actions.
+- Added mentor-note actions that persist DJ Mentor advice into selected track notes.
+- Added DJ Move Cards to toolbelt event drawers so every signal can explain its practice and dig value.
+- Fixed coach action event-id namespacing so coach controls no longer masquerade as event cards.
+- Added tests and checks for mentor model output, move cards, and note persistence.
+
+Why this matters:
+
+SetScope is starting to teach DJ craft. It does not only identify and archive songs; it gives the user a next move, a reason, and a practice rep tied to the set timeline.

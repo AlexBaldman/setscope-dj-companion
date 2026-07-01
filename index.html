@@ -198,6 +198,25 @@
               <div class="coach-prompt-list" id="coachPromptList"></div>
             </div>
 
+            <div class="info-block dj-mentor" id="djMentorPanel">
+              <div class="mentor-head">
+                <div>
+                  <h2>DJ Mentor</h2>
+                  <p id="mentorStoryBeat">Reading the set arc</p>
+                </div>
+                <span id="mentorEnergy">Pocket</span>
+              </div>
+              <div class="mentor-readout">
+                <span id="mentorMove">Blend pocket</span>
+                <strong id="mentorWhy">Select a set moment to hear the mentor read.</strong>
+              </div>
+              <div class="mentor-lines">
+                <p><span>Practice</span><strong id="mentorPractice">Run a recognition pass to seed a mission.</strong></p>
+                <p><span>Dig</span><strong id="mentorDig">Tag one record and build from there.</strong></p>
+              </div>
+              <div class="mentor-action-list" id="mentorActionList"></div>
+            </div>
+
             <div class="info-block">
               <h2>Recognition Stack</h2>
               <div class="provider-panel">
@@ -471,6 +490,7 @@
       <div class="event-drawer-body">
         <div class="event-detail-grid" id="eventDrawerMeta"></div>
         <div class="event-detail-copy" id="eventDrawerBody">Select a toolbelt event to inspect its signal.</div>
+        <div class="mentor-move-card" id="eventMentorCard" hidden></div>
         <label class="event-track-field">
           <span>Attached track</span>
           <select id="eventTrackSelect"></select>
