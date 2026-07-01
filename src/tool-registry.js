@@ -24,6 +24,14 @@ export const tools = [
     status: "Live",
   },
   {
+    id: "rhythm-roulette",
+    label: "Rhythm Roulette",
+    shortLabel: "Dig",
+    href: "./rhythm-roulette.html",
+    category: "Beat Game",
+    status: "Playable",
+  },
+  {
     id: "journal",
     label: "Dev Journal",
     shortLabel: "Journal",

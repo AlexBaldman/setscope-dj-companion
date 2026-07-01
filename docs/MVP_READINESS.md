@@ -13,6 +13,7 @@ The current MVP supports the essential loop:
 7. Archive, reload, copy, or export the set.
 8. Track project progress in the dev journal.
 9. Play Pitch Gates with generated, microphone, shared, or uploaded audio and log a practice event.
+10. Play Rhythm Roulette by pulling mystery records, building a generated beat-grid loop, and logging the run.
 
 ## Working Features
 
@@ -36,6 +37,7 @@ The current MVP supports the essential loop:
 - File-backed archive API.
 - Markdown-backed dev journal UI.
 - Pitch Gates minigame with pitch/note/octave readout, gate scoring, demo mode, and timeline event logging.
+- Rhythm Roulette minigame with pixel-art blind crate digging, mystery record pulls, generated sample pads, sequencer grid, and learning-event logging.
 - Browser QA now covers page overflow, semantic headings, unlabeled controls, missing assets, duplicate IDs, and core cockpit event flows.
 
 ## MVP Gaps

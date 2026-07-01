@@ -12,7 +12,7 @@ globalThis.localStorage = {
 
 const { midiToFrequency, midiToNote, frequencyToMidi, isPitchedFrame } = await import("../src/pitch-analysis.js");
 const { analyzeLevel, centsFromMidiTarget, findZeroCrossingIndex, tunerPresets } = await import("../src/audio-widgets.js");
-const { createPitchGatesCompletionEvent, persistPerformanceEvent } = await import("../src/performance-events.js");
+const { createPitchGatesCompletionEvent, createRhythmRouletteCompletionEvent, persistPerformanceEvent } = await import("../src/performance-events.js");
 const { createSetCoachModel } = await import("../src/set-coach.js");
 const { createDjMentorModel, createDjMoveCard } = await import("../src/dj-mentor.js");
 const {
@@ -55,6 +55,18 @@ assert.equal(savedDraft.audioEvents[0].type, "instrument");
 assert.equal(savedDraft.audioEvents[0].metadata.modeId, "pitch-gates");
 assert.equal(savedDraft.audioEvents[0].metadata.details.speed, "rush");
 assert.equal(state.audioEvents[0].metadata.score, 2760);
+
+const rouletteEvent = createRhythmRouletteCompletionEvent({
+  bpm: 94,
+  groove: 41,
+  patternDensity: 13,
+  records: [{ artist: "Test Artist", bpm: 94, era: "1970s", title: "Blind Pull" }],
+  savedLoops: 1,
+  score: 1440,
+});
+assert.equal(rouletteEvent.modeId, "rhythm-roulette");
+assert.equal(rouletteEvent.details.game, "Rhythm Roulette");
+assert.equal(rouletteEvent.evidence.summary.includes("Blind Pull"), true);
 
 persistPerformanceEvent({
   kind: "performance",

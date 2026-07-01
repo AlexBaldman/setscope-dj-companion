@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rhythm Roulette - SetScope</title>
+    <link rel="stylesheet" href="./src/pitch-gates.css" />
+    <link rel="stylesheet" href="./src/rhythm-roulette.css" />
+    <link rel="stylesheet" href="./src/theme.css" />
+  </head>
+  <body>
+    <div class="game-app roulette-app">
+      <header class="game-topbar">
+        <a class="back-link" href="./index.html">
+          <span class="mini-disc"></span>
+          SetScope
+        </a>
+        <div class="game-title">
+          <h1>Rhythm Roulette</h1>
+          <span>Blind Crate Beat Lab</span>
+        </div>
+        <div class="game-tools">
+          <nav class="tool-rack compact" data-tool-rack data-current-tool="rhythm-roulette" aria-label="SetScope tools"></nav>
+          <div class="lcd-pill" id="rouletteStatus">MASK ON</div>
+          <button class="theme-toggle" data-theme-toggle aria-label="Switch to light mode" title="Switch to light mode">
+            <img src="./assets/theme/lightning-bulb-toggle-ui.png" alt="" />
+          </button>
+        </div>
+      </header>
+
+      <main class="roulette-layout">
+        <section class="roulette-stage">
+          <div class="roulette-score-rack">
+            <div><span>BPM</span><strong id="rouletteBpm">--</strong></div>
+            <div><span>Pulls</span><strong id="pullCount">0/3</strong></div>
+            <div><span>Groove</span><strong id="grooveScore">00</strong></div>
+            <div><span>Best</span><strong id="bestRouletteScore">0000</strong></div>
+          </div>
+
+          <div class="record-shop-screen">
+            <canvas id="rouletteSceneCanvas" aria-label="Pixel art blindfold record shop scene"></canvas>
+            <div class="dig-overlay" id="digOverlay">
+              <strong>Blindfold crate dig</strong>
+              <span>Grab three mystery records, chop them, then build a loop.</span>
+            </div>
+          </div>
+
+          <div class="roulette-transport">
+            <button class="dig-btn" id="blindDigBtn">Blind dig</button>
+            <button class="source-btn" id="surpriseBeatBtn">Auto flip</button>
+            <button class="source-btn" id="playBeatBtn">Play</button>
+            <button class="source-btn stop" id="clearBeatBtn">Clear</button>
+            <button class="start-btn" id="saveRouletteBtn">Save run</button>
+          </div>
+        </section>
+
+        <aside class="roulette-panel">
+          <div class="lab-block">
+            <div class="block-title">Mystery Pulls</div>
+            <div class="record-pulls" id="recordPulls"></div>
+          </div>
+
+          <div class="lab-block">
+            <div class="block-title">Sample Pads</div>
+            <div class="sample-bank" id="sampleBank"></div>
+          </div>
+
+          <div class="lab-block">
+            <div class="block-title">Beat Grid</div>
+            <div class="sequencer" id="sequencerGrid" aria-label="Rhythm sequencer grid"></div>
+          </div>
+
+          <div class="lab-block">
+            <div class="block-title">Mission</div>
+            <div class="roulette-mission">
+              <strong id="missionTitle">No peeking</strong>
+              <span id="missionDetail">Pull records first, then make the best eight-bar idea from the surprise stack.</span>
+            </div>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <script type="module" src="./src/theme.js"></script>
+    <script type="module" src="./src/tool-registry.js"></script>
+    <script type="module" src="./src/rhythm-roulette.js"></script>
+  </body>
+</html>

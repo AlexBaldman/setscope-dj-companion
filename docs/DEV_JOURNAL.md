@@ -613,3 +613,20 @@ What changed:
 Why this matters:
 
 SetScope is starting to teach DJ craft. It does not only identify and archive songs; it gives the user a next move, a reason, and a practice rep tied to the set timeline.
+
+## 2026-07-01 - Rhythm Roulette Beat Lab
+
+We added the first beat-making game surface.
+
+What changed:
+
+- Added a standalone Rhythm Roulette mode with blindfold crate digging, mystery record pulls, sample pads, and a 16-step beat grid.
+- Drew an original pixel-art record shop scene in canvas: crates, blindfolded producer, shop signs, pulled sleeves, and beat lights.
+- Added browser-generated beat sounds for kick, snare, hat, and melodic chops so the mode is playable without uploads or APIs.
+- Added Auto flip, Play, Clear, and Save run actions.
+- Persisted saved runs into the shared SetScope toolbelt timeline as structured learning events.
+- Registered Rhythm Roulette in the shared tool rack and added regression checks.
+
+Why this matters:
+
+The toolbelt now has a beat-making practice game, not only recognition and pitch utilities. It points SetScope toward playful music education: constraints, surprises, cultural flavor, and a durable memory trail.
