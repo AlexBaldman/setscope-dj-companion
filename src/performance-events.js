@@ -46,7 +46,7 @@ export function createPitchGatesCompletionEvent({ sourceLabel, register, speed, 
   });
 }
 
-export function createRhythmRouletteCompletionEvent({ bpm, records = [], score, groove, patternDensity, savedLoops } = {}) {
+export function createRhythmRouletteCompletionEvent({ bpm, challenge, challengeBonus, records = [], score, groove, patternDensity, savedLoops } = {}) {
   const recordLine = records.map((record) => record.title).filter(Boolean).join(" + ");
   return createPerformanceEvent({
     modeId: "rhythm-roulette",
@@ -56,6 +56,8 @@ export function createRhythmRouletteCompletionEvent({ bpm, records = [], score, 
     details: {
       game: "Rhythm Roulette",
       bpm,
+      challenge,
+      challengeBonus,
       groove,
       patternDensity,
       savedLoops,

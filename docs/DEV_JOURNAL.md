@@ -630,3 +630,20 @@ What changed:
 Why this matters:
 
 The toolbelt now has a beat-making practice game, not only recognition and pitch utilities. It points SetScope toward playful music education: constraints, surprises, cultural flavor, and a durable memory trail.
+
+## 2026-07-04 - Rhythm Roulette Beauty Pass
+
+We gave Rhythm Roulette more game-show pressure and craft feedback.
+
+What changed:
+
+- Added a top marquee with the current constraint badge.
+- Added random producer constraints like Dusty pocket, Backbeat tax, Three-record rule, and Late swing.
+- Added challenge bonuses to scoring and saved learning events.
+- Added a selected-sample readout so the pad bank feels more tactile and intentional.
+- Added a crate receipt with constraint, hit count, records used, and bonus.
+- Added a saved-run glow and a challenge poster inside the pixel-art record shop canvas.
+
+Why this matters:
+
+Rhythm Roulette now feels less like a static beat grid and more like a playable challenge: the user gets a surprise pull, a constraint, a score reason, and a logged artifact.

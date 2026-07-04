@@ -37,7 +37,7 @@ The current MVP supports the essential loop:
 - File-backed archive API.
 - Markdown-backed dev journal UI.
 - Pitch Gates minigame with pitch/note/octave readout, gate scoring, demo mode, and timeline event logging.
-- Rhythm Roulette minigame with pixel-art blind crate digging, mystery record pulls, generated sample pads, sequencer grid, and learning-event logging.
+- Rhythm Roulette minigame with pixel-art blind crate digging, mystery record pulls, producer constraints, generated sample pads, sequencer grid, crate receipt, and learning-event logging.
 - Browser QA now covers page overflow, semantic headings, unlabeled controls, missing assets, duplicate IDs, and core cockpit event flows.
 
 ## MVP Gaps

@@ -30,6 +30,12 @@
 
       <main class="roulette-layout">
         <section class="roulette-stage">
+          <div class="roulette-marquee">
+            <span>Mask on</span>
+            <strong>Three records. One loop. No swaps.</strong>
+            <i id="challengeBadge">Needle drop</i>
+          </div>
+
           <div class="roulette-score-rack">
             <div><span>BPM</span><strong id="rouletteBpm">--</strong></div>
             <div><span>Pulls</span><strong id="pullCount">0/3</strong></div>
@@ -62,6 +68,7 @@
 
           <div class="lab-block">
             <div class="block-title">Sample Pads</div>
+            <div class="current-sample" id="currentSampleReadout">Pull records to load the pad bank.</div>
             <div class="sample-bank" id="sampleBank"></div>
           </div>
 
@@ -76,6 +83,11 @@
               <strong id="missionTitle">No peeking</strong>
               <span id="missionDetail">Pull records first, then make the best eight-bar idea from the surprise stack.</span>
             </div>
+          </div>
+
+          <div class="lab-block">
+            <div class="block-title">Crate Receipt</div>
+            <div class="crate-receipt" id="crateReceipt">No receipt yet.</div>
           </div>
         </aside>
       </main>

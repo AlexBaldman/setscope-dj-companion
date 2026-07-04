@@ -58,6 +58,8 @@ assert.equal(state.audioEvents[0].metadata.score, 2760);
 
 const rouletteEvent = createRhythmRouletteCompletionEvent({
   bpm: 94,
+  challenge: "Dusty pocket",
+  challengeBonus: 320,
   groove: 41,
   patternDensity: 13,
   records: [{ artist: "Test Artist", bpm: 94, era: "1970s", title: "Blind Pull" }],
@@ -66,6 +68,8 @@ const rouletteEvent = createRhythmRouletteCompletionEvent({
 });
 assert.equal(rouletteEvent.modeId, "rhythm-roulette");
 assert.equal(rouletteEvent.details.game, "Rhythm Roulette");
+assert.equal(rouletteEvent.details.challenge, "Dusty pocket");
+assert.equal(rouletteEvent.details.challengeBonus, 320);
 assert.equal(rouletteEvent.evidence.summary.includes("Blind Pull"), true);
 
 persistPerformanceEvent({

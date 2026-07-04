@@ -4,8 +4,11 @@ const canvas = document.querySelector("#rouletteSceneCanvas");
 const context = canvas.getContext("2d");
 const els = {
   bestRouletteScore: document.querySelector("#bestRouletteScore"),
+  challengeBadge: document.querySelector("#challengeBadge"),
   blindDigBtn: document.querySelector("#blindDigBtn"),
   clearBeatBtn: document.querySelector("#clearBeatBtn"),
+  crateReceipt: document.querySelector("#crateReceipt"),
+  currentSampleReadout: document.querySelector("#currentSampleReadout"),
   digOverlay: document.querySelector("#digOverlay"),
   grooveScore: document.querySelector("#grooveScore"),
   missionDetail: document.querySelector("#missionDetail"),
@@ -94,6 +97,40 @@ const lanes = [
   { id: "hat", label: "Hat", tone: "hat" },
   { id: "chop", label: "Chop", tone: "chop" },
 ];
+const challenges = [
+  {
+    id: "dusty-pocket",
+    title: "Dusty pocket",
+    detail: "Keep the loop under 18 hits and let the gaps do work.",
+    bonus(patternData) {
+      return patternDensity(patternData) <= 18 ? 320 : 80;
+    },
+  },
+  {
+    id: "backbeat-tax",
+    title: "Backbeat tax",
+    detail: "Snare has to own beats 2 and 4.",
+    bonus(patternData) {
+      return patternData.snare[4] && patternData.snare[12] ? 360 : 40;
+    },
+  },
+  {
+    id: "three-record-rule",
+    title: "Three-record rule",
+    detail: "Use chops from every mystery pull before saving.",
+    bonus(patternData) {
+      return recordVariety(patternData) >= 3 ? 420 : 60;
+    },
+  },
+  {
+    id: "late-swing",
+    title: "Late swing",
+    detail: "Make at least two off-grid-feeling hits on 4, 8, 12, or 16.",
+    bonus(patternData) {
+      return [3, 7, 11, 15].filter((step) => patternData.kick[step] || patternData.chop[step]).length >= 2 ? 380 : 70;
+    },
+  },
+];
 const steps = 16;
 const bestKey = "setscope-roulette-best";
 const savedKey = "setscope-roulette-saved";
@@ -101,6 +138,7 @@ let audioContext;
 let pulledRecords = [];
 let selectedSample = null;
 let pattern = createEmptyPattern();
+let currentChallenge = challenges[0];
 let currentStep = -1;
 let playTimer;
 let savedLoops = Number(localStorage.getItem(savedKey) || 0);
@@ -123,6 +161,7 @@ window.addEventListener("resize", () => {
 function blindDig() {
   stopBeat();
   pulledRecords = shuffle(recordCrate).slice(0, 3);
+  currentChallenge = shuffle(challenges)[0];
   const averageBpm = Math.round(pulledRecords.reduce((sum, record) => sum + record.bpm, 0) / pulledRecords.length);
   selectedSample = createSample(pulledRecords[0], lanes[0]);
   pattern = createStarterPattern();
@@ -130,7 +169,7 @@ function blindDig() {
   els.rouletteStatus.textContent = "RECORDS PULLED";
   els.rouletteStatus.classList.add("active");
   els.missionTitle.textContent = "Flip the surprise stack";
-  els.missionDetail.textContent = `Use ${pulledRecords[0].title}, ${pulledRecords[1].title}, and ${pulledRecords[2].title} without changing the pull.`;
+  els.missionDetail.textContent = `${currentChallenge.detail} Pulls: ${pulledRecords[0].title}, ${pulledRecords[1].title}, ${pulledRecords[2].title}.`;
   els.rouletteBpm.textContent = averageBpm;
   renderAll();
   drawScene();
@@ -140,7 +179,7 @@ function autoFlipBeat() {
   ensurePulledRecords();
   pattern = createStarterPattern(true);
   els.missionTitle.textContent = "Beat rouletted";
-  els.missionDetail.textContent = "The machine sketched a loop. Mutate the grid, then save the run when it knocks.";
+  els.missionDetail.textContent = `The machine sketched a loop. ${currentChallenge.detail}`;
   renderAll();
   drawScene();
 }
@@ -196,6 +235,7 @@ function tick() {
 function saveRun() {
   ensurePulledRecords();
   const score = scorePattern();
+  const challengeBonus = currentChallenge.bonus(pattern);
   const best = Math.max(Number(localStorage.getItem(bestKey) || 0), score);
   localStorage.setItem(bestKey, String(best));
   savedLoops += 1;
@@ -205,6 +245,8 @@ function saveRun() {
   persistPerformanceEvent(
     createRhythmRouletteCompletionEvent({
       bpm: Number(els.rouletteBpm.textContent) || 92,
+      challenge: currentChallenge.title,
+      challengeBonus,
       groove: scoreGroove(),
       patternDensity: patternDensity(),
       records: pulledRecords,
@@ -214,14 +256,19 @@ function saveRun() {
   );
   els.rouletteStatus.textContent = "RUN SAVED";
   els.missionTitle.textContent = "Loop logged";
-  els.missionDetail.textContent = "This blind crate flip is now in the SetScope toolbelt event timeline.";
+  els.missionDetail.textContent = `${currentChallenge.title} bonus: +${challengeBonus}. This blind crate flip is now in the SetScope toolbelt event timeline.`;
+  document.body.classList.add("roulette-saved");
+  window.setTimeout(() => document.body.classList.remove("roulette-saved"), 700);
   renderAll();
 }
 
 function renderAll() {
   els.pullCount.textContent = `${pulledRecords.length}/3`;
   els.grooveScore.textContent = String(scoreGroove()).padStart(2, "0");
+  els.challengeBadge.textContent = currentChallenge.title;
   renderRecords();
+  renderCurrentSample();
+  renderCrateReceipt();
   renderSampleBank();
   renderSequencer();
 }
@@ -269,9 +316,34 @@ function renderSampleBank() {
   els.sampleBank.querySelectorAll("[data-sample-id]").forEach((button) => {
     button.addEventListener("click", () => {
       selectedSample = findSample(button.dataset.sampleId);
+      renderCurrentSample();
       renderSampleBank();
     });
   });
+}
+
+function renderCurrentSample() {
+  if (!selectedSample) {
+    els.currentSampleReadout.textContent = pulledRecords.length ? "Choose a pad, then paint the grid." : "Pull records to load the pad bank.";
+    return;
+  }
+  els.currentSampleReadout.textContent = `${selectedSample.label} / ${selectedSample.record.mood} / ${selectedSample.record.era}`;
+}
+
+function renderCrateReceipt() {
+  if (!pulledRecords.length) {
+    els.crateReceipt.textContent = "No receipt yet.";
+    return;
+  }
+  const density = patternDensity();
+  const variety = recordVariety(pattern);
+  const bonus = currentChallenge.bonus(pattern);
+  els.crateReceipt.innerHTML = `
+    <p><span>Constraint</span><strong>${escapeHtml(currentChallenge.title)}</strong></p>
+    <p><span>Hits</span><strong>${density}/64</strong></p>
+    <p><span>Records used</span><strong>${variety}/3</strong></p>
+    <p><span>Bonus</span><strong>+${bonus}</strong></p>
+  `;
 }
 
 function renderSequencer() {
@@ -441,24 +513,27 @@ function ensureAudioContext() {
 
 function scorePattern() {
   const density = patternDensity();
-  const recordVariety = new Set(
-    Object.values(pattern)
+  return Math.round(density * 34 + recordVariety(pattern) * 220 + scoreGroove() * 55 + currentChallenge.bonus(pattern));
+}
+
+function scoreGroove(patternData = pattern) {
+  const activeSteps = Object.values(patternData).flat().filter(Boolean).length;
+  const backbeat = [4, 12].filter((step) => patternData.snare[step]).length;
+  const swing = [3, 7, 11, 15].filter((step) => patternData.kick[step] || patternData.chop[step]).length;
+  return Math.min(99, activeSteps * 3 + backbeat * 10 + swing * 7);
+}
+
+function patternDensity(patternData = pattern) {
+  return Object.values(patternData).flat().filter(Boolean).length;
+}
+
+function recordVariety(patternData = pattern) {
+  return new Set(
+    Object.values(patternData)
       .flat()
       .filter(Boolean)
       .map((cell) => cell.sample.record.title),
   ).size;
-  return Math.round(density * 34 + recordVariety * 220 + scoreGroove() * 55);
-}
-
-function scoreGroove() {
-  const activeSteps = Object.values(pattern).flat().filter(Boolean).length;
-  const backbeat = [4, 12].filter((step) => pattern.snare[step]).length;
-  const swing = [3, 7, 11, 15].filter((step) => pattern.kick[step] || pattern.chop[step]).length;
-  return Math.min(99, activeSteps * 3 + backbeat * 10 + swing * 7);
-}
-
-function patternDensity() {
-  return Object.values(pattern).flat().filter(Boolean).length;
 }
 
 function resizeCanvas() {
@@ -481,6 +556,7 @@ function drawScene() {
   drawProducer(width, height, unit);
   drawPulledRecords(width, height, unit);
   drawBeatLights(width, height, unit);
+  drawChallengePoster(width, unit);
 }
 
 function drawPixelBackground(width, height, unit) {
@@ -558,6 +634,16 @@ function drawBeatLights(width, height, unit) {
     context.fillStyle = step === currentStep ? "#ffe169" : active ? "#6fddb1" : "#343840";
     context.fillRect(x + step * unit * 3, y, unit * 2, unit * 2);
   }
+}
+
+function drawChallengePoster(width, unit) {
+  context.fillStyle = "#101113";
+  context.fillRect(width - unit * 35, unit * 17, unit * 29, unit * 9);
+  context.fillStyle = "#ffe169";
+  context.fillRect(width - unit * 34, unit * 18, unit * 27, unit * 2);
+  context.fillStyle = "#f5efe4";
+  context.font = `${unit * 2}px ui-monospace, monospace`;
+  context.fillText(currentChallenge.title.toUpperCase().slice(0, 18), width - unit * 33, unit * 24);
 }
 
 function shuffle(items) {
