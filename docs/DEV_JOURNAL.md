@@ -647,3 +647,19 @@ What changed:
 Why this matters:
 
 Rhythm Roulette now feels less like a static beat grid and more like a playable challenge: the user gets a surprise pull, a constraint, a score reason, and a logged artifact.
+
+## 2026-07-06 - Runtime QA Harness
+
+We added a real browser runtime smoke harness.
+
+What changed:
+
+- Added Playwright as a dev dependency.
+- Added `npm run test:runtime`.
+- Added runtime coverage for SetScope, Rhythm Roulette, Pitch Gates, Audio Lab, and Dev Journal.
+- The harness clicks core actions, verifies expected state, captures screenshots, and checks console errors, page errors, failed HTTP responses, duplicate ids, broken images, and horizontal overflow.
+- Screenshots are written to a temp artifacts folder so local QA can inspect the app without committing image churn.
+
+Why this matters:
+
+This makes the creative sprint loop safer. Every new visual mode, game, or audio tool can now be checked in a real browser instead of depending only on static structure checks.

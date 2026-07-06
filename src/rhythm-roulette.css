@@ -435,6 +435,14 @@
 }
 
 @media (max-width: 640px) {
+  .roulette-layout {
+    padding: 8px;
+  }
+
+  .roulette-panel {
+    max-width: 100%;
+  }
+
   .roulette-stage {
     grid-template-rows: auto auto minmax(320px, 1fr) auto;
   }

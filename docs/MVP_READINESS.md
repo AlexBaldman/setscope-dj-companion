@@ -38,6 +38,7 @@ The current MVP supports the essential loop:
 - Markdown-backed dev journal UI.
 - Pitch Gates minigame with pitch/note/octave readout, gate scoring, demo mode, and timeline event logging.
 - Rhythm Roulette minigame with pixel-art blind crate digging, mystery record pulls, producer constraints, generated sample pads, sequencer grid, crate receipt, and learning-event logging.
+- Runtime QA harness for cockpit, Pitch Gates, Audio Lab, Journal, and Rhythm Roulette with screenshots, console checks, duplicate-id checks, broken-image checks, and overflow checks.
 - Browser QA now covers page overflow, semantic headings, unlabeled controls, missing assets, duplicate IDs, and core cockpit event flows.
 
 ## MVP Gaps
@@ -62,6 +63,7 @@ The current MVP supports the essential loop:
 - Add a real transition-analysis pass.
 - Add basic accessibility checks for keyboard focus and reduced motion.
 - Keep the no-horizontal-overflow and labeled-control browser audit green across every top-level surface.
+- Run `npm run test:runtime` before major UI commits.
 - Decide public/private repo status and license.
 
 ## Verification Commands
@@ -71,6 +73,7 @@ node --check server.mjs
 node scripts/check.mjs
 node scripts/provider-contract.test.mjs
 node scripts/smoke-api.mjs
+npm run test:runtime
 ```
 
 ## MVP Principle

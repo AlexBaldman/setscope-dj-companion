@@ -171,6 +171,7 @@
   display: flex;
   align-items: center;
   gap: 9px;
+  min-width: 0;
 }
 
 .tool-link {
@@ -185,6 +186,7 @@
   display: flex;
   align-items: center;
   gap: 7px;
+  min-width: 0;
 }
 
 .tool-rack-item {
@@ -238,6 +240,27 @@
 }
 
 @media (max-width: 560px) {
+  .game-topbar {
+    min-width: 0;
+  }
+
+  .game-tools {
+    width: 100%;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+
+  .tool-rack {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .tool-rack::-webkit-scrollbar {
+    display: none;
+  }
+
   .theme-toggle {
     width: 46px;
     height: 46px;
