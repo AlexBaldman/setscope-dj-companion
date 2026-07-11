@@ -663,3 +663,37 @@ What changed:
 Why this matters:
 
 This makes the creative sprint loop safer. Every new visual mode, game, or audio tool can now be checked in a real browser instead of depending only on static structure checks.
+
+## 2026-07-11 - Track-Scoped Practice Loop
+
+We connected DJ Mentor assignments to the tools that can actually train and record them.
+
+What changed:
+
+- Added a compact Practice Deck to DJ Mentor for launching Pitch Gates, Rhythm Roulette, or Audio Lab from the selected timeline track.
+- Added a shared assignment strip that carries track, timestamp, artist, and mission into each tool.
+- Auto-attached completed runs and snapshots to the source track with searchable practice, tuning, or sample labels.
+- Added an exact return path that reopens SetScope on the source track with the new event drawer already open.
+- Extended unit, static, and Playwright coverage across the full launch, save, and return loop.
+
+Why this matters:
+
+The Mentor, minigames, lab, and timeline now form one learning workflow. A suggestion can become a rep, the rep becomes evidence, and the evidence lands back on the musical moment that gave it meaning.
+
+## 2026-07-11 - Continuous Live Listening
+
+We turned the three-window microphone demo into an owned live session.
+
+What changed:
+
+- Added a reusable continuous-listening controller with explicit capture, recognition, waiting, error, and stopped states.
+- Added a true Listen/Stop transport with visible window and match totals.
+- Added persisted 8, 15, 30, and 60-second recognition cadence choices.
+- Made microphone recording and recognition requests cancellable when the user stops or leaves the page.
+- Kept capture and recognition sequential so slow provider responses cannot overlap or reorder timeline writes.
+- Added bounded retry behavior that pauses after three consecutive failures instead of silently looping forever.
+- Added unit and Playwright coverage for transport ownership, a complete fake-microphone recognition pass, and explicit stop behavior.
+
+Why this matters:
+
+SetScope can now stay beside a DJ set instead of asking for three isolated samples. The transport is also provider-neutral: the browser can use AudD while a future iOS build can drive the same lifecycle with ShazamKit.

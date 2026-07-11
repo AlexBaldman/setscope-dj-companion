@@ -1,31 +1,56 @@
-export async function captureAudioWindow(stream, durationMs = 4000) {
+export async function captureAudioWindow(stream, durationMs = 4000, { signal } = {}) {
   if (!globalThis.MediaRecorder) {
     throw new Error("media_recorder_unavailable");
   }
 
   const mimeType = chooseMimeType();
   const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
-  const chunks = [];
-
   return new Promise((resolve, reject) => {
+    const chunks = [];
+    let settled = false;
+    let timer = null;
+
+    const finish = (callback, value) => {
+      if (settled) return;
+      settled = true;
+      if (timer !== null) globalThis.clearTimeout(timer);
+      signal?.removeEventListener("abort", abortRecording);
+      callback(value);
+    };
+
+    const abortRecording = () => {
+      if (recorder.state !== "inactive") recorder.stop();
+      finish(reject, new Error("listening_stopped"));
+    };
+
     recorder.addEventListener("dataavailable", (event) => {
       if (event.data.size) chunks.push(event.data);
     });
-    recorder.addEventListener("error", () => reject(new Error("recording_failed")));
+    recorder.addEventListener("error", () => finish(reject, new Error("recording_failed")));
     recorder.addEventListener("stop", async () => {
-      const blob = new Blob(chunks, { type: recorder.mimeType || "audio/webm" });
-      resolve({
-        blob,
-        payload: {
-          mimeType: blob.type,
-          size: blob.size,
-          durationMs,
-          dataUrl: await blobToDataUrl(blob),
-        },
-      });
+      if (settled) return;
+      try {
+        const blob = new Blob(chunks, { type: recorder.mimeType || "audio/webm" });
+        finish(resolve, {
+          blob,
+          payload: {
+            mimeType: blob.type,
+            size: blob.size,
+            durationMs,
+            dataUrl: await blobToDataUrl(blob),
+          },
+        });
+      } catch {
+        finish(reject, new Error("recording_encode_failed"));
+      }
     });
+    if (signal?.aborted) {
+      finish(reject, new Error("listening_stopped"));
+      return;
+    }
+    signal?.addEventListener("abort", abortRecording, { once: true });
     recorder.start();
-    window.setTimeout(() => {
+    timer = globalThis.setTimeout(() => {
       if (recorder.state !== "inactive") recorder.stop();
     }, durationMs);
   });

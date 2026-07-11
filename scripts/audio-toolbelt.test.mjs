@@ -47,13 +47,15 @@ const event = createPitchGatesCompletionEvent({
   lives: 3,
 });
 
-persistPerformanceEvent(event);
+const savedPitchEvent = persistPerformanceEvent(event);
 
 const savedDraft = JSON.parse(localStorage.getItem("setscope-draft-v1"));
 assert.equal(savedDraft.audioEvents[0].title, "Pitch Gates run");
 assert.equal(savedDraft.audioEvents[0].type, "instrument");
 assert.equal(savedDraft.audioEvents[0].metadata.modeId, "pitch-gates");
 assert.equal(savedDraft.audioEvents[0].metadata.details.speed, "rush");
+assert.deepEqual(savedDraft.audioEvents[0].labels, ["practice"]);
+assert.equal(savedPitchEvent.id, savedDraft.audioEvents[0].id);
 assert.equal(state.audioEvents[0].metadata.score, 2760);
 
 const rouletteEvent = createRhythmRouletteCompletionEvent({
@@ -65,12 +67,18 @@ const rouletteEvent = createRhythmRouletteCompletionEvent({
   records: [{ artist: "Test Artist", bpm: 94, era: "1970s", title: "Blind Pull" }],
   savedLoops: 1,
   score: 1440,
+  trackId: "roulette-track",
+  time: "08:08",
+  trackTitle: "Context Track",
+  mission: "Flip the transition",
 });
 assert.equal(rouletteEvent.modeId, "rhythm-roulette");
 assert.equal(rouletteEvent.details.game, "Rhythm Roulette");
 assert.equal(rouletteEvent.details.challenge, "Dusty pocket");
 assert.equal(rouletteEvent.details.challengeBonus, 320);
 assert.equal(rouletteEvent.evidence.summary.includes("Blind Pull"), true);
+assert.equal(rouletteEvent.trackId, "roulette-track");
+assert.equal(rouletteEvent.details.mission, "Flip the transition");
 
 persistPerformanceEvent({
   kind: "performance",
@@ -111,6 +119,7 @@ assert.equal(labDraft.audioEvents[0].metadata.modeId, "audio-lab");
 assert.equal(labDraft.audioEvents[0].metadata.details.stableHold, true);
 assert.equal(labDraft.audioEvents[0].metadata.details.targetNote, "A4");
 assert.equal(labDraft.audioEvents[0].metadata.details.triggerScope, true);
+assert.deepEqual(labDraft.audioEvents[0].labels, ["practice", "tuning"]);
 assert.equal(audioEventsForTrack("track-123")[0].title, "Audio Lab run");
 assert.equal(audioEventsForTrack({ id: "missing-track" }).length, 0);
 
@@ -144,10 +153,10 @@ assert.equal(promoteAudioEventToTrackNotes("missing-event"), null);
 const reassigned = reassignAudioEvent(attachedEvent.id, state.tracks[1].id);
 assert.equal(reassigned.trackId, state.tracks[1].id);
 assert.equal(reassigned.time, state.tracks[1].time);
-assert.deepEqual(toggleAudioEventLabel(attachedEvent.id, "practice").labels, ["practice"]);
-state.signalFilter = "practice";
+assert.equal(toggleAudioEventLabel(attachedEvent.id, "review").labels.includes("review"), true);
+state.signalFilter = "review";
 assert.equal(visibleTracks().some((track) => track.id === state.tracks[1].id), true);
-assert.deepEqual(toggleAudioEventLabel(attachedEvent.id, "practice").labels, []);
+assert.equal(toggleAudioEventLabel(attachedEvent.id, "review").labels.includes("review"), false);
 assert.equal(visibleTracks().some((track) => track.id === state.tracks[1].id), false);
 state.signalFilter = "all";
 
@@ -164,6 +173,8 @@ assert.equal(Boolean(mentor.whyItWorks), true);
 assert.equal(Boolean(mentor.practiceMission), true);
 assert.equal(Boolean(mentor.digPrompt), true);
 assert.equal(mentor.actions.some((action) => action.action === "mentor-note"), true);
+assert.equal(mentor.practiceTools.length, 3);
+assert.equal(mentor.practiceTools.some((tool) => tool.id === "rhythm-roulette"), true);
 const moveCard = createDjMoveCard(attachedEvent);
 assert.equal(Boolean(moveCard.why), true);
 assert.equal(Boolean(moveCard.practice), true);

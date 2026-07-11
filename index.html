@@ -73,13 +73,13 @@
             </svg>
             New
           </button>
-          <button class="primary-btn" id="listenBtn" title="Start listening">
+          <button class="primary-btn" id="listenBtn" title="Start listening" aria-pressed="false">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 3a6 6 0 0 0-6 6v4a6 6 0 0 0 12 0V9a6 6 0 0 0-6-6Z" />
               <path d="M19 11v2a7 7 0 0 1-14 0v-2" />
               <path d="M12 20v3" />
             </svg>
-            Listen
+            <span id="listenLabel">Listen</span>
           </button>
         </div>
       </header>
@@ -153,6 +153,28 @@
                   </svg>
                 </button>
               </div>
+              <div class="live-transport" id="liveTransport" data-state="idle" aria-live="polite">
+                <div class="live-transport-state">
+                  <i aria-hidden="true"></i>
+                  <div>
+                    <strong id="liveStatus">Off air</strong>
+                    <span id="liveDetail">Ready for the room</span>
+                  </div>
+                </div>
+                <div class="live-transport-meters" aria-label="Listening session totals">
+                  <span>Windows <b id="liveWindows">0</b></span>
+                  <span>Matches <b id="liveMatches">0</b></span>
+                </div>
+                <label class="cadence-control">
+                  <span>Cadence</span>
+                  <select id="cadenceSelect" aria-label="Recognition cadence">
+                    <option value="8000">8 sec</option>
+                    <option value="15000" selected>15 sec</option>
+                    <option value="30000">30 sec</option>
+                    <option value="60000">60 sec</option>
+                  </select>
+                </label>
+              </div>
             </div>
 
             <div class="info-block">
@@ -213,6 +235,10 @@
               <div class="mentor-lines">
                 <p><span>Practice</span><strong id="mentorPractice">Run a recognition pass to seed a mission.</strong></p>
                 <p><span>Dig</span><strong id="mentorDig">Tag one record and build from there.</strong></p>
+              </div>
+              <div class="mentor-tool-launcher">
+                <span>Practice deck</span>
+                <div class="mentor-tool-rack" id="mentorToolRack"></div>
               </div>
               <div class="mentor-action-list" id="mentorActionList"></div>
             </div>

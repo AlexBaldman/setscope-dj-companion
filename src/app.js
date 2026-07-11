@@ -1,6 +1,7 @@
 import { getApiHealth, getProviderDiagnostics } from "./api.js";
 import { importAudio } from "./audio.js";
 import { els } from "./dom.js";
+import { buildPracticeHref } from "./practice-context.js";
 import { applySkin, createRenderer, makeBars } from "./render.js";
 import { nearestTrackFromMap } from "./set-map.js";
 import {
@@ -234,8 +235,29 @@ function runCoachAction(dataset) {
     return;
   }
   if (action === "practice") {
-    window.location.href = "./pitch-gates.html";
+    window.location.href = buildPracticeHref("pitch-gates", getSelectedTrack());
   }
+}
+
+function readRouteContext() {
+  const params = new URLSearchParams(window.location.search);
+  const trackId = params.get("track") || "";
+  const eventId = params.get("event") || "";
+  if (trackId && state.tracks.some((track) => track.id === trackId)) {
+    setSelectedId(trackId);
+  }
+  return {
+    eventId,
+    hasContext: params.has("track") || params.has("event") || params.has("mission"),
+  };
+}
+
+function clearRouteContext() {
+  const url = new URL(window.location.href);
+  url.searchParams.delete("track");
+  url.searchParams.delete("event");
+  url.searchParams.delete("mission");
+  window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
 }
 
 document.querySelector("#saveTrackBtn").addEventListener("click", saveSelected);
@@ -261,7 +283,7 @@ document.querySelector("#audioInput").addEventListener("change", (event) => {
   });
 });
 document.querySelector("#demoBtn").addEventListener("click", workflows.runDemo);
-document.querySelector("#listenBtn").addEventListener("click", workflows.startListening);
+els.listenBtn.addEventListener("click", workflows.toggleListening);
 document.querySelector("#providerTestBtn").addEventListener("click", workflows.testProviderWithSample);
 document.querySelector("#archiveBtn").addEventListener("click", workflows.archiveSet);
 document.querySelector("#exportBtn").addEventListener("click", workflows.exportData);
@@ -302,11 +324,18 @@ els.tagButtons.forEach((button) => {
 });
 els.setMapCanvas.addEventListener("click", selectFromSetMap);
 window.addEventListener("resize", renderer.renderTimeline);
+window.addEventListener("beforeunload", () => workflows.stopListening({ announce: false }));
 
 makeBars(els);
+const routeContext = readRouteContext();
 refreshApiStatus();
 applySkin(els, state.skin);
 renderer.render();
+if (routeContext.eventId && getAudioEventById(routeContext.eventId)) {
+  openAudioEvent(routeContext.eventId);
+  showToast(els, "Practice run attached");
+}
+if (routeContext.hasContext) clearRouteContext();
 
 // Touch selected state during startup so missing hydrated ids surface early in checks.
 getSelectedTrack();

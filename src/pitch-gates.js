@@ -1,7 +1,9 @@
 import { createAudioInputSession } from "./audio-session.js";
 import { createPitchGatesCompletionEvent, persistPerformanceEvent } from "./performance-events.js";
 import { createPitchAnalyzer, isPitchedFrame, midiToNote } from "./pitch-analysis.js";
+import { mountPracticeContext } from "./practice-context.js";
 
+const practiceContext = mountPracticeContext("pitch-gates");
 const canvas = document.querySelector("#pitchGameCanvas");
 const context = canvas.getContext("2d");
 const els = {
@@ -232,8 +234,13 @@ function endRound() {
     resolved: game.resolved,
     totalGates,
     lives: game.lives,
+    trackId: practiceContext.track?.id || "",
+    time: practiceContext.track?.time || "--:--",
+    trackTitle: practiceContext.track?.title || "",
+    mission: practiceContext.mission,
   });
-  persistPerformanceEvent(performanceEvent);
+  const savedEvent = persistPerformanceEvent(performanceEvent);
+  practiceContext.markComplete(savedEvent);
   appendPerformanceLog(performanceEvent);
   renderGame();
 }

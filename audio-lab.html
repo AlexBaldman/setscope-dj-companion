@@ -11,7 +11,7 @@
   <body>
     <div class="game-app audio-lab-app">
       <header class="game-topbar">
-        <a class="back-link" href="./index.html">
+        <a class="back-link" data-set-return href="./index.html">
           <span class="mini-disc"></span>
           SetScope
         </a>
@@ -29,6 +29,18 @@
       </header>
 
       <main class="audio-lab-layout">
+        <section class="practice-context" data-practice-context hidden aria-label="SetScope practice assignment">
+          <div class="practice-context-track">
+            <span>Set assignment / <b data-context-time>--:--</b></span>
+            <strong data-context-track>Selected track</strong>
+            <small data-context-artist>Artist</small>
+          </div>
+          <p data-context-mission>Practice mission</p>
+          <div class="practice-context-actions">
+            <span data-context-status aria-live="polite">Assignment armed</span>
+            <a data-set-return data-context-return href="./index.html">View in set</a>
+          </div>
+        </section>
         <section class="scope-rig">
           <div class="scope-header">
             <div>

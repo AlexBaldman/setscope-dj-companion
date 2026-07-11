@@ -332,9 +332,11 @@ export function logAudioEvent(event) {
 
 export function persistAudioEvent(event) {
   const latest = loadState();
-  latest.audioEvents = [createAudioEvent(event), ...(Array.isArray(latest.audioEvents) ? latest.audioEvents : [])].slice(0, 100);
+  const created = createAudioEvent(event);
+  latest.audioEvents = [created, ...(Array.isArray(latest.audioEvents) ? latest.audioEvents : [])].slice(0, 100);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(latest));
   state.audioEvents = latest.audioEvents;
+  return created;
 }
 
 function createAudioEvent(event) {

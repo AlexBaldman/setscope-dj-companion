@@ -24,6 +24,7 @@ export function createDjMentorModel(track = getSelectedTrack()) {
     energy,
     move: transitionMove.label,
     practiceMission,
+    practiceTools: selected ? practiceToolsForTrack(selected, practiceMission) : [],
     selectedTrackId: selected?.id || "",
     storyBeat,
     whyItWorks,
@@ -55,18 +56,36 @@ function mentorActions({ digPrompt, practiceMission, selected }) {
       trackId: selected.id,
     },
     {
-      action: "practice",
-      button: "Train",
-      detail: "Open Pitch Gates with this moment in mind",
-      title: "Turn the moment into reps",
-      trackId: selected.id,
-    },
-    {
       action: "signals",
       button: "Evidence",
       detail: "Filter the timeline to signal-backed tracks",
       title: "Check the evidence trail",
       trackId: selected.id,
+    },
+  ];
+}
+
+function practiceToolsForTrack(track, pitchMission) {
+  const bpm = Number(track.bpm) || 0;
+  const key = track.key && track.key !== "-" ? track.key : "Open";
+  return [
+    {
+      detail: "Hook reps",
+      id: "pitch-gates",
+      label: "Pitch",
+      mission: pitchMission,
+    },
+    {
+      detail: bpm ? `${bpm} BPM` : "Set pocket",
+      id: "rhythm-roulette",
+      label: "Flip",
+      mission: `Build a ${bpm ? `${bpm} BPM` : "set-tempo"} flip that could lead into ${track.title}, then save the strongest pocket.`,
+    },
+    {
+      detail: `Key ${key}`,
+      id: "audio-lab",
+      label: "Lab",
+      mission: `Capture a stable signal from ${track.title}, compare it with the ${key} key tag, and log the cleanest read.`,
     },
   ];
 }

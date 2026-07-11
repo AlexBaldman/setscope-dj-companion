@@ -26,12 +26,27 @@ export function createPerformanceEvent({
   };
 }
 
-export function createPitchGatesCompletionEvent({ sourceLabel, register, speed, score, streak, resolved, totalGates, lives } = {}) {
+export function createPitchGatesCompletionEvent({
+  sourceLabel,
+  register,
+  speed,
+  score,
+  streak,
+  resolved,
+  totalGates,
+  lives,
+  trackId = "",
+  time = "--:--",
+  trackTitle = "",
+  mission = "",
+} = {}) {
   return createPerformanceEvent({
     modeId: "pitch-gates",
     score,
     streak,
     sourceLabel,
+    trackId,
+    time,
     details: {
       game: "Pitch Gates",
       register,
@@ -39,6 +54,8 @@ export function createPitchGatesCompletionEvent({ sourceLabel, register, speed, 
       resolved,
       totalGates,
       lives,
+      trackTitle,
+      mission,
     },
     evidence: {
       summary: `${sourceLabel} / ${register} / ${score} pts / streak ${streak}`,
@@ -46,13 +63,28 @@ export function createPitchGatesCompletionEvent({ sourceLabel, register, speed, 
   });
 }
 
-export function createRhythmRouletteCompletionEvent({ bpm, challenge, challengeBonus, records = [], score, groove, patternDensity, savedLoops } = {}) {
+export function createRhythmRouletteCompletionEvent({
+  bpm,
+  challenge,
+  challengeBonus,
+  records = [],
+  score,
+  groove,
+  patternDensity,
+  savedLoops,
+  trackId = "",
+  time = "--:--",
+  trackTitle = "",
+  mission = "",
+} = {}) {
   const recordLine = records.map((record) => record.title).filter(Boolean).join(" + ");
   return createPerformanceEvent({
     modeId: "rhythm-roulette",
     score,
     streak: groove,
     sourceLabel: "Blind crate pull",
+    trackId,
+    time,
     details: {
       game: "Rhythm Roulette",
       bpm,
@@ -67,6 +99,8 @@ export function createRhythmRouletteCompletionEvent({ bpm, challenge, challengeB
         era: record.era,
         title: record.title,
       })),
+      trackTitle,
+      mission,
     },
     evidence: {
       summary: `${recordLine || "No records"} / ${bpm || "--"} BPM / ${score || 0} pts`,
@@ -75,14 +109,21 @@ export function createRhythmRouletteCompletionEvent({ bpm, challenge, challengeB
 }
 
 export function persistPerformanceEvent(event) {
-  persistAudioEvent({
+  return persistAudioEvent({
     type: audioEventTypeForMode(event.modeId),
+    labels: labelsForMode(event.modeId),
     trackId: event.trackId,
     time: event.time || "--:--",
     title: event.details?.game ? `${event.details.game} run` : "Performance run",
     detail: event.evidence?.summary || `${event.sourceLabel} / ${event.score} pts / streak ${event.streak}`,
     metadata: event,
   });
+}
+
+function labelsForMode(modeId) {
+  if (modeId === "audio-lab") return ["practice", "tuning"];
+  if (modeId === "rhythm-roulette") return ["practice", "sample"];
+  return ["practice"];
 }
 
 function audioEventTypeForMode(modeId) {

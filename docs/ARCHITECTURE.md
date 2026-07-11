@@ -18,8 +18,10 @@
 - `src/audio-session.js`: reusable browser audio source lifecycle for toolbelt modules.
 - `src/audio-widgets.js`: reusable tuner presets, level analysis, zero-crossing trigger helpers, and practice stat persistence.
 - `src/capture.js`: browser mic window recording and API-ready audio payload creation.
+- `src/listening-session.js`: cancellable continuous-listening state machine, cadence scheduling, sequential capture/recognition ownership, and retry limits.
 - `src/pitch-analysis.js`: Pitchy-backed pitch frames and musical pitch helpers.
 - `src/performance-events.js`: structured toolbelt practice/game event persistence.
+- `src/practice-context.js`: URL-addressable selected-track assignments, tool mission display, and exact track/event return links.
 - `src/pitch-gates.js`: pitch detector inputs, canvas game loop, scoring, and timeline event output.
 - `src/pitch-gates.css`: arcade-lab game surface and responsive controls.
 - `src/rhythm-roulette.js` and `src/rhythm-roulette.css`: blind record-pull game, pixel-art shop canvas, generated beat playback, sequencer UI, and learning-event output.
@@ -70,6 +72,8 @@
 - Set Coach turns the current timeline into a readiness score, ranked next actions, and creative prompts that can steer review mode, signal filtering, and event labeling.
 - DJ Mentor reads selected tracks and toolbelt events to render practice missions, dig prompts, mentor notes, and event move cards.
 - Rhythm Roulette adds a beat-making game that writes saved blind-crate flips into the same structured audio event timeline.
+- DJ Mentor practice launches now carry the selected track into Pitch Gates, Rhythm Roulette, and Audio Lab; completed runs auto-attach, receive practice labels, and return to the cockpit with the saved event open.
+- The main deck now runs a continuous listening transport with explicit start/stop ownership, configurable cadence, abortable capture/API work, session metrics, and bounded retry behavior.
 
 ## Main Risks
 
@@ -79,6 +83,7 @@
 - Provider matches are normalized, clamped, and schema-validated at the server boundary.
 - The frontend state currently mixes durable set data with UI-only state. A small store module would make save/load behavior easier to reason about.
 - Web audio-source capture is permission-scoped: arbitrary computer playback cannot be silently sampled, and shared system-audio choices vary by browser/OS.
+- Continuous listening is deliberately sequential so slow recognition responses cannot overlap capture windows or reorder timeline writes.
 
 ## Recommended Next Refactor
 
@@ -129,3 +134,4 @@ The UI should depend on this normalized shape, not on any individual provider re
 - Provider diagnostics are intentionally non-secret: they report whether configuration exists, not token values.
 - Provider diagnostics include normalized-match schema readiness.
 - The sample-provider test uses the same `/api/recognize` contract as mic capture, which keeps provider testing aligned with real listening.
+- Continuous web listening treats capture cadence and provider choice as adapters around the normalized match contract. A ShazamKit implementation can replace the web capture/recognize functions without replacing the transport states or archive schema.

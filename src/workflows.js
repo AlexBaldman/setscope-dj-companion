@@ -1,5 +1,6 @@
 import { listSets, loadSet, recognizeWindow, saveSet } from "./api.js";
 import { captureAudioWindow, createSampleAudioPayload } from "./capture.js";
+import { createListeningSession, normalizeListeningCadence } from "./listening-session.js";
 import {
   addTrack,
   hydrateState,
@@ -15,6 +16,24 @@ import { toSeconds } from "./utils.js";
 
 export function createWorkflows(els, { render, renderArchiveList, applySkin, showToast }) {
   let demoTimer = null;
+  const savedCadence = normalizeListeningCadence(localStorage.getItem("setscope-listening-cadence"));
+  els.cadenceSelect.value = String(savedCadence);
+
+  const listeningSession = createListeningSession({
+    acquireStream: () => navigator.mediaDevices.getUserMedia({ audio: true }),
+    captureWindow: captureAudioWindow,
+    recognize: async ({ payload }, { signal }) => requestRecognition(payload, { signal }),
+    onMatch(match) {
+      upsertRecognizedTrack(match);
+      render();
+      showToast(`${match.artist} - ${match.title}`);
+    },
+    onError(_error, sessionState) {
+      showToast(`Recognition retry ${sessionState.consecutiveErrors}/3`);
+    },
+    onState: renderListeningState,
+  });
+  renderListeningState(listeningSession.getState());
 
   async function refreshArchiveList() {
     try {
@@ -27,11 +46,12 @@ export function createWorkflows(els, { render, renderArchiveList, applySkin, sho
     }
   }
 
-  async function requestRecognition(audio) {
+  async function requestRecognition(audio, { signal } = {}) {
     const windowSeconds = Math.max(1, Math.round(Number(audio?.durationMs || 0) / 1000) || 8);
     const payload = await recognizeWindow({
       audio,
       cursor: state.recognitionCursor,
+      signal,
       windowSeconds,
       tracks: state.tracks,
     });
@@ -59,6 +79,7 @@ export function createWorkflows(els, { render, renderArchiveList, applySkin, sho
   }
 
   function runDemo() {
+    stopListening({ announce: false });
     window.clearInterval(demoTimer);
     let captures = 0;
     els.engineStatus.textContent = "Recognizing";
@@ -83,7 +104,11 @@ export function createWorkflows(els, { render, renderArchiveList, applySkin, sho
     }, 1400);
   }
 
-  async function startListening() {
+  async function toggleListening() {
+    if (listeningSession.isActive()) {
+      stopListening();
+      return;
+    }
     if (!navigator.mediaDevices?.getUserMedia) {
       showToast("Mic capture unavailable");
       return;
@@ -92,27 +117,50 @@ export function createWorkflows(els, { render, renderArchiveList, applySkin, sho
       showToast("Recorder unavailable");
       return;
     }
-    let stream;
+    window.clearInterval(demoTimer);
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const windowMs = 8000;
-      const maxWindows = 3;
-      showToast("Listening from mic");
-      for (let index = 0; index < maxWindows; index += 1) {
-        els.engineStatus.textContent = `Window ${index + 1}/${maxWindows}`;
-        const { payload } = await captureAudioWindow(stream, windowMs);
-        const match = await requestRecognition(payload);
-        upsertRecognizedTrack(match);
-        render();
-        els.engineStatus.textContent = match.needsReview ? "Review match" : "Matched";
-        showToast(`${match.artist} - ${match.title}`);
-      }
-      els.engineStatus.textContent = "Set logged";
-    } catch {
-      showToast("Mic permission needed");
-    } finally {
-      stream?.getTracks().forEach((track) => track.stop());
+      const cadenceMs = normalizeListeningCadence(els.cadenceSelect.value);
+      localStorage.setItem("setscope-listening-cadence", String(cadenceMs));
+      await listeningSession.start({ cadenceMs, windowMs: 8000 });
+      showToast("Live listening started");
+    } catch (error) {
+      showToast(error?.name === "NotAllowedError" ? "Mic permission needed" : "Mic capture unavailable");
     }
+  }
+
+  function stopListening({ announce = true } = {}) {
+    const stopped = listeningSession.stop();
+    if (stopped && announce) showToast("Live listening stopped");
+  }
+
+  function renderListeningState(sessionState) {
+    const labels = {
+      capturing: "Capturing",
+      error: "Needs attention",
+      idle: "Off air",
+      recognizing: "Matching",
+      requesting: "Connecting",
+      waiting: "Listening",
+    };
+    const details = {
+      capturing: `Window ${sessionState.cycleCount} / 8s sample`,
+      error: sessionState.lastError || "Recognition paused",
+      idle: sessionState.stoppedAt ? "Session stopped" : "Ready for the room",
+      recognizing: "Reading the current track",
+      requesting: "Waiting for microphone",
+      waiting: `Next pass / ${Math.round(sessionState.cadenceMs / 1000)}s cadence`,
+    };
+    els.liveTransport.dataset.state = sessionState.phase;
+    els.liveStatus.textContent = labels[sessionState.phase] || "Off air";
+    els.liveDetail.textContent = details[sessionState.phase] || "Ready for the room";
+    els.liveWindows.textContent = String(sessionState.cycleCount || 0);
+    els.liveMatches.textContent = String(sessionState.matchCount || 0);
+    els.listenBtn.setAttribute("aria-pressed", String(sessionState.active));
+    els.listenBtn.title = sessionState.active ? "Stop listening" : "Start listening";
+    els.listenLabel.textContent = sessionState.active ? "Stop" : "Listen";
+    els.cadenceSelect.disabled = sessionState.active;
+    document.body.dataset.listening = sessionState.active ? "active" : "idle";
+    els.engineStatus.textContent = labels[sessionState.phase] || "Idle";
   }
 
   async function testProviderWithSample() {
@@ -179,6 +227,7 @@ export function createWorkflows(els, { render, renderArchiveList, applySkin, sho
 
   async function loadArchivedSet(id) {
     if (!id) return;
+    stopListening({ announce: false });
     try {
       const payload = await loadSet(id);
       const set = payload.set;
@@ -218,6 +267,7 @@ export function createWorkflows(els, { render, renderArchiveList, applySkin, sho
   }
 
   function newSet() {
+    stopListening({ announce: false });
     resetForNewSet();
     addTrack({
       time: "00:00",
@@ -251,7 +301,8 @@ export function createWorkflows(els, { render, renderArchiveList, applySkin, sho
     newSet,
     refreshArchiveList,
     runDemo,
-    startListening,
+    stopListening,
     testProviderWithSample,
+    toggleListening,
   };
 }

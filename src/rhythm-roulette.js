@@ -1,5 +1,7 @@
 import { createRhythmRouletteCompletionEvent, persistPerformanceEvent } from "./performance-events.js";
+import { mountPracticeContext } from "./practice-context.js";
 
+const practiceContext = mountPracticeContext("rhythm-roulette");
 const canvas = document.querySelector("#rouletteSceneCanvas");
 const context = canvas.getContext("2d");
 const els = {
@@ -242,7 +244,7 @@ function saveRun() {
   localStorage.setItem(savedKey, String(savedLoops));
   els.bestRouletteScore.textContent = formatScore(best);
   els.grooveScore.textContent = String(scoreGroove()).padStart(2, "0");
-  persistPerformanceEvent(
+  const savedEvent = persistPerformanceEvent(
     createRhythmRouletteCompletionEvent({
       bpm: Number(els.rouletteBpm.textContent) || 92,
       challenge: currentChallenge.title,
@@ -252,8 +254,13 @@ function saveRun() {
       records: pulledRecords,
       savedLoops,
       score,
+      trackId: practiceContext.track?.id || "",
+      time: practiceContext.track?.time || "--:--",
+      trackTitle: practiceContext.track?.title || "",
+      mission: practiceContext.mission,
     }),
   );
+  practiceContext.markComplete(savedEvent);
   els.rouletteStatus.textContent = "RUN SAVED";
   els.missionTitle.textContent = "Loop logged";
   els.missionDetail.textContent = `${currentChallenge.title} bonus: +${challengeBonus}. This blind crate flip is now in the SetScope toolbelt event timeline.`;

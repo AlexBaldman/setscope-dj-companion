@@ -33,15 +33,53 @@ console.log(`Runtime smoke passed. Artifacts: ${artifactDir}`);
 
 async function runDesktopFlow() {
   const context = await browser.newContext({ viewport: desktopViewport });
+  await installFakeMicrophone(context);
   const page = await context.newPage();
   const logs = captureRuntimeProblems(page, "desktop");
   await verifySetScope(page);
+  await verifyLiveListening(page);
+  await verifyContextualPracticeLoop(page);
   await verifyRhythmRoulette(page);
   await verifyPitchGates(page);
   await verifyAudioLab(page);
   await verifyJournal(page);
   collectRuntimeProblems(logs);
   await context.close();
+}
+
+async function installFakeMicrophone(context) {
+  await context.addInitScript(() => {
+    const track = { stop() {} };
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: { getUserMedia: async () => ({ getTracks: () => [track] }) },
+    });
+    class RuntimeMediaRecorder extends EventTarget {
+      static isTypeSupported() {
+        return true;
+      }
+
+      constructor() {
+        super();
+        this.mimeType = "audio/webm";
+        this.state = "inactive";
+      }
+
+      start() {
+        this.state = "recording";
+      }
+
+      stop() {
+        if (this.state === "inactive") return;
+        this.state = "inactive";
+        const dataEvent = new Event("dataavailable");
+        Object.defineProperty(dataEvent, "data", { value: new Blob(["setscope-runtime-audio"], { type: this.mimeType }) });
+        this.dispatchEvent(dataEvent);
+        this.dispatchEvent(new Event("stop"));
+      }
+    }
+    Object.defineProperty(globalThis, "MediaRecorder", { configurable: true, value: RuntimeMediaRecorder });
+  });
 }
 
 async function runMobileOverflowPass() {
@@ -70,6 +108,50 @@ async function verifySetScope(page) {
   await page.locator("#mentorActionList [data-coach-action=\"mentor-note\"]").click();
   await expectText(page, "#toast", "Mentor note saved", "mentor note toast");
   await auditPage(page, "setscope-desktop");
+}
+
+async function verifyLiveListening(page) {
+  await goto(page, "/");
+  await page.locator("#cadenceSelect").selectOption("8000");
+  await page.locator("#listenBtn").click();
+  await expectText(page, "#liveStatus", "Capturing", "live transport capture state");
+  await page.locator("#liveMatches").waitFor({ state: "visible", timeout: 12000 });
+  await page.waitForFunction(() => document.querySelector("#liveMatches")?.textContent === "1", null, { timeout: 12000 });
+  assert((await page.locator("#listenBtn").getAttribute("aria-pressed")) === "true", "live transport should remain active after a match");
+  await page.locator("#listenBtn").click();
+  await expectText(page, "#liveStatus", "Off air", "live transport stopped state");
+  assert((await page.locator("#listenBtn").getAttribute("aria-pressed")) === "false", "live transport should expose stopped state");
+  await auditPage(page, "setscope-live-transport");
+}
+
+async function verifyContextualPracticeLoop(page) {
+  await goto(page, "/");
+  const trackTitle = (await page.locator("#nowTitle").textContent()) || "";
+  const trackId = await page.evaluate((title) => {
+    const draft = JSON.parse(localStorage.getItem("setscope-draft-v1") || "{}");
+    return draft.tracks?.find((track) => track.title === title)?.id || "";
+  }, trackTitle);
+  assert(Boolean(trackId), "context loop should resolve the selected timeline track");
+
+  await page.locator('[data-practice-tool="rhythm-roulette"]').click();
+  await expectVisible(page, "[data-practice-context]", "contextual practice assignment");
+  await expectText(page, "[data-context-track]", trackTitle, "practice assignment track");
+  await page.locator("#blindDigBtn").click();
+  await page.locator("#surpriseBeatBtn").click();
+  await page.locator("#saveRouletteBtn").click();
+  await expectText(page, "[data-context-status]", "Run attached", "attached practice status");
+
+  const savedEvent = await page.evaluate((expectedTrackId) => {
+    const draft = JSON.parse(localStorage.getItem("setscope-draft-v1") || "{}");
+    return draft.audioEvents?.find((event) => event.metadata?.modeId === "rhythm-roulette" && event.trackId === expectedTrackId);
+  }, trackId);
+  assert(Boolean(savedEvent?.id), "contextual Rhythm Roulette run should attach to its source track");
+  assert(savedEvent?.labels?.includes("practice"), "contextual practice run should be labeled for filtering");
+
+  await page.locator("[data-context-return]").click();
+  await expectVisible(page, "#eventDrawer.open", "returned practice event drawer");
+  await expectText(page, "#eventDrawerTitle", "Rhythm Roulette run", "returned practice event title");
+  await expectText(page, "#nowTitle", trackTitle, "returned timeline selection");
 }
 
 async function verifyRhythmRoulette(page) {

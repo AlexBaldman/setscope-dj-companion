@@ -10,11 +10,12 @@ export async function getProviderDiagnostics() {
   return response.json();
 }
 
-export async function recognizeWindow({ audio, cursor, tracks, windowSeconds = 12 }) {
+export async function recognizeWindow({ audio, cursor, signal, tracks, windowSeconds = 12 }) {
   const response = await fetch("/api/recognize", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ audio, cursor, tracks, windowSeconds }),
+    signal,
   });
   if (!response.ok) throw new Error("recognition_failed");
   return response.json();

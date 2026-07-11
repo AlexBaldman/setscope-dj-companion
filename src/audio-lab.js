@@ -10,11 +10,13 @@ import {
 } from "./audio-widgets.js";
 import { createPerformanceEvent, persistPerformanceEvent } from "./performance-events.js";
 import { createPitchAnalyzer, isPitchedFrame, midiToFrequency, midiToNote } from "./pitch-analysis.js";
+import { mountPracticeContext } from "./practice-context.js";
 
 const bufferLength = 2048;
 const draftStorageKey = "setscope-draft-v1";
 const practiceStorageKey = "setscope-audio-lab-practice-v1";
 const canvas = document.querySelector("#scopeCanvas");
+const practiceContext = mountPracticeContext("audio-lab");
 const context = canvas.getContext("2d");
 const scopeBuffer = new Float32Array(bufferLength);
 const audioSession = createAudioInputSession({
@@ -80,7 +82,7 @@ let currentFrame = null;
 
 resizeCanvas();
 renderTargetButtons();
-populateTrackAttachSelect();
+populateTrackAttachSelect(practiceContext.track?.id);
 drawScope();
 renderFrame();
 renderPractice();
@@ -296,7 +298,7 @@ function logSnapshot() {
   const clarity = Math.round(currentFrame.clarity * 100);
   const cents = Math.round(centsFromMidiTarget(currentFrame.midi, targetMidi));
   const attachedTrack = getAttachedTrack();
-  persistPerformanceEvent(createPerformanceEvent({
+  const savedEvent = persistPerformanceEvent(createPerformanceEvent({
     modeId: "audio-lab",
     score: holdLocked ? 100 : clarity,
     streak: practiceStats.streak,
@@ -322,11 +324,13 @@ function logSnapshot() {
       dailyLocks: practiceStats.dailyLocks,
       streak: practiceStats.streak,
       trackTitle: attachedTrack?.title || "",
+      mission: practiceContext.mission,
     },
     evidence: {
       summary: `${sourceLabel.toUpperCase()} / ${note} to ${midiToNote(targetMidi)} / ${frequency} Hz / ${clarity}%${attachedTrack ? ` / ${attachedTrack.title}` : ""}`,
     },
   }));
+  practiceContext.markComplete(savedEvent);
   els.snapshotStatus.textContent = "Logged";
   els.snapshotDetail.textContent = `${note} -> ${midiToNote(targetMidi)} / ${frequency} Hz / ${clarity}%${attachedTrack ? ` / ${attachedTrack.time}` : ""}`;
 }
@@ -421,7 +425,7 @@ function renderPractice() {
   els.practiceDetail.textContent = `Streak ${practiceStats.streak} / ${dailyGoal - daily > 0 ? `${dailyGoal - daily} locks to goal` : "daily goal complete"}`;
 }
 
-function populateTrackAttachSelect() {
+function populateTrackAttachSelect(selectedTrackId = "") {
   const draft = readDraft();
   const tracks = Array.isArray(draft?.tracks) ? draft.tracks : [];
   els.trackAttachSelect.innerHTML = `<option value="">Set timeline</option>`;
@@ -429,6 +433,7 @@ function populateTrackAttachSelect() {
     const option = document.createElement("option");
     option.value = track.id || "";
     option.textContent = `${track.time || "--:--"} / ${track.title || "Untitled track"}`;
+    option.selected = track.id === selectedTrackId;
     els.trackAttachSelect.appendChild(option);
   });
 }

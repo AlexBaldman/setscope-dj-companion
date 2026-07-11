@@ -1,5 +1,6 @@
 import { drawSetMap } from "./set-map.js";
 import { createDjMentorModel, createDjMoveCard } from "./dj-mentor.js";
+import { buildPracticeHref } from "./practice-context.js";
 import { createSetCoachModel } from "./set-coach.js";
 import {
   audioEventLabels,
@@ -171,13 +172,24 @@ export function createRenderer(els, handlers) {
   }
 
   function renderDjMentor() {
-    const mentor = createDjMentorModel(getSelectedTrack());
+    const track = getSelectedTrack();
+    const mentor = createDjMentorModel(track);
     els.mentorStoryBeat.textContent = mentor.storyBeat;
     els.mentorEnergy.textContent = mentor.energy;
     els.mentorMove.textContent = mentor.move;
     els.mentorWhy.textContent = mentor.whyItWorks;
     els.mentorPractice.textContent = mentor.practiceMission;
     els.mentorDig.textContent = mentor.digPrompt;
+    els.mentorToolRack.innerHTML = mentor.practiceTools
+      .map(
+        (tool) => `
+          <a class="mentor-tool" data-practice-tool="${escapeHtml(tool.id)}" href="${escapeHtml(buildPracticeHref(tool.id, track, tool.mission))}" aria-label="${escapeHtml(`${tool.label}: ${tool.mission}`)}">
+            <span>${escapeHtml(tool.label)}</span>
+            <strong>${escapeHtml(tool.detail)}</strong>
+          </a>
+        `,
+      )
+      .join("");
     els.mentorActionList.innerHTML = mentor.actions
       .map(
         (action) => `
@@ -416,6 +428,8 @@ function renderEventDetailGrid(event) {
     ["RMS", Number.isFinite(details.rms) ? `${details.rms}%` : ""],
     ["Peak", Number.isFinite(details.peak) ? `${details.peak}%` : ""],
     ["Preset", details.preset],
+    ["Assignment", details.trackTitle],
+    ["Mission", details.mission],
     ["Labels", audioEventLabels(event).join(", ")],
   ].filter(([, value]) => value !== undefined && value !== null && value !== "");
   return rows
@@ -436,12 +450,16 @@ function formatEventDrawerBody(event) {
   if (event.metadata?.modeId === "pitch-gates") {
     return `Pitch Gates run with ${event.metadata.score || 0} points and streak ${event.metadata.streak || 0}. ${event.detail || ""}`.trim();
   }
+  if (event.metadata?.modeId === "rhythm-roulette") {
+    return `${details.challenge || "Rhythm Roulette"} flip at ${details.bpm || "--"} BPM with groove ${details.groove || 0}. ${event.detail || ""}`.trim();
+  }
   return event.detail || event.metadata?.evidence?.summary || "No extra metadata captured yet.";
 }
 
 function shortEventLabel(event) {
   if (event.metadata?.modeId === "audio-lab") return "Lab";
   if (event.metadata?.modeId === "pitch-gates") return "Arcade";
+  if (event.metadata?.modeId === "rhythm-roulette") return "Flip";
   if (event.type === "recognition") return "ID";
   if (event.type === "tag") return "Tag";
   return event.type || "Event";

@@ -14,6 +14,7 @@ The current MVP supports the essential loop:
 8. Track project progress in the dev journal.
 9. Play Pitch Gates with generated, microphone, shared, or uploaded audio and log a practice event.
 10. Play Rhythm Roulette by pulling mystery records, building a generated beat-grid loop, and logging the run.
+11. Start continuous listening, choose a recognition cadence, watch session progress, and stop capture explicitly.
 
 ## Working Features
 
@@ -23,6 +24,7 @@ The current MVP supports the essential loop:
 - AudD adapter ready behind `AUDD_API_TOKEN`.
 - Synthetic sample-audio provider test.
 - Browser mic capture path with sanitized server payloads.
+- Continuous live-listening transport with start/stop, 8/15/30/60-second cadence choices, session totals, abortable work, and bounded retries.
 - Imported-audio BPM estimation.
 - Audio event timeline for recognition and crate-tag events.
 - Quick crate tags in the Track Intel panel.
@@ -44,6 +46,7 @@ The current MVP supports the essential loop:
 ## MVP Gaps
 
 - Real AudD token has not been tested in this environment yet.
+- Continuous listening still needs a physical microphone and long-session battery/network test on target devices.
 - Archive storage is JSON-file based and should move to SQLite before heavy use.
 - Archived set and audio-event payloads are not schema-validated yet.
 - Transition classification is currently manual/provider-stub metadata.
