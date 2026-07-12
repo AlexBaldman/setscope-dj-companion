@@ -697,3 +697,23 @@ What changed:
 Why this matters:
 
 SetScope can now stay beside a DJ set instead of asking for three isolated samples. The transport is also provider-neutral: the browser can use AudD while a future iOS build can drive the same lifecycle with ShazamKit.
+
+## 2026-07-12 - Revolution Sprint Council
+
+We reconvened independent visual-world, game-direction, music-pedagogy, and audio-platform reviews to choose the next lead dominoes.
+
+What changed:
+
+- Defined the product promise as turning a DJ set into a route from hearing through understanding, practice, and transfer.
+- Selected Block Signal Broadcast as the canonical visual world, Night Transit as its information model, and Pressing Plant as its evidence language.
+- Converged on one implementation spine: versioned contracts, deterministic Pitch Gates, honest learning evidence, the four-space shell, and the visual finish.
+- Specified Booth, Route, Practice, and Crate as the long-term product structure.
+- Separated immediate Craft Score from durable Learning Evidence.
+- Added production gates for audio latency, data migration, privacy, accessibility, first-session completion, and return behavior.
+- Explicitly deferred new minigames and infrastructure expansion until one existing game proves the complete learning loop.
+
+Why this matters:
+
+The next sprint now has a hard order and a quality bar. We are not adding another attractive prototype; we are converting the existing strengths into one product people can understand, trust, and come back to.
+
+See `docs/REVOLUTION_SPRINT_PLAN.md` for the complete council plan.
