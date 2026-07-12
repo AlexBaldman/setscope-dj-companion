@@ -717,3 +717,22 @@ Why this matters:
 The next sprint now has a hard order and a quality bar. We are not adding another attractive prototype; we are converting the existing strengths into one product people can understand, trust, and come back to.
 
 See `docs/REVOLUTION_SPRINT_PLAN.md` for the complete council plan.
+
+## 2026-07-12 - Moonshot Council
+
+We asked the same visual, game, music-learning, and systems council to suspend roadmap gravity and surface the ideas they would normally leave unspoken.
+
+What changed:
+
+- Reframed SetScope's possible category as software that makes musical attention playable.
+- Identified repeated independent convergence around Counterfactual Booth, Blind Booth, Signal Relay, Memory Pressing, and Pocket Phrase.
+- Defined sixteen category-scale concepts with concrete user actions, human needs, technical primitives, risks, and experiments under three CC days.
+- Preserved dangerous dissent around crowd participation, designed forgetting, disappearing interfaces, ephemeral sessions, and moving native-first when haptics or background audio become the product.
+- Added cultural, rights, accessibility, privacy, provenance, and uncertainty guardrails.
+- Ranked five thin-wedge experiments that can test magic without disrupting the approved Revolution Sprint.
+
+Why this matters:
+
+The moonshots now have disciplined escape velocity. They remain strange enough to create a new category, but each can be tested cheaply before it attracts infrastructure or mythology.
+
+See `docs/MOONSHOT_COUNCIL.md` for the complete atlas.
