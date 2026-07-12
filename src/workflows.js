@@ -234,8 +234,9 @@ export function createWorkflows(els, { render, renderArchiveList, applySkin, sho
       state.archiveId = set.id;
       state.skin = set.skin || state.skin;
       state.captureLog = set.captureLog || [];
-      state.audioEvents = set.audioEvents || [];
-      state.tracks = hydrateState({ tracks: set.tracks || [] }).tracks;
+      const hydrated = hydrateState({ tracks: set.tracks || [], audioEvents: set.audioEvents || [] });
+      state.audioEvents = hydrated.audioEvents;
+      state.tracks = hydrated.tracks;
       setSelectedId(state.tracks[0]?.id);
       applySkin(state.skin);
       render();

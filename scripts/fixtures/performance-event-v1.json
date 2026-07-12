@@ -1,0 +1,18 @@
+{
+  "kind": "performance",
+  "modeId": "pitch-gates",
+  "status": "complete",
+  "score": 2760,
+  "streak": 12,
+  "sourceLabel": "DEMO",
+  "trackId": "track-44",
+  "time": "08:08",
+  "details": {
+    "game": "Pitch Gates",
+    "register": "Mid"
+  },
+  "evidence": {
+    "summary": "DEMO / Mid / 2760 pts / streak 12"
+  },
+  "createdAt": "2026-07-12T12:00:00.000Z"
+}

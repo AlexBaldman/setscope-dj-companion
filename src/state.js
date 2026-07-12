@@ -1,5 +1,6 @@
 import { cloneDemoTracks, demoTracks } from "./fixtures.js";
 import { randomColors, toSeconds, uid } from "./utils.js";
+import { normalizePerformanceMetadata } from "./migrations/performance-event-v1.js";
 
 const STORAGE_KEY = "setscope-draft-v1";
 
@@ -34,6 +35,12 @@ export function hydrateState(nextState) {
     ...track,
     id: track.id || uid(),
   }));
+  nextState.audioEvents = Array.isArray(nextState.audioEvents)
+    ? nextState.audioEvents.map((event) => ({
+        ...event,
+        metadata: normalizePerformanceMetadata(event.metadata),
+      }))
+    : [];
   return nextState;
 }
 

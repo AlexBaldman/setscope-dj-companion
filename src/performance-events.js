@@ -1,4 +1,6 @@
 import { persistAudioEvent } from "./state.js";
+import { createPerformanceEventV2, QUARANTINED_METADATA_V1 } from "./contracts/performance-event.js";
+import { normalizePerformanceMetadata } from "./migrations/performance-event-v1.js";
 
 export function createPerformanceEvent({
   modeId,
@@ -11,19 +13,17 @@ export function createPerformanceEvent({
   details = {},
   evidence = {},
 } = {}) {
-  return {
-    kind: "performance",
-    modeId: modeId || "unknown-mode",
+  return createPerformanceEventV2({
+    modeId,
     status,
-    score: Number(score) || 0,
-    streak: Number(streak) || 0,
+    score,
+    streak,
     sourceLabel,
     trackId,
     time,
     details,
     evidence,
-    createdAt: new Date().toISOString(),
-  };
+  });
 }
 
 export function createPitchGatesCompletionEvent({
@@ -109,14 +109,24 @@ export function createRhythmRouletteCompletionEvent({
 }
 
 export function persistPerformanceEvent(event) {
+  const metadata = normalizePerformanceMetadata(event);
+  if (metadata?.schemaVersion === QUARANTINED_METADATA_V1) {
+    return persistAudioEvent({
+      type: "learning",
+      labels: ["review"],
+      title: "Quarantined performance event",
+      detail: metadata.errors.join(" / "),
+      metadata,
+    });
+  }
   return persistAudioEvent({
-    type: audioEventTypeForMode(event.modeId),
-    labels: labelsForMode(event.modeId),
-    trackId: event.trackId,
-    time: event.time || "--:--",
-    title: event.details?.game ? `${event.details.game} run` : "Performance run",
-    detail: event.evidence?.summary || `${event.sourceLabel} / ${event.score} pts / streak ${event.streak}`,
-    metadata: event,
+    type: audioEventTypeForMode(metadata.modeId),
+    labels: labelsForMode(metadata.modeId),
+    trackId: metadata.trackId,
+    time: metadata.time || "--:--",
+    title: metadata.details?.game ? `${metadata.details.game} run` : "Performance run",
+    detail: metadata.evidence?.summary || `${metadata.sourceLabel} / ${metadata.score} pts / streak ${metadata.streak}`,
+    metadata,
   });
 }
 

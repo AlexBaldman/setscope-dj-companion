@@ -756,3 +756,22 @@ Why this matters:
 SetScope can pursue wonder without drifting into pseudoscience or decorative visualization. The proposed experiments make ratios, phase, interference, rhythm, harmony, resonance, symmetry, and personal multisensory mappings genuinely playable while keeping measured fact, mathematical model, and poetic meaning legible.
 
 See `docs/FREQUENCY_GEOMETRY_LAB.md` for the complete charter.
+
+## 2026-07-12 - Performance Evidence Contract V2
+
+We completed the first production brick from the Revolution Sprint's contract spine.
+
+What changed:
+
+- Added a versioned `PerformanceEventV2` contract with runtime creation, validation, and stable schema identity.
+- Separated observation, inference, result, assistance, calibration, evidence, and Route context while retaining transitional fields used by the current UI.
+- Made demo assistance explicitly ineligible for mastery evidence without erasing its score or practice value.
+- Added a deterministic adapter for unversioned V1 performance events so existing local drafts and archived sets continue to load.
+- Added quarantine records for malformed V2 metadata so corrupt or unknown evidence cannot silently become valid learning data or crash hydration.
+- Applied migration during local-state hydration and archived-set restore.
+- Added a golden legacy fixture and contract tests for round-trip stability, mastery eligibility, calibration, inference confidence, generic metadata, and malformed input.
+- Extended static checks so schema identity, migration, quarantine, and mastery eligibility cannot disappear unnoticed.
+
+Why this matters:
+
+Scores are no longer the only durable truth about a run. SetScope now has the first trustworthy evidence envelope needed by deterministic replay, honest mastery, iOS interchange, Route transfer, and the future Frequency Geometry Lab.
