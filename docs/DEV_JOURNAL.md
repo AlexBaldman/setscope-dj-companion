@@ -736,3 +736,23 @@ Why this matters:
 The moonshots now have disciplined escape velocity. They remain strange enough to create a new category, but each can be tested cheaply before it attracts infrastructure or mythology.
 
 See `docs/MOONSHOT_COUNCIL.md` for the complete atlas.
+
+## 2026-07-12 - Frequency Geometry Lab Council
+
+We extended the moonshot review to acoustics, mathematical music theory, puzzle design, multisensory learning, haptics, cymatics, light, and the cultural symbolism of geometry.
+
+What changed:
+
+- Defined SetScope's new experimental category as reversible musical reasoning: predict, transform, reveal an invariant, and transfer the result to a Route moment.
+- Created a visible truth ledger separating measured signals, internal digital signals, computed models, authored mappings, and symbolic stories.
+- Selected Route Resonator as the flagship synthesis of DJ transitions, deterministic puzzles, musical causality, and the Block Signal Broadcast world.
+- Ranked Phase Loom, Pulse Rosette, Fourier Timbre Forge, Beat Loom, Mapping Forge, and Chladni Field Log as the strongest supporting experiments.
+- Specified a small shared engine for reversible transformations, cyclic objects, deterministic runs, mathematical views, evidence, and personal mapping profiles.
+- Added a virtual-lab protocol, research footing, accessibility co-design requirements, audio/light/vibration safety, and explicit claims the product must never make.
+- Preserved the Revolution Sprint as the lead domino; the scientific toys depend on deterministic clocks, replay, calibration, and honest evidence.
+
+Why this matters:
+
+SetScope can pursue wonder without drifting into pseudoscience or decorative visualization. The proposed experiments make ratios, phase, interference, rhythm, harmony, resonance, symmetry, and personal multisensory mappings genuinely playable while keeping measured fact, mathematical model, and poetic meaning legible.
+
+See `docs/FREQUENCY_GEOMETRY_LAB.md` for the complete charter.
