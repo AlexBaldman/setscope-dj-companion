@@ -832,3 +832,20 @@ What changed:
 Why this matters:
 
 The detector no longer asks beginners to fight the game before they can learn from it. The opening gates are reachable, the controls map to musical choices, and the tuning parameters are isolated enough for real playtesting to improve them without destabilizing the engine.
+
+## 2026-07-13 - Responsive Presentation Pass
+
+We audited every SetScope screen at phone, tablet, compact-laptop, and desktop widths, then repaired the shared constraints behind the visible clipping.
+
+What changed:
+
+- Added a two-row tablet header for the arcade tools so navigation, status displays, and the light control remain complete instead of pushing beyond the viewport.
+- Tightened the cockpit timeline at tablet widths so track names retain useful space and metadata moves into a readable second row.
+- Made every Rhythm Roulette side module respect its panel width, compressed the sequencer grid cleanly, and introduced a two-column tablet workbench.
+- Removed Audio Lab's stretched dead zone by giving the oscilloscope a stable responsive height and arranging readouts into a tablet grid.
+- Rebuilt the Journal's tablet header, capped its entry index to keep the current page nearby, and fixed entry previews that escaped their cards as long single-line strips.
+- Added permanent 768-pixel tablet screenshots, horizontal-overflow checks, and control-boundary assertions to the runtime suite alongside phone and desktop coverage.
+
+Why this matters:
+
+Responsive behavior is now treated as a tested product contract. Each surface keeps its identity, but navigation, instruments, controls, and primary content follow the same predictable progression from phone to tablet to desktop.

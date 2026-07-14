@@ -23,9 +23,19 @@
 .scope-rig {
   padding: 14px;
   display: grid;
-  grid-template-rows: auto minmax(420px, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
+  align-self: start;
   gap: 12px;
   box-shadow: inset 0 2px 0 rgba(126, 247, 174, 0.13);
+}
+
+.scope-rig > * {
+  grid-column: 1;
+}
+
+.scope-rig > .transport {
+  grid-area: auto;
 }
 
 .scope-header {
@@ -62,6 +72,7 @@
 }
 
 .scope-screen {
+  height: clamp(420px, 48vw, 640px);
   min-height: 420px;
   position: relative;
   overflow: hidden;
@@ -238,12 +249,26 @@
   }
 
   .scope-rig {
-    grid-template-rows: auto minmax(320px, 52vh) auto;
+    grid-template-rows: auto auto auto;
+    align-content: start;
   }
 
   .scope-screen,
   #scopeCanvas {
-    min-height: 320px;
+    min-height: 0;
+    height: clamp(320px, 48vw, 440px);
+  }
+
+  .scope-header {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .audio-readout-panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .audio-readout-panel .lab-block {
+    min-width: 0;
   }
 }
 
@@ -258,6 +283,15 @@
 
   .scope-header {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .scope-screen,
+  #scopeCanvas {
+    height: clamp(280px, 74vw, 340px);
+  }
+
+  .audio-readout-panel {
+    grid-template-columns: 1fr;
   }
 
   .lab-actions {

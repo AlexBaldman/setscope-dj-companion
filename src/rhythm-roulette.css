@@ -28,7 +28,8 @@
 
 .roulette-stage {
   display: grid;
-  grid-template-rows: auto auto minmax(430px, 1fr) auto;
+  grid-template-rows: auto auto clamp(430px, 50vw, 680px) auto;
+  align-self: start;
   gap: 12px;
   padding: 14px;
   box-shadow:
@@ -87,6 +88,12 @@
   align-content: start;
   padding: 10px;
   overflow: auto;
+}
+
+.roulette-panel > *,
+.roulette-panel .lab-block {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .roulette-score-rack {
@@ -331,8 +338,12 @@
 
 .sequencer {
   display: grid;
-  grid-template-columns: 48px repeat(16, minmax(18px, 1fr));
-  gap: 4px;
+  grid-template-columns: 44px repeat(16, minmax(12px, 1fr));
+  gap: 3px;
+  max-width: 100%;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
 }
 
 .lane-label,
@@ -431,6 +442,12 @@
 
   .roulette-panel {
     overflow: visible;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .roulette-panel .lab-block:nth-child(3),
+  .roulette-panel .lab-block:nth-child(5) {
+    grid-column: 1 / -1;
   }
 }
 
@@ -441,6 +458,11 @@
 
   .roulette-panel {
     max-width: 100%;
+    grid-template-columns: 1fr;
+  }
+
+  .roulette-panel .lab-block {
+    grid-column: auto;
   }
 
   .roulette-stage {

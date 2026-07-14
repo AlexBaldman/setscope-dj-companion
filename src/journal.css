@@ -127,13 +127,19 @@ button,
 }
 
 .entry-card {
+  width: 100%;
+  min-width: 0;
   min-height: 70px;
+  display: grid;
+  place-items: stretch;
+  align-content: center;
   border: 1px solid rgba(245, 239, 229, 0.1);
   border-radius: 8px;
   background: rgba(245, 239, 229, 0.06);
   color: #f5efe5;
   padding: 10px;
   text-align: left;
+  overflow: hidden;
 }
 
 .entry-card.active {
@@ -300,18 +306,33 @@ body[data-paper="sketch"] .page {
 }
 
 @media (max-width: 880px) {
-  .journal-topbar,
   .journal-layout {
     grid-template-columns: 1fr;
   }
 
   .journal-topbar {
     height: auto;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 10px 14px;
   }
 
   .journal-actions {
+    grid-column: 1 / -1;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .journal-actions .theme-toggle {
+    width: 100%;
+  }
+
+  .journal-layout {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .entry-list {
+    max-height: 320px;
   }
 
   .book-stage {
@@ -321,5 +342,38 @@ body[data-paper="sketch"] .page {
   .page {
     width: 100%;
     padding: 26px 24px 28px 34px;
+  }
+}
+
+@media (max-width: 520px) {
+  .journal-topbar {
+    padding: 12px;
+  }
+
+  .journal-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .entry-list {
+    max-height: 260px;
+  }
+
+  .book-stage {
+    grid-template-rows: auto minmax(460px, 62vh) 240px;
+  }
+
+  .page {
+    min-height: 460px;
+    padding: 22px 18px 24px 28px;
+  }
+
+  .entry-title {
+    margin-top: 18px;
+    font-size: 28px;
+  }
+
+  .entry-body {
+    margin-top: 18px;
+    font-size: 15px;
   }
 }

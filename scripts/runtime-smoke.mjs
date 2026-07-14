@@ -6,6 +6,8 @@ import { chromium } from "playwright";
 const baseUrl = (process.env.BASE_URL || "http://127.0.0.1:5173").replace(/\/$/, "");
 const artifactDir = process.env.RUNTIME_ARTIFACT_DIR || (await mkdtemp(join(tmpdir(), "setscope-runtime-")));
 const desktopViewport = { width: 1440, height: 1100 };
+const compactViewport = { width: 1024, height: 768 };
+const tabletViewport = { width: 768, height: 1024 };
 const mobileViewport = { width: 390, height: 844 };
 const failures = [];
 
@@ -18,6 +20,8 @@ try {
 
 try {
   await runDesktopFlow();
+  await runResponsiveOverflowPass("compact", compactViewport);
+  await runResponsiveOverflowPass("tablet", tabletViewport);
   await runMobileOverflowPass();
 } finally {
   await browser.close();
@@ -83,15 +87,19 @@ async function installFakeMicrophone(context) {
 }
 
 async function runMobileOverflowPass() {
-  const context = await browser.newContext({ viewport: mobileViewport });
+  await runResponsiveOverflowPass("mobile", mobileViewport);
+}
+
+async function runResponsiveOverflowPass(viewName, viewport) {
+  const context = await browser.newContext({ viewport });
   const page = await context.newPage();
-  const logs = captureRuntimeProblems(page, "mobile");
+  const logs = captureRuntimeProblems(page, viewName);
   const routes = [
-    ["setscope-mobile", "/"],
-    ["roulette-mobile", "/rhythm-roulette.html"],
-    ["pitch-gates-mobile", "/pitch-gates.html"],
-    ["audio-lab-mobile", "/audio-lab.html"],
-    ["journal-mobile", "/journal.html"],
+    [`setscope-${viewName}`, "/"],
+    [`roulette-${viewName}`, "/rhythm-roulette.html"],
+    [`pitch-gates-${viewName}`, "/pitch-gates.html"],
+    [`audio-lab-${viewName}`, "/audio-lab.html"],
+    [`journal-${viewName}`, "/journal.html"],
   ];
   for (const [label, path] of routes) {
     await goto(page, path);
@@ -230,10 +238,22 @@ async function auditPage(page, label) {
       brokenImages,
       duplicateIds: [...new Set(duplicateIds)],
       overflowX: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+      clippedControls: [...document.querySelectorAll("button, a, input, select, textarea")]
+        .filter((node) => {
+          const rect = node.getBoundingClientRect();
+          const style = getComputedStyle(node);
+          return style.display !== "none" && rect.width > 2 && (rect.left < -1 || rect.right > document.documentElement.clientWidth + 1);
+        })
+        .map((node) => node.id || node.getAttribute("aria-label") || node.textContent?.trim().slice(0, 24) || node.tagName),
+      clippedTitleInputs: [...document.querySelectorAll(".entry-title")]
+        .filter((node) => node.scrollWidth > node.clientWidth + 1)
+        .map((node) => node.id || "entry-title"),
       title: document.title,
     };
   });
   assert(!result.overflowX, `${label} should not have horizontal overflow`);
+  assert(result.clippedControls.length === 0, `${label} should not clip controls: ${result.clippedControls.join(", ")}`);
+  assert(result.clippedTitleInputs.length === 0, `${label} should fit journal titles: ${result.clippedTitleInputs.join(", ")}`);
   assert(result.duplicateIds.length === 0, `${label} should not have duplicate ids: ${result.duplicateIds.join(", ")}`);
   assert(result.brokenImages.length === 0, `${label} should not have broken images: ${result.brokenImages.join(", ")}`);
 }

@@ -93,6 +93,17 @@ function renderPage() {
   els.pageNumber.textContent = `Page ${state.index + 1} / ${Math.max(1, state.entries.length)}`;
   els.entryTitle.value = entry.title;
   els.entryBody.value = entry.body;
+  fitEntryTitle();
+}
+
+function fitEntryTitle() {
+  const maximum = window.innerWidth <= 520 ? 28 : window.innerWidth <= 880 ? 38 : 54;
+  let size = maximum;
+  els.entryTitle.style.fontSize = `${size}px`;
+  while (els.entryTitle.scrollWidth > els.entryTitle.clientWidth + 1 && size > 17) {
+    size -= 1;
+    els.entryTitle.style.fontSize = `${size}px`;
+  }
 }
 
 function commitCurrentEntry() {
@@ -172,11 +183,15 @@ document.querySelector("#saveBtn").addEventListener("click", save);
 document.querySelector("#refreshBtn").addEventListener("click", loadJournal);
 document.querySelector("#moveUpBtn").addEventListener("click", () => moveEntry(-1));
 document.querySelector("#moveDownBtn").addEventListener("click", () => moveEntry(1));
-els.entryTitle.addEventListener("input", commitCurrentEntry);
+els.entryTitle.addEventListener("input", () => {
+  fitEntryTitle();
+  commitCurrentEntry();
+});
 els.entryBody.addEventListener("input", commitCurrentEntry);
 els.markdownSource.addEventListener("change", applySourceEdit);
 els.paperButtons.forEach((button) => {
   button.addEventListener("click", () => setPaper(button.dataset.paper));
 });
+window.addEventListener("resize", fitEntryTitle);
 
 loadJournal();

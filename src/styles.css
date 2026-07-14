@@ -2127,6 +2127,29 @@ svg {
   }
 }
 
+@media (min-width: 761px) and (max-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(270px, 300px) minmax(0, 1fr);
+  }
+
+  .track-row {
+    grid-template-columns: 60px minmax(0, 1fr);
+  }
+
+  .track-row .tag {
+    grid-column: span 1;
+  }
+
+  .timeline-tools {
+    grid-template-columns: 1fr;
+  }
+
+  .timeline-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
 @media (max-width: 760px) {
   .topbar {
     align-items: stretch;

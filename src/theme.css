@@ -335,6 +335,38 @@
   }
 }
 
+@media (min-width: 561px) and (max-width: 900px) {
+  .game-topbar {
+    height: auto;
+    min-height: 116px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-content: center;
+    gap: 8px 18px;
+  }
+
+  .game-title {
+    align-items: flex-start;
+  }
+
+  .game-tools {
+    grid-column: 1 / -1;
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+
+  .tool-rack {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .tool-rack::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @media (max-width: 560px) {
   .game-topbar {
     min-width: 0;
@@ -344,13 +376,14 @@
     width: 100%;
     min-width: 0;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .tool-rack {
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scrollbar-width: none;
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    overflow: visible;
   }
 
   .tool-rack::-webkit-scrollbar {
@@ -373,8 +406,12 @@
   }
 
   .tool-rack.compact .tool-rack-item {
-    min-width: 44px;
+    min-width: 0;
     padding: 6px;
+  }
+
+  .game-tools .lcd-pill {
+    width: 100%;
   }
 
   .tool-rack.compact .tool-rack-item strong {
