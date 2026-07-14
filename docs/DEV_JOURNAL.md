@@ -775,3 +775,23 @@ What changed:
 Why this matters:
 
 Scores are no longer the only durable truth about a run. SetScope now has the first trustworthy evidence envelope needed by deterministic replay, honest mastery, iOS interchange, Route transfer, and the future Frequency Geometry Lab.
+
+## 2026-07-13 - Deterministic Pitch Gates Engine
+
+We rebuilt Pitch Gates around musical time instead of render frames.
+
+What changed:
+
+- Added seeded, versioned challenge generation with fixed spawn, evaluation, and removal timestamps.
+- Moved scoring, lives, streaks, gate outcomes, and completion into a pure reducer with no DOM, Canvas, Web Audio, wall-clock, or random dependencies.
+- Added timestamped pitch-input actions, pause/resume support, and explicit `hit`, `near`, `miss`, `recovery`, and `complete` domain events.
+- Made Canvas positions a projection of musical timestamps, so viewport width and animation frequency no longer decide when a note is scored.
+- Bound live rounds to an audio-context clock when audio is active, with one stable performance-clock fallback selected at round start.
+- Added portable Replay V1 records and deterministic final-state hashes.
+- Attached challenge id, seed, replay hash, action count, and end reason to PerformanceEventV2 evidence.
+- Added engine tests proving identical results and hashes at simulated 30, 60, and 120 Hz render schedules.
+- Preserved demo tone, microphone, shared audio, file input, practice context, scoring display, Canvas play, and timeline persistence.
+
+Why this matters:
+
+Pitch Gates is now the first real SetScope gameplay engine rather than a Canvas loop with scoring inside it. The same challenge can be replayed, audited, moved to iOS, used for honest learning evidence, and reused as the architectural pattern for Phase Loom, Pulse Rosette, and Route Resonator.

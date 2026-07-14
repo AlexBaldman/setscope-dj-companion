@@ -22,7 +22,10 @@
 - `src/pitch-analysis.js`: Pitchy-backed pitch frames and musical pitch helpers.
 - `src/performance-events.js`: structured toolbelt practice/game event persistence.
 - `src/practice-context.js`: URL-addressable selected-track assignments, tool mission display, and exact track/event return links.
-- `src/pitch-gates.js`: pitch detector inputs, canvas game loop, scoring, and timeline event output.
+- `src/pitch-gates.js`: thin page controller for pitch input, the source clock, Canvas projection, and timeline event output.
+- `src/pitch-gates/challenge.js`: seeded, versioned Pitch Gates challenge generation with fixed musical timestamps.
+- `src/pitch-gates/reducer.js`: pure run state, timestamped input, scoring, domain events, projection, and final-state hashing.
+- `src/pitch-gates/replay.js`: portable replay creation and deterministic reconstruction.
 - `src/pitch-gates.css`: arcade-lab game surface and responsive controls.
 - `src/rhythm-roulette.js` and `src/rhythm-roulette.css`: blind record-pull game, pixel-art shop canvas, generated beat playback, sequencer UI, and learning-event output.
 - `src/vendor/pitchy.js`: locally bundled Pitchy detector used without a CDN runtime dependency.

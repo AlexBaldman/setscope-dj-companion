@@ -39,6 +39,11 @@ export function createPitchGatesCompletionEvent({
   time = "--:--",
   trackTitle = "",
   mission = "",
+  challengeId = "",
+  seed = 0,
+  replayHash = "",
+  replayActionCount = 0,
+  endReason = "",
 } = {}) {
   return createPerformanceEvent({
     modeId: "pitch-gates",
@@ -56,6 +61,11 @@ export function createPitchGatesCompletionEvent({
       lives,
       trackTitle,
       mission,
+      challengeId,
+      seed,
+      replayHash,
+      replayActionCount,
+      endReason,
     },
     evidence: {
       summary: `${sourceLabel} / ${register} / ${score} pts / streak ${streak}`,
