@@ -131,6 +131,11 @@ export function createRenderer(els, handlers) {
     els.nowConfidence.textContent = `${track.confidence || 0}%`;
     renderConfidenceMeter(track.confidence || 0);
     els.recordLabel.textContent = `${track.bpm || "--"} BPM`;
+    els.padButtons.forEach((button) => {
+      const active = button.dataset.padTransition === track.transition;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
   }
 
   function renderSummary() {

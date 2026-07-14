@@ -96,6 +96,21 @@ Implementation priorities:
 5. Add a hardware-style provider chain panel: Mic/Sample -> Recognizer -> Analysis -> Archive.
 6. Add skins later by swapping surface treatments, not by changing workflows.
 
+## Studio Synthesis Rules
+
+The visual system should combine complementary strengths rather than imitate any studio's protected expression:
+
+- **Toy-like legibility:** one dominant silhouette, obvious active state, generous target, immediate press/release feedback, and no mystery about what changed.
+- **Arcade velocity:** concentrated cyan, mint, amber, yellow, and rose signals against restrained hardware surfaces; motion communicates state or consequence.
+- **Hardware precision:** stable grids, aligned readouts, bounded controls, instrument labels, and visual calibration marks make playful surfaces trustworthy.
+- **Authored-world density:** tiny stickers, serial numbers, screws, receipts, scuffs, jokes, and neighborhood artifacts reward inspection without obscuring the primary task.
+- **Magazine irreverence:** small visual punchlines and imperfect found-object details can interrupt the clean grid, but never the data hierarchy.
+- **Pixel-era continuity:** use 16-bit block geometry for controls and meters, 32/64-bit color depth for scenes, and modern typography and accessibility underneath.
+
+Every dense scene needs three reading distances: the primary action from across the room, current state at arm's length, and optional discoveries up close. Decorative detail is earned only after the first two remain clear.
+
+Clipping is never a retro effect. Labels must fit their controls, illustrated hardware must have an internal safe area, and deliberate crops must remove no interactive or semantic content.
+
 ## First UI Experiments
 
 - Capture sticker animation in the Capture Log.

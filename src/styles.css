@@ -12,6 +12,8 @@
   --rose: #ec6f7e;
   --ink: #0f0e0c;
   --shadow: rgba(0, 0, 0, 0.28);
+  --pixel-outline: #080807;
+  --hardware-glint: rgba(244, 239, 230, 0.18);
 }
 
 * {
@@ -238,15 +240,35 @@ a {
 }
 
 .deck-visual {
-  aspect-ratio: 1.08;
+  container-type: inline-size;
+  aspect-ratio: 1.12;
   border-radius: 8px;
-  border: 1px solid rgba(244, 239, 230, 0.12);
+  border: 2px solid var(--pixel-outline);
   background:
-    linear-gradient(90deg, rgba(15, 14, 12, 0.84) 0 58%, rgba(244, 239, 230, 0.08) 58% 59%, transparent 59%),
-    linear-gradient(135deg, rgba(240, 173, 78, 0.18), rgba(117, 215, 182, 0.14) 48%, rgba(236, 111, 126, 0.16));
+    linear-gradient(90deg, rgba(15, 14, 12, 0.88) 0 62%, rgba(244, 239, 230, 0.1) 62% 63%, transparent 63%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 2px, transparent 2px 8px),
+    linear-gradient(135deg, rgba(240, 173, 78, 0.22), rgba(117, 215, 182, 0.16) 48%, rgba(236, 111, 126, 0.2));
   position: relative;
   overflow: hidden;
-  box-shadow: inset 0 0 0 8px rgba(15, 14, 12, 0.22);
+  isolation: isolate;
+  box-shadow:
+    inset 0 0 0 7px rgba(15, 14, 12, 0.3),
+    inset 0 2px 0 var(--hardware-glint),
+    0 8px 0 rgba(8, 8, 7, 0.35);
+}
+
+.deck-visual::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0.22;
+  background:
+    linear-gradient(90deg, transparent 0 49%, rgba(255, 255, 255, 0.08) 49% 50%, transparent 50%),
+    linear-gradient(0deg, transparent 0 49%, rgba(0, 0, 0, 0.18) 49% 50%, transparent 50%);
+  background-size: 12px 12px;
+  mix-blend-mode: overlay;
 }
 
 .deck-visual::after {
@@ -256,19 +278,50 @@ a {
   border: 1px solid rgba(244, 239, 230, 0.12);
   border-radius: 6px;
   pointer-events: none;
+  z-index: 5;
+}
+
+.deck-legend {
+  position: absolute;
+  z-index: 6;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 20px;
+  padding: 0 7px;
+  border: 1px solid rgba(244, 239, 230, 0.2);
+  border-radius: 3px;
+  background: rgba(8, 8, 7, 0.82);
+  color: var(--muted);
+  font: 850 7px ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.deck-legend i {
+  width: 5px;
+  height: 5px;
+  background: var(--mint);
+  box-shadow: 0 0 8px rgba(117, 215, 182, 0.72);
+}
+
+.deck-legend b {
+  color: var(--mint);
+  font: inherit;
 }
 
 .platter {
   position: absolute;
-  left: 7%;
-  top: 9%;
-  width: 62%;
+  left: 5%;
+  top: 13%;
+  width: 59%;
   aspect-ratio: 1;
   border-radius: 50%;
   background:
     radial-gradient(circle at 50% 50%, #15120f 0 8%, #eee2c9 8.5% 9.8%, #161411 10.2% 15%, transparent 15.5%),
     repeating-radial-gradient(circle at 50% 50%, #34302b 0 2px, #0f0e0c 2px 6px);
   box-shadow:
+    0 14px 0 rgba(0, 0, 0, 0.3),
     0 20px 45px rgba(0, 0, 0, 0.34),
     inset 0 0 0 6px rgba(244, 239, 230, 0.07);
   animation: spin 6s linear infinite;
@@ -303,9 +356,9 @@ a {
 
 .tonearm {
   position: absolute;
-  right: 9%;
-  top: 13%;
-  width: 28%;
+  right: 6%;
+  top: 12%;
+  width: 29%;
   height: 52%;
   transform: rotate(18deg);
   transform-origin: 88% 12%;
@@ -349,9 +402,9 @@ a {
 
 .pitch-meter {
   position: absolute;
-  right: 8%;
-  bottom: 22%;
-  width: 23%;
+  right: 5%;
+  bottom: 20%;
+  width: 29%;
   height: 9px;
   border-radius: 999px;
   background:
@@ -384,23 +437,27 @@ a {
 
 .sampler-strip {
   position: absolute;
-  right: 8%;
-  bottom: 31%;
-  width: 24%;
+  z-index: 3;
+  right: 5%;
+  bottom: 30%;
+  width: 30%;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 6px;
 }
 
 .sampler-pad {
+  min-width: 0;
   aspect-ratio: 1;
   border-radius: 6px;
   border: 1px solid rgba(244, 239, 230, 0.16);
   color: #15120e;
   display: grid;
   place-items: center;
-  font-size: 10px;
-  font-weight: 900;
+  padding: 0;
+  overflow: hidden;
+  font: 900 clamp(7px, 2.8cqw, 10px)/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0;
   background: linear-gradient(145deg, rgba(244, 239, 230, 0.2), rgba(15, 14, 12, 0.7));
   box-shadow: inset 0 -7px 0 rgba(15, 14, 12, 0.22);
 }
@@ -408,6 +465,20 @@ a {
 .sampler-pad:hover {
   filter: brightness(1.1);
   transform: translateY(-1px);
+}
+
+.sampler-pad.active {
+  filter: brightness(1.12);
+  outline: 2px solid #f4e66d;
+  outline-offset: -3px;
+  box-shadow:
+    inset 0 -7px 0 rgba(15, 14, 12, 0.18),
+    0 0 12px rgba(244, 230, 109, 0.28);
+}
+
+.sampler-pad:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
 }
 
 .sampler-pad:nth-child(1) {
@@ -434,9 +505,10 @@ a {
 
 .wave-bars {
   position: absolute;
-  left: 8%;
-  right: 8%;
-  bottom: 8%;
+  z-index: 2;
+  left: 5%;
+  right: 35%;
+  bottom: 6%;
   height: 34px;
   display: grid;
   grid-template-columns: repeat(28, 1fr);
@@ -460,7 +532,7 @@ body[data-skin="sampler"] .deck-visual {
 
 body[data-skin="sampler"] .sampler-strip {
   width: 36%;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 body[data-skin="car"] .deck-visual {
@@ -473,6 +545,54 @@ body[data-skin="cd"] .platter {
   background:
     radial-gradient(circle at 50% 50%, #15120f 0 8%, transparent 8.5% 14%, #f4efe6 14.5% 16%, transparent 16.5%),
     conic-gradient(from 20deg, #f4efe6, var(--cyan), var(--rose), #f4efe6, var(--mint), #f4efe6);
+}
+
+.deck-led-bank {
+  position: absolute;
+  z-index: 3;
+  right: 7%;
+  bottom: 12%;
+  width: 23%;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 3px;
+}
+
+.deck-led-bank i {
+  height: 5px;
+  border: 1px solid rgba(8, 8, 7, 0.78);
+  background: var(--mint);
+  box-shadow: 0 0 5px rgba(117, 215, 182, 0.4);
+}
+
+.deck-led-bank i:nth-child(4) {
+  background: var(--amber);
+  box-shadow: 0 0 5px rgba(240, 173, 78, 0.42);
+}
+
+.deck-led-bank i:nth-child(5) {
+  background: #3d3933;
+  box-shadow: none;
+}
+
+.deck-sticker {
+  position: absolute;
+  z-index: 6;
+  left: 7%;
+  bottom: 21%;
+  display: grid;
+  gap: 1px;
+  padding: 4px 6px;
+  transform: rotate(-2deg);
+  border: 1px solid #0b0a09;
+  background: #f4e66d;
+  color: #17120b;
+  box-shadow: 2px 3px 0 rgba(8, 8, 7, 0.45);
+  font: 900 6px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.deck-sticker b {
+  font-size: 9px;
 }
 
 .wave-bars span:nth-child(3n) {

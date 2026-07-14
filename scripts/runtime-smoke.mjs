@@ -105,6 +105,21 @@ async function verifySetScope(page) {
   await goto(page, "/");
   await expectVisible(page, "#djMentorPanel", "SetScope DJ Mentor panel");
   await expectVisible(page, "#setCoachPanel", "SetScope coach panel");
+  const deckFit = await page.evaluate(() => {
+    const deck = document.querySelector(".deck-visual")?.getBoundingClientRect();
+    const pads = [...document.querySelectorAll(".sampler-pad")];
+    return {
+      activePads: pads.filter((pad) => pad.getAttribute("aria-pressed") === "true").length,
+      padCount: pads.length,
+      padsFit: Boolean(deck) && pads.every((pad) => {
+        const rect = pad.getBoundingClientRect();
+        return rect.left >= deck.left - 1 && rect.right <= deck.right + 1 && pad.scrollWidth <= pad.clientWidth;
+      }),
+    };
+  });
+  assert(deckFit.padCount === 4, "vinyl deck should expose four transition pads");
+  assert(deckFit.padsFit, "vinyl deck transition pads and labels should remain inside the hardware frame");
+  assert(deckFit.activePads === 1, "vinyl deck should expose one latched transition pad");
   await page.locator("#mentorActionList [data-coach-action=\"mentor-note\"]").click();
   await expectText(page, "#toast", "Mentor note saved", "mentor note toast");
   await auditPage(page, "setscope-desktop");

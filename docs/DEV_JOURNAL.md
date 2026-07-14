@@ -795,3 +795,21 @@ What changed:
 Why this matters:
 
 Pitch Gates is now the first real SetScope gameplay engine rather than a Canvas loop with scoring inside it. The same challenge can be replayed, audited, moved to iOS, used for honest learning evidence, and reused as the architectural pattern for Phase Loom, Pulse Rosette, and Route Resonator.
+
+## 2026-07-13 - Vinyl Deck Pixel Hardware Pass
+
+We repaired the cropped controls beside the main record and sharpened the default visual language.
+
+What changed:
+
+- Rebalanced the deck into a dominant vinyl zone and a stable control zone instead of relying on narrow percentage-based leftovers.
+- Enlarged the transition pad bank, removed hidden browser padding, made labels container-responsive, and kept every skin on a readable 2-by-2 grid.
+- Added a latched active state and `aria-pressed` semantics so selecting Blend, Cut, Loop, or Echo produces immediate visual feedback.
+- Added restrained pixel-grid texture, a deck status legend, signal LEDs, serial sticker, harder hardware edges, and more purposeful meter placement.
+- Kept dense discovery details behind the record, controls, and current state in the visual hierarchy.
+- Added browser regression checks that verify all four pad labels and bounds remain inside the deck at runtime.
+- Documented studio-synthesis rules combining toy-like legibility, arcade energy, hardware precision, authored-world density, magazine irreverence, and pixel-era continuity without copying protected game or hardware expression.
+
+Why this matters:
+
+The record area now behaves like a designed instrument instead of an illustration cropped into a card. Its playful details reward inspection, but its controls remain complete, legible, and trustworthy.

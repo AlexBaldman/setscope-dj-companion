@@ -73,6 +73,8 @@ assert(html.includes("id=\"archiveBtn\""), "index.html should include archive ac
 assert(html.includes("id=\"archiveList\""), "index.html should include archive list");
 assert(html.includes("id=\"audioEventLog\""), "index.html should include audio event log");
 assert(html.includes("id=\"eventDrawer\""), "index.html should include the toolbelt event detail drawer");
+assert(html.includes("class=\"deck-legend\""), "the vinyl deck should include a readable hardware status legend");
+assert(html.includes("class=\"deck-led-bank\""), "the vinyl deck should include pixel-scale signal instrumentation");
 assert(html.includes("id=\"eventTrackSelect\""), "index.html should include event reassignment select");
 assert(html.includes("aria-label=\"Import audio file\""), "index.html should label the hidden audio import input");
 assert(html.includes("data-signal-filter=\"analysis\""), "index.html should include signal filter controls");
@@ -108,6 +110,7 @@ assert(css.includes(".signal-filter-rack"), "styles.css should include signal fi
 assert(css.includes(".event-label-rack"), "styles.css should include event label styles");
 assert(css.includes(".track-event-strip"), "styles.css should include timeline toolbelt signal styles");
 assert(css.includes(".moment-toolbelt"), "styles.css should include selected-track toolbelt signal styles");
+assert(css.includes("container-type: inline-size"), "the vinyl deck should size internal labels against its own width");
 assert(css.includes(".quick-tag-grid"), "styles.css should include quick tag styles");
 assert(css.includes(".duplicate-panel"), "styles.css should include duplicate review styles");
 assert(workflows.includes("requestRecognition"), "workflows.js should include the recognition client");
