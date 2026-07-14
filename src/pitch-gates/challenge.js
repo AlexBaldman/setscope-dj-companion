@@ -1,48 +1,66 @@
-export const PITCH_GATES_CHALLENGE_V1 = "setscope.pitch-gates.challenge.v1";
+export const PITCH_GATES_CHALLENGE_V2 = "setscope.pitch-gates.challenge.v2";
 
-const REGISTER_BASES = { low: 45, mid: 57, high: 69 };
+const REGISTER_CENTERS = { low: 48, mid: 55, high: 64 };
 const SPEEDS = {
-  easy: { leadTimeMs: 7200, removeDelayMs: 1000, spawnIntervalMs: 2350, tolerance: 0.62 },
-  groove: { leadTimeMs: 5400, removeDelayMs: 760, spawnIntervalMs: 1820, tolerance: 0.48 },
-  rush: { leadTimeMs: 4100, removeDelayMs: 580, spawnIntervalMs: 1450, tolerance: 0.38 },
+  easy: { leadTimeMs: 7600, removeDelayMs: 1100, spawnIntervalMs: 2500 },
+  groove: { leadTimeMs: 5700, removeDelayMs: 820, spawnIntervalMs: 1900 },
+  rush: { leadTimeMs: 4300, removeDelayMs: 620, spawnIntervalMs: 1500 },
 };
-const SCALE_STEPS = [0, 2, 4, 5, 7, 9, 12];
+const ASSISTS = {
+  gentle: { tolerance: 1.05 },
+  balanced: { tolerance: 0.7 },
+  exact: { tolerance: 0.42 },
+};
+const PHRASE_OFFSETS = [-5, -3, -1, 0, 2, 4, 5];
 
-export function createPitchGatesChallenge({ seed = 1, register = "mid", speed = "groove", totalGates = 12 } = {}) {
+export function createPitchGatesChallenge({
+  seed = 1,
+  register = "low",
+  speed = "easy",
+  assist = "gentle",
+  centerMidi,
+  totalGates = 12,
+} = {}) {
   const normalizedSeed = normalizeSeed(seed);
-  const normalizedRegister = REGISTER_BASES[register] ? register : "mid";
-  const normalizedSpeed = SPEEDS[speed] ? speed : "groove";
+  const normalizedRegister = register === "personal" || REGISTER_CENTERS[register] ? register : "low";
+  const normalizedSpeed = SPEEDS[speed] ? speed : "easy";
+  const normalizedAssist = ASSISTS[assist] ? assist : "gentle";
   const count = Math.max(1, Math.min(64, Math.floor(Number(totalGates) || 12)));
   const config = SPEEDS[normalizedSpeed];
   const random = createSeededRandom(normalizedSeed);
-  const baseMidi = REGISTER_BASES[normalizedRegister];
+  const fallbackCenter = REGISTER_CENTERS[normalizedRegister] || REGISTER_CENTERS.low;
+  const normalizedCenter = clamp(Number.isFinite(centerMidi) ? centerMidi : fallbackCenter, 36, 76);
+  const rangeMinMidi = normalizedCenter - 6;
+  const rangeMaxMidi = normalizedCenter + 6;
+  const phrase = createStepwisePhrase(count, random);
 
-  const gates = Array.from({ length: count }, (_, index) => {
-    const randomStep = Math.floor(random() * SCALE_STEPS.length);
-    const step = SCALE_STEPS[(index * 3 + randomStep) % SCALE_STEPS.length];
+  const gates = phrase.map((offset, index) => {
     const spawnAtMs = 350 + index * config.spawnIntervalMs;
     const evaluateAtMs = spawnAtMs + config.leadTimeMs;
     return {
       id: `gate-${String(index + 1).padStart(2, "0")}`,
       index,
-      targetMidi: baseMidi + step,
+      targetMidi: normalizedCenter + offset,
       spawnAtMs,
       evaluateAtMs,
       removeAtMs: evaluateAtMs + config.removeDelayMs,
-      tolerance: config.tolerance,
+      tolerance: ASSISTS[normalizedAssist].tolerance,
     };
   });
 
   return {
-    schemaVersion: PITCH_GATES_CHALLENGE_V1,
-    id: `pitch-gates-${normalizedRegister}-${normalizedSpeed}-${normalizedSeed}`,
-    version: 1,
+    schemaVersion: PITCH_GATES_CHALLENGE_V2,
+    id: `pitch-gates-${normalizedRegister}-${normalizedSpeed}-${normalizedAssist}-${Math.round(normalizedCenter * 10)}-${normalizedSeed}`,
+    version: 2,
     seed: normalizedSeed,
-    skillIds: ["pitch-center", "stable-hold", "anticipation"],
+    skillIds: ["pitch-center", "stable-hold", "stepwise-motion", "anticipation"],
     config: {
       register: normalizedRegister,
       speed: normalizedSpeed,
-      baseMidi,
+      assist: normalizedAssist,
+      centerMidi: normalizedCenter,
+      rangeMinMidi,
+      rangeMaxMidi,
       totalGates: count,
     },
     gates,
@@ -52,17 +70,36 @@ export function createPitchGatesChallenge({ seed = 1, register = "mid", speed = 
 export function validatePitchGatesChallenge(challenge) {
   const errors = [];
   if (!challenge || typeof challenge !== "object" || Array.isArray(challenge)) return { valid: false, errors: ["challenge must be an object"] };
-  if (challenge.schemaVersion !== PITCH_GATES_CHALLENGE_V1) errors.push("unsupported challenge schema");
+  if (challenge.schemaVersion !== PITCH_GATES_CHALLENGE_V2) errors.push("unsupported challenge schema");
   if (!Number.isInteger(challenge.seed)) errors.push("seed must be an integer");
-  if (!challenge.config || !REGISTER_BASES[challenge.config.register]) errors.push("register is not supported");
+  if (!challenge.config || !(challenge.config.register === "personal" || REGISTER_CENTERS[challenge.config.register])) errors.push("register is not supported");
   if (!challenge.config || !SPEEDS[challenge.config.speed]) errors.push("speed is not supported");
+  if (!challenge.config || !ASSISTS[challenge.config.assist]) errors.push("assist is not supported");
+  if (!Number.isFinite(challenge.config?.centerMidi)) errors.push("centerMidi must be finite");
   if (!Array.isArray(challenge.gates) || challenge.gates.length === 0) errors.push("gates must be a non-empty array");
   challenge.gates?.forEach((gate, index) => {
     if (!Number.isFinite(gate.targetMidi)) errors.push(`gates[${index}].targetMidi must be finite`);
+    if (gate.targetMidi < challenge.config.rangeMinMidi || gate.targetMidi > challenge.config.rangeMaxMidi) errors.push(`gates[${index}] is outside the playable range`);
     if (!Number.isFinite(gate.spawnAtMs) || !Number.isFinite(gate.evaluateAtMs)) errors.push(`gates[${index}] timing must be finite`);
     if (!(gate.spawnAtMs < gate.evaluateAtMs && gate.evaluateAtMs < gate.removeAtMs)) errors.push(`gates[${index}] timing must be ordered`);
   });
   return { valid: errors.length === 0, errors };
+}
+
+function createStepwisePhrase(count, random) {
+  const centerIndex = PHRASE_OFFSETS.indexOf(0);
+  const phrase = [];
+  let scaleIndex = centerIndex;
+  for (let index = 0; index < count; index += 1) {
+    if (index === 0 || index === 1) scaleIndex = centerIndex;
+    else if (index === 2) scaleIndex = centerIndex + (random() < 0.5 ? -1 : 1);
+    else {
+      const direction = random() < 0.5 ? -1 : 1;
+      scaleIndex = clamp(scaleIndex + direction, 0, PHRASE_OFFSETS.length - 1);
+    }
+    phrase.push(PHRASE_OFFSETS[scaleIndex]);
+  }
+  return phrase;
 }
 
 function createSeededRandom(seed) {
@@ -79,4 +116,8 @@ function createSeededRandom(seed) {
 function normalizeSeed(seed) {
   const number = Number(seed);
   return Number.isFinite(number) ? Math.floor(number) >>> 0 : 1;
+}
+
+function clamp(value, minimum, maximum) {
+  return Math.max(minimum, Math.min(maximum, value));
 }

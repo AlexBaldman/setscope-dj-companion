@@ -813,3 +813,22 @@ What changed:
 Why this matters:
 
 The record area now behaves like a designed instrument instead of an illustration cropped into a card. Its playful details reward inspection, but its controls remain complete, legible, and trustworthy.
+
+## 2026-07-13 - Pitch Gates Comfort Pass
+
+We rebuilt the first minute of Pitch Gates around a human voice instead of an abstract scale.
+
+What changed:
+
+- Changed the default from the demanding A3-A4 Groove round to a slower, forgiving C3-centered round.
+- Added a persistent `My note` control that captures the singer's current comfortable pitch and builds the round around it.
+- Replaced octave-spanning random targets with seeded stepwise phrases that repeat the home note before gradually exploring a twelve-semitone display range.
+- Separated tempo from pitch forgiveness with Gentle, Balanced, and Exact assist presets.
+- Added a Stability control for choosing between faster response and steadier tracking.
+- Added game-specific confidence hysteresis, time-based median/EMA smoothing, octave-slip correction, and short-dropout grace without changing the reusable raw analyzer.
+- Changed scoring from one instantaneous pitch sample to the median of the preceding 220 milliseconds.
+- Added deterministic checks for personal ranges, stepwise motion, smoothing, octave glitches, dropout behavior, and noisy gate crossings.
+
+Why this matters:
+
+The detector no longer asks beginners to fight the game before they can learn from it. The opening gates are reachable, the controls map to musical choices, and the tuning parameters are isolated enough for real playtesting to improve them without destabilizing the engine.

@@ -35,6 +35,7 @@ const pitchGatesJs = await readFile("src/pitch-gates.js", "utf8");
 const pitchGatesChallenge = await readFile("src/pitch-gates/challenge.js", "utf8");
 const pitchGatesReducer = await readFile("src/pitch-gates/reducer.js", "utf8");
 const pitchGatesReplay = await readFile("src/pitch-gates/replay.js", "utf8");
+const pitchGatesFilter = await readFile("src/pitch-gates/pitch-filter.js", "utf8");
 const pitchGatesCss = await readFile("src/pitch-gates.css", "utf8");
 const rhythmRouletteHtml = await readFile("rhythm-roulette.html", "utf8");
 const rhythmRouletteJs = await readFile("src/rhythm-roulette.js", "utf8");
@@ -361,6 +362,10 @@ assert(auddProvider.includes("recognizeWithAudD"), "AudD provider should expose 
 assert(auddProvider.includes("mapAudDResult"), "AudD provider should expose result mapping for tests");
 assert(auddProvider.includes("AUDD_API_TOKEN"), "AudD provider should read server-side API token config");
 assert(archiveStore.includes("createArchiveStore"), "archive-store.mjs should export archive store factory");
+
+assert(pitchGatesFilter.includes("createPitchStabilizer"), "Pitch Gates should expose a reusable pitch stabilizer");
+assert(pitchGatesFilter.includes("dropoutGraceMs"), "Pitch Gates should retain brief vocal dropouts");
+await import("./pitch-filter.test.mjs");
 
 console.log("SetScope checks passed");
 

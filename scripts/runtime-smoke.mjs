@@ -189,6 +189,9 @@ async function verifyRhythmRoulette(page) {
 async function verifyPitchGates(page) {
   await goto(page, "/pitch-gates.html");
   await expectVisible(page, "#pitchGameCanvas", "Pitch Gates canvas");
+  await expectVisible(page, "#captureComfortBtn", "Pitch Gates comfort-note control");
+  await page.locator("[data-assist=\"balanced\"]").click();
+  assert(await page.locator("[data-assist=\"balanced\"]").evaluate((node) => node.classList.contains("active")), "Pitch Gates should change assist presets");
   await page.locator("#startRoundBtn").click();
   const overlayHidden = await page.locator("#readyOverlay").evaluate((node) => node.classList.contains("hidden"));
   assert(overlayHidden, "Pitch Gates should hide ready overlay after starting a round");

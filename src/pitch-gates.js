@@ -3,6 +3,7 @@ import { createPitchGatesCompletionEvent, persistPerformanceEvent } from "./perf
 import { createPitchAnalyzer, isPitchedFrame, midiToNote } from "./pitch-analysis.js";
 import { mountPracticeContext } from "./practice-context.js";
 import { createPitchGatesChallenge } from "./pitch-gates/challenge.js";
+import { createPitchStabilizer } from "./pitch-gates/pitch-filter.js";
 import {
   advancePitchGatesTo,
   applyPitchInput,
@@ -18,6 +19,7 @@ const context = canvas.getContext("2d");
 const els = {
   audioStatus: document.querySelector("#audioStatus"),
   bestScore: document.querySelector("#bestScore"),
+  comfortNote: document.querySelector("#comfortNote"),
   gateCount: document.querySelector("#gateCount"),
   hitLog: document.querySelector("#hitLog"),
   liveClarity: document.querySelector("#liveClarity"),
@@ -25,18 +27,20 @@ const els = {
   liveNote: document.querySelector("#liveNote"),
   lives: document.querySelector("#lives"),
   overlayStatus: document.querySelector("#overlayStatus"),
+  pitchGuide: document.querySelector("#pitchGuide"),
   rangeLabel: document.querySelector("#rangeLabel"),
   readyOverlay: document.querySelector("#readyOverlay"),
   score: document.querySelector("#score"),
   streak: document.querySelector("#streak"),
+  stabilityValue: document.querySelector("#stabilityValue"),
   targetNote: document.querySelector("#targetNote"),
   tuningMeter: document.querySelector("#tuningMeter"),
 };
 
 const registers = {
-  low: { base: 45, label: "Low" },
-  mid: { base: 57, label: "Mid" },
-  high: { base: 69, label: "High" },
+  low: { center: 48, label: "Low" },
+  mid: { center: 55, label: "Mid" },
+  high: { center: 64, label: "High" },
 };
 const totalGates = 12;
 const bufferLength = 2048;
@@ -49,12 +53,16 @@ const audioSession = createAudioInputSession({
     setAudioStatus("INPUT OFF", false);
   },
 });
-const pitchAnalyzer = createPitchAnalyzer({ bufferLength });
+const pitchAnalyzer = createPitchAnalyzer({ bufferLength, minClarity: 0.58 });
+const savedProfile = readPitchProfile();
+const pitchStabilizer = createPitchStabilizer({ stability: savedProfile.stability, assist: savedProfile.assist });
 let animationId;
-let register = "mid";
-let speed = "groove";
+let register = savedProfile.register;
+let personalCenter = savedProfile.personalCenter;
+let speed = savedProfile.speed;
+let assist = savedProfile.assist;
 let currentFrame = null;
-let game = createPitchGatesRun(createPitchGatesChallenge({ register, speed, totalGates }));
+let game = createPitchGatesRun(createChallenge());
 game = { ...game, status: "idle" };
 let orbY = 180;
 let roundClock = null;
@@ -64,6 +72,7 @@ let lastInputSampleAt = -Infinity;
 let lastInputHadPitch = false;
 
 els.bestScore.textContent = formatScore(Number(localStorage.getItem("setscope-pitch-best") || 0));
+syncSettingsUI();
 resizeCanvas();
 drawFrame();
 renderGame();
@@ -80,7 +89,8 @@ document.querySelectorAll("[data-register]").forEach((button) => {
     if (game.status === "running") return;
     register = button.dataset.register;
     setActive(document.querySelectorAll("[data-register]"), button);
-    els.rangeLabel.textContent = registers[register].label;
+    persistPitchProfile();
+    syncSettingsUI();
     syncDemoToneToTarget();
     if (game.status !== "running") drawFrame();
   });
@@ -90,7 +100,25 @@ document.querySelectorAll("[data-speed]").forEach((button) => {
     if (game.status === "running") return;
     speed = button.dataset.speed;
     setActive(document.querySelectorAll("[data-speed]"), button);
+    persistPitchProfile();
   });
+});
+document.querySelectorAll("[data-assist]").forEach((button) => {
+  button.addEventListener("click", () => {
+    if (game.status === "running") return;
+    assist = button.dataset.assist;
+    pitchStabilizer.setAssist(assist);
+    setActive(document.querySelectorAll("[data-assist]"), button);
+    persistPitchProfile();
+  });
+});
+document.querySelector("#captureComfortBtn").addEventListener("click", captureComfortNote);
+document.querySelector("#stabilityInput").addEventListener("input", (event) => {
+  const stability = Number(event.target.value);
+  els.stabilityValue.textContent = String(stability);
+  pitchStabilizer.setStability(stability / 100);
+  savedProfile.stability = stability / 100;
+  persistPitchProfile();
 });
 window.addEventListener("resize", () => {
   resizeCanvas();
@@ -101,6 +129,7 @@ async function useMicrophone() {
   try {
     await audioSession.useMicrophone();
     pitchAnalyzer.reset();
+    pitchStabilizer.reset();
     setAudioStatus("MIC READY", true);
     startAnimation();
   } catch {
@@ -112,6 +141,7 @@ async function useSharedAudio() {
   try {
     await audioSession.useSharedAudio();
     pitchAnalyzer.reset();
+    pitchStabilizer.reset();
     setAudioStatus("SHARED READY", true);
     startAnimation();
   } catch (error) {
@@ -124,6 +154,7 @@ async function useAudioFile(file) {
   try {
     await audioSession.useAudioFile(file);
     pitchAnalyzer.reset();
+    pitchStabilizer.reset();
     setAudioStatus("FILE READY", true);
     startAnimation();
   } catch {
@@ -133,8 +164,9 @@ async function useAudioFile(file) {
 
 async function useDemoTone() {
   try {
-    await audioSession.useDemoTone({ midi: registers[register].base });
+    await audioSession.useDemoTone({ midi: getCenterMidi() });
     pitchAnalyzer.reset();
+    pitchStabilizer.reset();
     setAudioStatus("DEMO READY", true);
     startAnimation();
   } catch {
@@ -151,7 +183,7 @@ function stopAudio() {
 }
 
 function startRound() {
-  const challenge = createPitchGatesChallenge({ seed: Date.now(), register, speed, totalGates });
+  const challenge = createChallenge(Date.now());
   game = createPitchGatesRun(challenge);
   roundClock = createRoundClock();
   consumedEventCount = 0;
@@ -160,7 +192,7 @@ function startRound() {
   lastInputHadPitch = false;
   orbY = canvas.clientHeight / 2;
   els.readyOverlay.classList.add("hidden");
-  appendLog("ROUND", `${registers[register].label} / ${speed}`);
+  appendLog("ROUND", `${getRangeLabel()} / ${speed} / ${assist}`);
   syncDemoToneToTarget();
   renderGame();
   startAnimation();
@@ -198,7 +230,7 @@ function update(now) {
 
 function readPitch() {
   const frame = pitchAnalyzer.readFrame(audioSession);
-  currentFrame = isPitchedFrame(frame) ? frame : null;
+  currentFrame = pitchStabilizer.push(isPitchedFrame(frame) ? frame : null, frame.timestamp);
   updatePitchReadout();
 }
 
@@ -213,7 +245,7 @@ function endRound() {
   const replay = createPitchGatesReplay(game);
   const performanceEvent = createPitchGatesCompletionEvent({
     sourceLabel: audioSession.getSourceLabel(),
-    register: registers[register].label,
+    register: getRangeLabel(),
     speed,
     score: game.score,
     streak: game.bestStreak,
@@ -248,8 +280,9 @@ function drawFrame() {
 }
 
 function drawGrid(width, height) {
-  const lowMidi = registers[register].base - 2;
-  for (let index = 0; index < 16; index += 1) {
+  const { lowMidi, highMidi } = getDisplayRange();
+  const lineCount = Math.round(highMidi - lowMidi) + 1;
+  for (let index = 0; index < lineCount; index += 1) {
     const midi = lowMidi + index;
     const y = midiToY(midi, height);
     context.strokeStyle = index % 2 === 0 ? "rgba(244,239,230,0.09)" : "rgba(244,239,230,0.04)";
@@ -257,7 +290,7 @@ function drawGrid(width, height) {
     context.moveTo(0, y);
     context.lineTo(width, y);
     context.stroke();
-    if ([0, 4, 7, 12].includes(index)) {
+    if (index % 3 === 0 || index === lineCount - 1) {
       context.fillStyle = "rgba(244,239,230,0.34)";
       context.font = "11px ui-monospace, SFMono-Regular, monospace";
       context.fillText(midiToNote(lowMidi + index), 12, y - 5);
@@ -274,7 +307,7 @@ function drawGates(height) {
     if (x === null) return;
     const result = game.gateResults[gate.index];
     const targetY = midiToY(gate.targetMidi, height);
-    const gapHeight = speed === "easy" ? 70 : speed === "rush" ? 45 : 56;
+    const gapHeight = assist === "gentle" ? 82 : assist === "exact" ? 48 : 64;
     context.fillStyle = result.outcome === "hit" ? "#75d7b6" : result.outcome !== "pending" ? "#ec6f7e" : "#f0ad4e";
     context.fillRect(x, 0, 27, Math.max(0, targetY - gapHeight / 2));
     context.fillRect(x, targetY + gapHeight / 2, 27, height - targetY);
@@ -302,7 +335,7 @@ function renderGame() {
   els.lives.textContent = String(game.lives);
   els.gateCount.textContent = `${game.resolved}/${totalGates}`;
   const nextGate = getNextPitchGate(game);
-  els.targetNote.textContent = nextGate ? midiToNote(nextGate.targetMidi) : midiToNote(registers[register].base);
+  els.targetNote.textContent = nextGate ? midiToNote(nextGate.targetMidi) : midiToNote(getCenterMidi());
 }
 
 function updatePitchReadout() {
@@ -311,6 +344,8 @@ function updatePitchReadout() {
     els.liveHz.textContent = "--";
     els.liveClarity.textContent = "--";
     els.tuningMeter.style.setProperty("--needle", "50%");
+    els.pitchGuide.textContent = "LISTEN";
+    els.pitchGuide.className = "pitch-guide";
     return;
   }
   const roundedMidi = Math.round(currentFrame.midi);
@@ -319,6 +354,15 @@ function updatePitchReadout() {
   els.liveHz.textContent = currentFrame.frequency.toFixed(1);
   els.liveClarity.textContent = `${Math.round(currentFrame.clarity * 100)}%`;
   els.tuningMeter.style.setProperty("--needle", `${Math.max(4, Math.min(96, 50 + cents / 2))}%`);
+  updatePitchGuide();
+}
+
+function updatePitchGuide() {
+  const target = getNextPitchGate(game)?.targetMidi ?? getCenterMidi();
+  const distance = currentFrame.midi - target;
+  const tolerance = getNextPitchGate(game)?.tolerance ?? 0.7;
+  els.pitchGuide.textContent = Math.abs(distance) <= tolerance ? "CENTERED" : distance < 0 ? "A LITTLE LOW" : "A LITTLE HIGH";
+  els.pitchGuide.className = `pitch-guide ${Math.abs(distance) <= tolerance ? "centered" : "searching"}`;
 }
 
 function appendLog(status, text) {
@@ -341,8 +385,7 @@ function resizeCanvas() {
 }
 
 function midiToY(midi, height) {
-  const lowMidi = registers[register].base - 2;
-  const highMidi = lowMidi + 15;
+  const { lowMidi, highMidi } = getDisplayRange();
   const normalized = (midi - lowMidi) / (highMidi - lowMidi);
   return height - 28 - normalized * (height - 56);
 }
@@ -352,8 +395,8 @@ function orbX() {
 }
 
 function syncDemoToneToTarget() {
-  const nextGate = getNextPitchGate(game);
-  const targetMidi = nextGate?.targetMidi ?? registers[register].base;
+  const nextGate = game.status === "running" ? getNextPitchGate(game) : null;
+  const targetMidi = nextGate?.targetMidi ?? getCenterMidi();
   audioSession.setDemoFrequency(targetMidi);
 }
 
@@ -394,4 +437,72 @@ function setAudioStatus(text, active) {
 
 function setActive(buttons, activeButton) {
   buttons.forEach((button) => button.classList.toggle("active", button === activeButton));
+}
+
+function createChallenge(seed = 1) {
+  return createPitchGatesChallenge({ seed, register, speed, assist, centerMidi: getCenterMidi(), totalGates });
+}
+
+function getCenterMidi() {
+  return register === "personal" ? personalCenter : registers[register].center;
+}
+
+function getRangeLabel() {
+  return register === "personal" ? "My note" : registers[register].label;
+}
+
+function getDisplayRange() {
+  const config = game?.challenge?.config;
+  if (config?.centerMidi === getCenterMidi()) return { lowMidi: config.rangeMinMidi, highMidi: config.rangeMaxMidi };
+  return { lowMidi: getCenterMidi() - 6, highMidi: getCenterMidi() + 6 };
+}
+
+function captureComfortNote() {
+  if (game.status === "running") return;
+  if (!currentFrame) {
+    appendLog("VOICE", "Hold a comfortable note first");
+    return;
+  }
+  personalCenter = Math.max(36, Math.min(76, Math.round(currentFrame.midi)));
+  register = "personal";
+  persistPitchProfile();
+  syncSettingsUI();
+  appendLog("RANGE", `${midiToNote(personalCenter)} center`);
+  syncDemoToneToTarget();
+  drawFrame();
+}
+
+function syncSettingsUI() {
+  document.querySelectorAll("[data-register]").forEach((button) => button.classList.toggle("active", button.dataset.register === register));
+  document.querySelector("#captureComfortBtn").classList.toggle("active", register === "personal");
+  document.querySelectorAll("[data-speed]").forEach((button) => button.classList.toggle("active", button.dataset.speed === speed));
+  document.querySelectorAll("[data-assist]").forEach((button) => button.classList.toggle("active", button.dataset.assist === assist));
+  document.querySelector("#stabilityInput").value = String(Math.round(savedProfile.stability * 100));
+  els.stabilityValue.textContent = String(Math.round(savedProfile.stability * 100));
+  els.comfortNote.textContent = midiToNote(getCenterMidi());
+  els.rangeLabel.textContent = getRangeLabel();
+  renderGame();
+}
+
+function readPitchProfile() {
+  try {
+    const value = JSON.parse(localStorage.getItem("setscope-pitch-profile-v1") || "{}");
+    return {
+      register: ["low", "mid", "high", "personal"].includes(value.register) ? value.register : "low",
+      personalCenter: Number.isFinite(value.personalCenter) ? value.personalCenter : 48,
+      speed: ["easy", "groove", "rush"].includes(value.speed) ? value.speed : "easy",
+      assist: ["gentle", "balanced", "exact"].includes(value.assist) ? value.assist : "gentle",
+      stability: Number.isFinite(value.stability) ? Math.max(0, Math.min(1, value.stability)) : 0.7,
+    };
+  } catch {
+    return { register: "low", personalCenter: 48, speed: "easy", assist: "gentle", stability: 0.7 };
+  }
+}
+
+function persistPitchProfile() {
+  savedProfile.register = register;
+  savedProfile.personalCenter = personalCenter;
+  savedProfile.speed = speed;
+  savedProfile.assist = assist;
+  localStorage.setItem("setscope-pitch-profile-v1", JSON.stringify(savedProfile));
 }

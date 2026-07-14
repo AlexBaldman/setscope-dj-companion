@@ -24,6 +24,14 @@ assert.notDeepEqual(
   challenge.gates.map((gate) => gate.targetMidi),
   "different seeds should alter the gate sequence",
 );
+assert.equal(challenge.gates[0].targetMidi, challenge.config.centerMidi, "onboarding begins on the comfortable center");
+assert.equal(challenge.gates[1].targetMidi, challenge.config.centerMidi, "the first success is reinforced before movement");
+assert(challenge.gates.every((gate) => gate.targetMidi >= challenge.config.rangeMinMidi && gate.targetMidi <= challenge.config.rangeMaxMidi));
+assert(challenge.gates.slice(1).every((gate, index) => Math.abs(gate.targetMidi - challenge.gates[index].targetMidi) <= 3), "onboarding motion must remain stepwise");
+
+const personalChallenge = createPitchGatesChallenge({ seed: 12, register: "personal", centerMidi: 50, assist: "gentle" });
+assert.equal(personalChallenge.config.centerMidi, 50);
+assert.equal(personalChallenge.gates[0].tolerance, 1.05);
 
 const trace = challenge.gates.map((gate, index) => {
   if (index === 1) return { atMs: gate.evaluateAtMs - 20, midi: gate.targetMidi + 3, clarity: 0.95 };
@@ -78,6 +86,14 @@ assert.equal(hashPitchGatesRun(advancePitchGatesTo(boundaryRun, boundaryGate.eva
 
 const lostInputRun = advancePitchGatesTo(createPitchGatesRun(oneGate), boundaryGate.evaluateAtMs);
 assert.equal(lostInputRun.gateResults[0].outcome, "miss", "missing input should resolve as a miss without throwing");
+
+let windowedRun = createPitchGatesRun(oneGate);
+for (const offset of [-200, -150, -100, -50]) {
+  windowedRun = applyPitchInput(windowedRun, { atMs: boundaryGate.evaluateAtMs + offset, midi: boundaryGate.targetMidi, clarity: 0.95 });
+}
+windowedRun = applyPitchInput(windowedRun, { atMs: boundaryGate.evaluateAtMs, midi: boundaryGate.targetMidi + 5, clarity: 0.95 });
+windowedRun = advancePitchGatesTo(windowedRun, boundaryGate.evaluateAtMs);
+assert.equal(windowedRun.gateResults[0].outcome, "hit", "one noisy crossing frame must not erase a stable scoring window");
 
 const pauseAt = boundaryGate.evaluateAtMs - 100;
 const paused = pausePitchGatesRun(createPitchGatesRun(oneGate), pauseAt);

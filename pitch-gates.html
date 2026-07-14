@@ -85,6 +85,7 @@
           <div class="lab-block">
             <div class="block-title">Target</div>
             <strong class="target-display" id="targetNote">C4</strong>
+            <div class="pitch-guide" id="pitchGuide" aria-live="polite">LISTEN</div>
             <div class="readout-row">
               <div><span>Gate</span><strong id="gateCount">0/12</strong></div>
               <div><span>Range</span><strong id="rangeLabel">Mid</strong></div>
@@ -92,21 +93,37 @@
           </div>
 
           <div class="lab-block">
-            <div class="block-title">Register</div>
-            <div class="segment-control" aria-label="Pitch range">
-              <button data-register="low">Low</button>
-              <button class="active" data-register="mid">Mid</button>
+            <div class="block-title">Comfort Zone</div>
+            <div class="segment-control range-control" aria-label="Pitch range">
+              <button class="active" data-register="low">Low</button>
+              <button data-register="mid">Mid</button>
               <button data-register="high">High</button>
+              <button id="captureComfortBtn">My note</button>
             </div>
+            <div class="comfort-readout"><span>Center</span><strong id="comfortNote">C3</strong></div>
           </div>
 
           <div class="lab-block">
             <div class="block-title">Speed</div>
             <div class="segment-control" aria-label="Game speed">
-              <button data-speed="easy">Easy</button>
-              <button class="active" data-speed="groove">Groove</button>
+              <button class="active" data-speed="easy">Easy</button>
+              <button data-speed="groove">Groove</button>
               <button data-speed="rush">Rush</button>
             </div>
+          </div>
+
+          <div class="lab-block">
+            <div class="block-title">Assist</div>
+            <div class="segment-control" aria-label="Pitch forgiveness">
+              <button class="active" data-assist="gentle">Gentle</button>
+              <button data-assist="balanced">Balanced</button>
+              <button data-assist="exact">Exact</button>
+            </div>
+            <label class="stability-control" for="stabilityInput">
+              <span>Stability</span>
+              <input id="stabilityInput" type="range" min="0" max="100" value="70" />
+              <strong id="stabilityValue">70</strong>
+            </label>
           </div>
 
           <div class="lab-block hit-log-block">

@@ -1,4 +1,4 @@
-import { PITCH_GATES_CHALLENGE_V1, validatePitchGatesChallenge } from "./challenge.js";
+import { validatePitchGatesChallenge } from "./challenge.js";
 
 export const PITCH_GATES_RUN_V1 = "setscope.pitch-gates.run.v1";
 
@@ -128,7 +128,7 @@ export function hashPitchGatesRun(run) {
 }
 
 function evaluateGate(run, gate) {
-  const input = latestInputAt(run.inputs, gate.evaluateAtMs);
+  const input = representativeInputAt(run.inputs, gate.evaluateAtMs);
   const distance = Number.isFinite(input?.midi) ? Math.abs(input.midi - gate.targetMidi) : Infinity;
   const outcome = distance <= gate.tolerance ? "hit" : distance <= gate.tolerance * 1.75 ? "near" : "miss";
   let next = copyRun(run);
@@ -172,11 +172,12 @@ function appendEvent(run, type, values) {
   return next;
 }
 
-function latestInputAt(inputs, atMs) {
-  for (let index = inputs.length - 1; index >= 0; index -= 1) {
-    if (inputs[index].atMs <= atMs) return inputs[index];
-  }
-  return null;
+function representativeInputAt(inputs, atMs, lookbackMs = 220) {
+  const recent = inputs.filter((input) => input.atMs <= atMs && input.atMs >= atMs - lookbackMs);
+  const pitched = recent.filter((input) => Number.isFinite(input.midi));
+  if (pitched.length === 0) return null;
+  const sorted = [...pitched].sort((left, right) => left.midi - right.midi);
+  return sorted[Math.floor(sorted.length / 2)];
 }
 
 function copyRun(run) {
