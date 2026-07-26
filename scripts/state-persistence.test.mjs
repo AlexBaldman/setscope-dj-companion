@@ -10,7 +10,29 @@ globalThis.localStorage = {
   },
 };
 
-const { persistAudioEvent, state } = await import("../src/state.js");
+const { addTrack, normalizeTrack, persist, persistAudioEvent, state, uiState } = await import("../src/state.js");
+const incompleteTrack = { title: "Pure input" };
+const normalizedTrack = normalizeTrack(incompleteTrack);
+assert.equal(incompleteTrack.tags, undefined);
+assert.deepEqual(normalizedTrack.tags, []);
+
+uiState.query = "ephemeral query";
+uiState.reviewOnly = true;
+uiState.signalFilter = "analysis";
+uiState.archiveList = [{ id: "server-only" }];
+persist();
+const durableOnly = JSON.parse(localStorage.getItem("setscope-draft-v1"));
+assert.equal(durableOnly.schema, "setscope.set-draft");
+assert.equal(durableOnly.schemaVersion, 2);
+assert.equal("query" in durableOnly, false);
+assert.equal("reviewOnly" in durableOnly, false);
+assert.equal("signalFilter" in durableOnly, false);
+assert.equal("archiveList" in durableOnly, false);
+
+const beforeAddCount = durableOnly.tracks.length;
+addTrack({ title: "Command persistence" });
+const afterCommand = JSON.parse(localStorage.getItem("setscope-draft-v1"));
+assert.equal(afterCommand.tracks.length, beforeAddCount + 1);
 const editedDraft = structuredClone(state);
 editedDraft.tracks.push({
   id: "latest-track-edit",

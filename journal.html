@@ -4,18 +4,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SetScope Dev Journal</title>
+    <link rel="stylesheet" href="./src/design-tokens.css" />
     <link rel="stylesheet" href="./src/journal.css" />
     <link rel="stylesheet" href="./src/theme.css" />
   </head>
   <body data-paper="notebook">
     <div class="journal-app">
-      <header class="journal-topbar">
+      <header class="journal-topbar app-header">
         <a class="back-link" href="./index.html">SetScope</a>
         <div>
           <h1>Dev Journal</h1>
           <span>Markdown progress log</span>
         </div>
         <div class="journal-actions">
+          <nav class="tool-rack compact journal-tool-rack" data-tool-rack data-current-tool="journal" aria-label="SetScope tools"></nav>
           <button class="theme-toggle" data-theme-toggle aria-label="Switch to light mode" title="Switch to light mode">
             <img src="./assets/theme/lightning-bulb-toggle-ui.png" alt="" />
           </button>
@@ -47,8 +49,8 @@
               <div class="page-header">
                 <span id="pageNumber">Page 1</span>
                 <div class="entry-move">
-                  <button id="moveUpBtn" title="Move entry up">Up</button>
-                  <button id="moveDownBtn" title="Move entry down">Down</button>
+                  <button id="moveUpBtn" aria-label="Move entry up" title="Move entry up">↑</button>
+                  <button id="moveDownBtn" aria-label="Move entry down" title="Move entry down">↓</button>
                 </div>
               </div>
               <input id="entryTitle" class="entry-title" aria-label="Entry title" />
@@ -56,18 +58,19 @@
             </section>
           </article>
 
-          <div class="source-panel">
-            <div class="sidebar-head">
+          <details class="source-panel" id="sourcePanel" open>
+            <summary class="sidebar-head">
               <span>Markdown Source</span>
               <span id="saveStatus">Loaded</span>
-            </div>
+            </summary>
             <textarea id="markdownSource" class="markdown-source" aria-label="Markdown source"></textarea>
-          </div>
+          </details>
         </section>
       </main>
     </div>
 
     <script type="module" src="./src/theme.js"></script>
+    <script type="module" src="./src/tool-registry.js"></script>
     <script type="module" src="./src/journal.js"></script>
   </body>
 </html>

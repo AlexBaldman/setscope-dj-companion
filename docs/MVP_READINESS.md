@@ -36,7 +36,8 @@ The current MVP supports the essential loop:
 - Capture log with provider/status entries.
 - Set Coach readiness score with ranked next actions and creative prompts.
 - DJ Mentor panel with selected-track explanation, practice mission, dig prompt, mentor-note persistence, and event drawer move cards.
-- File-backed archive API.
+- Transactional SQLite archive API with automatic legacy JSON migration.
+- Full-text archive discovery across set metadata, tracks, tags, transitions, signal receipts, and practice evidence.
 - Markdown-backed dev journal UI.
 - Pitch Gates minigame with pitch/note/octave readout, gate scoring, demo mode, and timeline event logging.
 - Rhythm Roulette minigame with pixel-art blind crate digging, mystery record pulls, producer constraints, generated sample pads, sequencer grid, crate receipt, and learning-event logging.
@@ -47,8 +48,8 @@ The current MVP supports the essential loop:
 
 - Real AudD token has not been tested in this environment yet.
 - Continuous listening still needs a physical microphone and long-session battery/network test on target devices.
-- Archive storage is JSON-file based and should move to SQLite before heavy use.
-- Archived set and audio-event payloads are not schema-validated yet.
+- Archive storage is local-only and does not yet provide sync, accounts, or conflict resolution.
+- Archived sets are normalized into SetDraft V2 and full-text searchable; richer facets, sorting, and set comparison are not implemented yet.
 - Transition classification is currently manual/provider-stub metadata.
 - Key detection is placeholder metadata, not real audio analysis.
 - Pitch Gates detects stable monophonic pitch; instrument-family classification and chord detection are later work.
@@ -61,8 +62,8 @@ The current MVP supports the essential loop:
 - Add a real AudD token and run the Test provider workflow.
 - Keep new toolbelt modules writing to the shared audio event timeline.
 - Extract shared real-time audio input plumbing before adding tuner and visualizer modules.
-- Expand schema validation to archived sets and audio events.
-- Add SQLite archive storage.
+- Add a dedicated archive study view with facets, sorting, comparison, and direct track-level navigation.
+- Add an explicit sync/export boundary before introducing accounts or cloud storage.
 - Add a real transition-analysis pass.
 - Add basic accessibility checks for keyboard focus and reduced motion.
 - Keep the no-horizontal-overflow and labeled-control browser audit green across every top-level surface.

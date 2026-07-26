@@ -4,20 +4,29 @@ import { createListeningSession, normalizeListeningCadence } from "./listening-s
 import {
   addTrack,
   hydrateState,
+  logRecognitionObservation,
   nextTimecode,
   normalizeTrack,
   persist,
   resetForNewSet,
   setSelectedId,
   state,
+  uiState,
   upsertRecognizedTrack,
 } from "./state.js";
 import { toSeconds } from "./utils.js";
+import { uid } from "./utils.js";
 
 export function createWorkflows(els, { render, renderArchiveList, applySkin, showToast }) {
   let demoTimer = null;
+  let archiveSearchTimer = null;
+  let archiveRequest = 0;
   const savedCadence = normalizeListeningCadence(localStorage.getItem("setscope-listening-cadence"));
   els.cadenceSelect.value = String(savedCadence);
+  els.archiveSearch?.addEventListener("input", () => {
+    window.clearTimeout(archiveSearchTimer);
+    archiveSearchTimer = window.setTimeout(refreshArchiveList, 180);
+  });
 
   const listeningSession = createListeningSession({
     acquireStream: () => navigator.mediaDevices.getUserMedia({ audio: true }),
@@ -31,32 +40,45 @@ export function createWorkflows(els, { render, renderArchiveList, applySkin, sho
     onError(_error, sessionState) {
       showToast(`Recognition retry ${sessionState.consecutiveErrors}/3`);
     },
+    onObservation(observation) {
+      logRecognitionObservation(observation);
+      render();
+      if (observation?.outcome === "unmatched") showToast("No match in this window");
+    },
     onState: renderListeningState,
   });
   renderListeningState(listeningSession.getState());
 
   async function refreshArchiveList() {
+    const request = ++archiveRequest;
+    const query = els.archiveSearch?.value.trim() || "";
+    uiState.archiveQuery = query;
     try {
-      const archive = await listSets();
-      state.archiveList = archive.sets || [];
+      const archive = await listSets(query);
+      if (request !== archiveRequest) return;
+      uiState.archiveList = archive.sets || [];
       renderArchiveList();
     } catch {
-      state.archiveList = [];
+      if (request !== archiveRequest) return;
+      uiState.archiveList = [];
       renderArchiveList();
     }
   }
 
   async function requestRecognition(audio, { signal } = {}) {
+    const requestId = uid();
     const windowSeconds = Math.max(1, Math.round(Number(audio?.durationMs || 0) / 1000) || 8);
     const payload = await recognizeWindow({
       audio,
       cursor: state.recognitionCursor,
+      requestId,
+      sessionId: state.recognitionSessionId,
+      setElapsedMs: Math.max(0, Date.now() - Date.parse(state.recognitionStartedAt || new Date().toISOString())),
       signal,
       windowSeconds,
-      tracks: state.tracks,
     });
     state.recognitionCursor = payload.cursor || state.recognitionCursor + 1;
-    return payload.match;
+    return payload;
   }
 
   function runLocalDemoFallback() {
@@ -86,7 +108,13 @@ export function createWorkflows(els, { render, renderArchiveList, applySkin, sho
     showToast("Recognition stub started");
     demoTimer = window.setInterval(async () => {
       try {
-        const match = await requestRecognition();
+        const result = await requestRecognition();
+        if (result.observation?.outcome !== "matched") {
+          logRecognitionObservation(result.observation);
+          render();
+          throw new Error(result.observation?.outcome || "recognition_failed");
+        }
+        const match = { ...result.match, observation: result.observation, transaction: result.transaction };
         upsertRecognizedTrack(match);
         render();
         captures += 1;
@@ -155,9 +183,12 @@ export function createWorkflows(els, { render, renderArchiveList, applySkin, sho
     els.liveDetail.textContent = details[sessionState.phase] || "Ready for the room";
     els.liveWindows.textContent = String(sessionState.cycleCount || 0);
     els.liveMatches.textContent = String(sessionState.matchCount || 0);
-    els.listenBtn.setAttribute("aria-pressed", String(sessionState.active));
-    els.listenBtn.title = sessionState.active ? "Stop listening" : "Start listening";
+    [els.listenBtn, els.workspaceListenBtn].forEach((button) => {
+      button.setAttribute("aria-pressed", String(sessionState.active));
+      button.title = sessionState.active ? "Stop listening" : "Start listening";
+    });
     els.listenLabel.textContent = sessionState.active ? "Stop" : "Listen";
+    els.workspaceListenLabel.textContent = sessionState.active ? "Stop" : "Listen";
     els.cadenceSelect.disabled = sessionState.active;
     document.body.dataset.listening = sessionState.active ? "active" : "idle";
     els.engineStatus.textContent = labels[sessionState.phase] || "Idle";
@@ -168,7 +199,13 @@ export function createWorkflows(els, { render, renderArchiveList, applySkin, sho
       els.engineStatus.textContent = "Testing";
       showToast("Testing provider");
       const payload = await createSampleAudioPayload(8000);
-      const match = await requestRecognition(payload);
+      const result = await requestRecognition(payload);
+      if (result.observation?.outcome !== "matched") {
+        logRecognitionObservation(result.observation);
+        render();
+        throw new Error(result.observation?.outcome || "recognition_failed");
+      }
+      const match = { ...result.match, observation: result.observation, transaction: result.transaction };
       upsertRecognizedTrack({
         ...match,
         notes: `${match.notes} Sample-provider test captured with generated audio.`,
@@ -214,6 +251,10 @@ export function createWorkflows(els, { render, renderArchiveList, applySkin, sho
 
   async function archiveSet() {
     try {
+      if (!state.archiveId) {
+        state.archiveId = `set_${uid()}`;
+        persist();
+      }
       const payload = buildSetPayload();
       const result = await saveSet(payload);
       state.archiveId = result.set.id;
@@ -234,10 +275,12 @@ export function createWorkflows(els, { render, renderArchiveList, applySkin, sho
       state.archiveId = set.id;
       state.skin = set.skin || state.skin;
       state.captureLog = set.captureLog || [];
+      document.querySelector("#setTitle").textContent = set.name || "Untitled set";
       const hydrated = hydrateState({ tracks: set.tracks || [], audioEvents: set.audioEvents || [] });
       state.audioEvents = hydrated.audioEvents;
       state.tracks = hydrated.tracks;
       setSelectedId(state.tracks[0]?.id);
+      persist();
       applySkin(state.skin);
       render();
       showToast("Set loaded");

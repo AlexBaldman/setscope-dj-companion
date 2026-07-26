@@ -10,6 +10,7 @@ export function createListeningSession({
   captureWindow,
   recognize,
   onMatch = () => {},
+  onObservation = () => {},
   onError = () => {},
   onState = () => {},
   now = () => Date.now(),
@@ -83,14 +84,34 @@ export function createListeningSession({
         const capture = await captureWindow(stream, state.windowMs, { signal: abortController.signal });
         if (!active || token !== sessionToken) break;
         emit({ phase: "recognizing" });
-        const match = await recognize(capture, { signal: abortController.signal });
+        const result = await recognize(capture, { signal: abortController.signal });
         if (!active || token !== sessionToken) break;
-        emit({
-          consecutiveErrors: 0,
-          lastMatch: match,
-          matchCount: state.matchCount + 1,
-        });
-        onMatch(match, snapshot());
+        const observation = result?.observation || null;
+        const outcome = observation?.outcome || "matched";
+        if (["provider_error", "cancelled", "invalid"].includes(outcome)) {
+          emit({ lastObservation: observation });
+          onObservation(observation, snapshot());
+          const error = new Error(outcome);
+          error.retryable = outcome === "provider_error";
+          throw error;
+        }
+        if (outcome === "unmatched") {
+          emit({
+            consecutiveErrors: 0,
+            lastObservation: observation,
+            unmatchedCount: state.unmatchedCount + 1,
+          });
+          onObservation(observation, snapshot());
+        } else {
+          const match = result?.match || result;
+          emit({
+            consecutiveErrors: 0,
+            lastMatch: match,
+            lastObservation: observation,
+            matchCount: state.matchCount + 1,
+          });
+          onMatch(match, snapshot());
+        }
       } catch (error) {
         if (!active || token !== sessionToken || abortController.signal.aborted) break;
         const consecutiveErrors = state.consecutiveErrors + 1;
@@ -172,7 +193,9 @@ function createInitialState() {
     errorCount: 0,
     lastError: "",
     lastMatch: null,
+    lastObservation: null,
     matchCount: 0,
+    unmatchedCount: 0,
     nextCaptureAt: null,
     phase: "idle",
     startedAt: null,

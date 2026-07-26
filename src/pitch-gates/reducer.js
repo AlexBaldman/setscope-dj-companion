@@ -19,7 +19,7 @@ export function createPitchGatesRun(challenge, { lives = 3 } = {}) {
     lives: initialLives,
     resolved: 0,
     inputs: [],
-    gateResults: challenge.gates.map((gate) => ({ gateId: gate.id, outcome: "pending", distance: null })),
+    gateResults: challenge.gates.map((gate) => ({ gateId: gate.id, outcome: "pending", distance: null, signedDistance: null })),
     events: [],
   };
 }
@@ -129,11 +129,17 @@ export function hashPitchGatesRun(run) {
 
 function evaluateGate(run, gate) {
   const input = representativeInputAt(run.inputs, gate.evaluateAtMs);
-  const distance = Number.isFinite(input?.midi) ? Math.abs(input.midi - gate.targetMidi) : Infinity;
+  const signedDistance = Number.isFinite(input?.midi) ? input.midi - gate.targetMidi : null;
+  const distance = Number.isFinite(signedDistance) ? Math.abs(signedDistance) : Infinity;
   const outcome = distance <= gate.tolerance ? "hit" : distance <= gate.tolerance * 1.75 ? "near" : "miss";
   let next = copyRun(run);
   next.resolved += 1;
-  next.gateResults[gate.index] = { gateId: gate.id, outcome, distance: Number.isFinite(distance) ? distance : null };
+  next.gateResults[gate.index] = {
+    gateId: gate.id,
+    outcome,
+    distance: Number.isFinite(distance) ? distance : null,
+    signedDistance,
+  };
 
   if (outcome === "hit") {
     const recovered = next.gateResults[gate.index - 1]?.outcome === "miss";
@@ -141,7 +147,7 @@ function evaluateGate(run, gate) {
     next.bestStreak = Math.max(next.bestStreak, next.streak);
     const points = 100 + next.streak * 20;
     next.score += points;
-    next = appendEvent(next, "hit", { atMs: gate.evaluateAtMs, gateId: gate.id, targetMidi: gate.targetMidi, distance, points });
+    next = appendEvent(next, "hit", { atMs: gate.evaluateAtMs, gateId: gate.id, targetMidi: gate.targetMidi, distance, signedDistance, points });
     if (recovered) next = appendEvent(next, "recovery", { atMs: gate.evaluateAtMs, gateId: gate.id, targetMidi: gate.targetMidi });
   } else {
     next.streak = 0;
@@ -151,6 +157,7 @@ function evaluateGate(run, gate) {
       gateId: gate.id,
       targetMidi: gate.targetMidi,
       distance: Number.isFinite(distance) ? distance : null,
+      signedDistance,
     });
     if (next.lives <= 0) {
       next.status = "complete";

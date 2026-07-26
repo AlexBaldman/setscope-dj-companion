@@ -19,7 +19,7 @@ const session = createListeningSession({
     captures += 1;
     inFlight += 1;
     maxInFlight = Math.max(maxInFlight, inFlight);
-    return { payload: { dataUrl: "window" } };
+    return { payload: { blob: new Blob(["window"], { type: "audio/webm" }) } };
   },
   recognize: async () => {
     recognitions += 1;
@@ -41,6 +41,19 @@ assert(phases.includes("capturing"));
 assert(phases.includes("recognizing"));
 assert.equal(session.getState().matchCount, 1);
 assert.equal(session.getState().phase, "idle");
+
+let unmatchedObserved = 0;
+const unmatchedSession = createListeningSession({
+  acquireStream: async () => ({ getTracks: () => [{ stop() {} }] }),
+  captureWindow: async () => ({ payload: {} }),
+  recognize: async () => ({ observation: { outcome: "unmatched" } }),
+  onObservation: () => { unmatchedObserved += 1; unmatchedSession.stop(); },
+});
+await unmatchedSession.start({ cadenceMs: 8000, windowMs: 1000 });
+await new Promise((resolve) => setTimeout(resolve, 10));
+assert.equal(unmatchedObserved, 1);
+assert.equal(unmatchedSession.getState().matchCount, 0);
+assert.equal(unmatchedSession.getState().unmatchedCount, 1);
 
 let retryClock = 0;
 let failedCaptures = 0;

@@ -1,4 +1,5 @@
 import { demoTracks as recognitionFixtures } from "../src/fixtures.js";
+import { createRecognitionObservation } from "../src/contracts/recognition-observation.js";
 import { isAudDConfigured, recognizeWithAudD } from "./audd-provider.mjs";
 import { normalizeProviderMatch } from "./provider-normalizer.mjs";
 import { validateNormalizedMatch } from "./provider-schema.mjs";
@@ -9,6 +10,7 @@ export function recognizeFromStub({ cursor = 0 } = {}) {
   const index = Number(cursor || 0);
   const raw = recognitionFixtures[index % recognitionFixtures.length];
   return {
+    outcome: "matched",
     cursor: index + 1,
     detectedAt: new Date().toISOString(),
     match: normalizeProviderMatch({
@@ -33,26 +35,61 @@ export function analyzeTracks(tracks) {
   };
 }
 
-export async function recognizeAudioWindow({ cursor = 0, audio, metadata } = {}) {
+export async function recognizeAudioWindow({ requestId = "local-preview", cursor = 0, audio, metadata, signal } = {}) {
+  const startedAtMs = Date.now();
+  const startedAt = new Date(startedAtMs).toISOString();
   const audioMetadata = sanitizeAudioMetadata(audio);
   const shouldUseAudD = isAudDConfigured() && audioMetadata.hasData;
   const result = shouldUseAudD
-    ? await recognizeFromConfiguredProvider({ audio, metadata, audioMetadata, cursor })
+    ? await recognizeFromConfiguredProvider({ audio, metadata, audioMetadata, cursor, signal })
     : recognizeFromStub({ cursor });
+  const completedAtMs = Date.now();
+  const provenance = shouldUseAudD ? "inference" : "story";
+  const observation = createRecognitionObservation({
+    observationId: `observation_${requestId}`,
+    requestId,
+    sessionId: typeof metadata?.sessionId === "string" ? metadata.sessionId : "",
+    setElapsedMs: normalizeElapsedMs(metadata?.setElapsedMs),
+    outcome: result.outcome || (result.match?.status === "matched" ? "matched" : "unmatched"),
+    provenance,
+    provider: result.match?.provider || (shouldUseAudD ? "audd" : "setscope-stub"),
+    startedAt,
+    completedAt: new Date(completedAtMs).toISOString(),
+    latencyMs: Math.max(0, completedAtMs - startedAtMs),
+    retryable: result.outcome === "provider_error",
+    errorCode: result.errorCode,
+    audio: audioMetadata,
+  });
 
-  return {
+  const response = {
     ...result,
+    observation,
     audio: audioMetadata,
     metadata: metadata || {},
-    match: {
+  };
+  if (result.match) response.match = {
       ...result.match,
+      ...(shouldUseAudD ? { time: formatElapsedTime(observation.setElapsedMs) } : {}),
+      observation,
       raw: {
         ...result.match.raw,
         audio: audioMetadata,
         metadata: metadata || {},
       },
-    },
-  };
+    };
+  return response;
+}
+
+function normalizeElapsedMs(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? Math.round(parsed) : 0;
+}
+
+function formatElapsedTime(milliseconds) {
+  const totalSeconds = Math.floor(milliseconds / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
 export function getRecognitionProviderLabel() {
@@ -143,15 +180,16 @@ function sanitizeAudioMetadata(audio = {}) {
     durationMs: Number(audio.durationMs || 0),
     mimeType: typeof audio.mimeType === "string" ? audio.mimeType : "",
     size: Number(audio.size || 0),
-    hasData: typeof audio.dataUrl === "string" && audio.dataUrl.length > 0,
+    hasData: Number(audio.size || audio.bytes?.byteLength || 0) > 0,
   };
 }
 
-async function recognizeFromConfiguredProvider({ audio, metadata, audioMetadata, cursor }) {
+async function recognizeFromConfiguredProvider({ audio, metadata, audioMetadata, cursor, signal }) {
   try {
-    const match = await recognizeWithAudD({ audio });
-    if (match) {
+    const match = await recognizeWithAudD({ audio, signal });
+    if (match?.status === "matched") {
       return {
+        outcome: "matched",
         cursor: Number(cursor || 0) + 1,
         detectedAt: new Date().toISOString(),
         match,
@@ -159,26 +197,16 @@ async function recognizeFromConfiguredProvider({ audio, metadata, audioMetadata,
     }
   } catch (error) {
     return {
+      outcome: error?.message === "recognition_cancelled" ? "cancelled" : "provider_error",
       cursor: Number(cursor || 0) + 1,
       detectedAt: new Date().toISOString(),
-      match: normalizeProviderMatch({
-        title: "",
-        artist: "",
-        confidence: 0,
-        provider: "audd",
-        status: "unknown",
-        source: "AudD",
-        why: "The AudD provider request failed before a usable match came back.",
-        notes: "Check the AudD token, network access, and captured-audio format.",
-        raw: {
-          provider: "audd",
-          error: error instanceof Error ? error.message : "unknown_error",
-          audio: audioMetadata,
-          metadata: metadata || {},
-        },
-      }),
+      errorCode: error instanceof Error ? error.message : "unknown_error",
     };
   }
 
-  return recognizeFromStub({ cursor });
+  return {
+    outcome: "unmatched",
+    cursor: Number(cursor || 0) + 1,
+    detectedAt: new Date().toISOString(),
+  };
 }

@@ -1,9 +1,11 @@
 import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
 import { createArchiveStore } from "./server/archive-store.mjs";
+import { createSetScopeDatabase } from "./server/database.mjs";
 import { loadLocalEnv } from "./server/env.mjs";
 import { createJournalStore } from "./server/journal-store.mjs";
-import { sendJson } from "./server/json.mjs";
+import { createRecognitionStore } from "./server/recognition-store.mjs";
+import { sendError } from "./server/json.mjs";
 import { createApiRouter } from "./server/routes.mjs";
 import { serveStatic } from "./server/static.mjs";
 
@@ -11,12 +13,16 @@ const root = fileURLToPath(new URL(".", import.meta.url));
 await loadLocalEnv(root);
 const port = Number(process.env.PORT || 5173);
 
+const database = createSetScopeDatabase(root);
+const recognitionStore = createRecognitionStore(root, { database });
+const archiveStore = createArchiveStore(root, { database });
 const routeApi = createApiRouter({
-  archiveStore: createArchiveStore(root),
+  archiveStore,
   journalStore: createJournalStore(root),
+  recognitionStore,
 });
 
-createServer(async (request, response) => {
+const server = createServer(async (request, response) => {
   try {
     const url = new URL(request.url || "/", `http://${request.headers.host}`);
     if (url.pathname.startsWith("/api/")) {
@@ -25,9 +31,18 @@ createServer(async (request, response) => {
     }
     await serveStatic(root, url, response);
   } catch (error) {
-    console.error(error);
-    sendJson(response, 500, { error: "internal_error" });
+    if (!error?.statusCode || error.statusCode >= 500) console.error(error);
+    sendError(response, error);
   }
 }).listen(port, "127.0.0.1", () => {
   console.log(`SetScope running at http://127.0.0.1:${port}/`);
 });
+
+for (const signal of ["SIGINT", "SIGTERM"]) {
+  process.once(signal, () => {
+    server.close(() => {
+      database.close();
+      process.exit(0);
+    });
+  });
+}

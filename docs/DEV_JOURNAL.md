@@ -849,3 +849,287 @@ What changed:
 Why this matters:
 
 Responsive behavior is now treated as a tested product contract. Each surface keeps its identity, but navigation, instruments, controls, and primary content follow the same predictable progression from phone to tablet to desktop.
+
+## 2026-07-14 - Shared Arcade Shell
+
+We removed the first concrete architecture hazard found in the full-repository design audit.
+
+What changed:
+
+- Extracted shared standalone-tool tokens, topbar structure, readout blocks, transport controls, and responsive behavior into `src/arcade-shell.css`.
+- Stopped Audio Lab and Rhythm Roulette from importing the Pitch Gates page stylesheet.
+- Scoped Pitch Gates' transport grid placement to its own cabinet so a generic class cannot create implicit tracks in another tool.
+- Removed the temporary Audio Lab grid override that had been compensating for that leaked selector.
+- Removed duplicate Arcade, Lab, and Journal links from the SetScope header; the shared tool rack is now the single navigation surface.
+- Added architecture checks that enforce the stylesheet boundary and prevent duplicate cockpit navigation from returning.
+- Updated the architecture map so the next production domino is the versioned `SetDraft` store and pure state boundary.
+
+Why this matters:
+
+New games and musician tools can now inherit a deliberate instrument shell without inheriting another page's layout assumptions. The same change also makes the cockpit header quieter and gives mobile users faster access to the record and listening controls.
+
+## 2026-07-15 - SetDraft V2 State Boundary
+
+We separated durable set history from temporary interface state and stopped rendering from behaving like a save command.
+
+What changed:
+
+- Added `src/contracts/set-draft.js` with the stable `setscope.set-draft` schema, version 2 migration, serialization allowlist, and structural validation.
+- Migrated unversioned browser drafts in memory without changing the existing storage key or losing tracks, captures, tool events, recognition cursor, archive identity, or deck skin.
+- Moved search text, review mode, signal filters, selected navigation state, and fetched archive listings outside the serialized draft.
+- Made track normalization pure and moved complete normalization to hydration and domain-command boundaries.
+- Removed persistence from the renderer; save, add, sort, transition, tag, merge, event editing, recognition, skin selection, and reset commands now explicitly commit their own changes.
+- Preserved the special tool-event write path that merges against the latest browser draft so an external game tab cannot erase a newer cockpit edit.
+- Added contract and persistence tests for legacy migration, schema identity, input immutability, temporary-state exclusion, pure normalization, and automatic command saves.
+
+Why this matters:
+
+SetScope now has a portable draft envelope that can cross web, desktop, and iOS boundaries without carrying accidental screen state. Repainting the UI no longer writes local storage, and future reducers, SQLite storage, sync, undo, or native clients can build on a named versioned contract instead of reverse-engineering a mutable browser singleton.
+
+## 2026-07-17 - Hardened Server Boundaries
+
+We made the local API fail clearly and preserve data safely before adding more recognition and archive complexity.
+
+What changed:
+
+- Replaced unbounded string accumulation with byte-counted JSON parsing and route-specific limits: 16 MB for recognition audio, 5 MB for set archives, 2 MB for journal saves, and 1 MB for analysis.
+- Added explicit JSON errors for missing bodies, malformed input, and oversized payloads with `400` and `413` status codes.
+- Added `server/archive-schema.mjs` to validate archive envelopes, constrain collection sizes, normalize metadata, and migrate accepted saves into SetDraft V2.
+- Made invalid archive payloads return `422` before they reach disk.
+- Serialized archive updates through an in-process write queue so simultaneous saves cannot overwrite one another.
+- Replaced direct archive writes with temporary-file writes followed by atomic rename, including cleanup after failed writes.
+- Stopped treating every archive read failure as an empty archive; corrupt JSON now raises an internal error instead of being silently overwritten.
+- Added isolated storage tests for invalid payloads, simultaneous saves, V2 normalization, temporary-file cleanup, and corrupt archives.
+- Extended real API smoke tests to verify malformed JSON, oversized analysis payloads, and invalid archive responses over HTTP.
+
+Why this matters:
+
+Recognition audio and user-authored archives now cross an intentional trust boundary. A bad request cannot consume memory without limit, malformed data cannot quietly enter storage, and an interrupted or overlapping save is far less likely to damage a DJ's set history.
+
+## 2026-07-17 - Deterministic Rhythm Roulette and Shared Instrument Language
+
+We paired a rhythm-game architecture review with a cross-surface design-system audit, then turned their highest-leverage recommendations into working code.
+
+What changed:
+
+- Split Rhythm Roulette into a stable sample catalog, seeded challenge generator, pure immutable reducer, portable replay format, isolated Web Audio engine, and isolated pixel-scene renderer.
+- Rebuilt the page script as a thin controller that coordinates the DOM, playback clock, persistence, practice context, and structured completion events.
+- Added challenge IDs, seeds, replay hashes, action counts, and end reasons to saved Rhythm Roulette events so a performance artifact can be reconstructed and verified.
+- Added deterministic tests across 256 seeds, exact scoring and challenge bonuses, reducer immutability, invalid-action rejection, and replay hash matching.
+- Introduced shared app headers, metric racks, instrument screens, hardware transports, semantic accent roles, keyboard focus treatment, and reduced-motion behavior across the cockpit and standalone tools.
+- Added the shared tool rack to the Dev Journal and tuned its desktop density so navigation remains complete without crowding the paper controls.
+- Replaced position-dependent panel colors with explicit semantic accents and added runtime coverage for Journal navigation.
+
+Why this matters:
+
+Rhythm Roulette is now a reproducible game system instead of a collection of UI-side mutations, which gives us a durable base for daily challenges, leaderboards, replay sharing, and native clients. The design layer now has a common grammar for navigation, data, controls, and accessibility while Pitch Gates, Audio Lab, Rhythm Roulette, and the Journal keep their own distinct personalities.
+
+## 2026-07-17 - Screenshot-Led Design System Pass
+
+We captured every surface at desktop, compact-laptop, tablet, and phone sizes and asked four independent reviewers to examine product UX, rhythm-game playability, mobile accessibility, and visual identity.
+
+What changed:
+
+- Added `src/design-tokens.css` with shared spacing, radii, control sizing, touch targets, chassis surfaces, semantic status colors, room accents, typography roles, and motion values.
+- Moved segmented controls out of Pitch Gates and into the shared arcade shell, repairing Audio Lab's unstyled preset buttons and establishing consistent selected, pressed, and focus states.
+- Rebuilt the standalone mobile header into a shorter identity, navigation, and status hierarchy.
+- Put Pitch Gates' canvas before its source controls on phones, replaced contradictory idle copy, and added cents feedback, stronger register lines, and a recent-pitch trail.
+- Added a visible graticule and center calibration axis to Audio Lab's scope.
+- Made Rhythm Roulette's mobile sequencer horizontally bounded with 44-pixel steps, sticky lane labels, and a raised playhead state.
+- Turned the Journal's Markdown source into progressive disclosure, collapsed it by default on phones, enlarged reorder controls, and improved its long-form title measure.
+- Extended runtime QA to enforce priority touch targets and recognize intentional scrolling editors without allowing page overflow.
+- Recorded the complete visual principles and ranked responsive backlog in `docs/DESIGN_SYSTEM.md`.
+
+Why this matters:
+
+The app now has a real visual foundation instead of a growing collection of similar color values and controls. More importantly, the changes improve what musicians can see and touch in the first viewport. The next responsive SetScope workspace can now build on explicit rules instead of inventing another page-specific layout.
+
+## 2026-07-17 - Responsive Cockpit Workspaces
+
+We replaced the shrinking three-column cockpit on tablets and phones with explicit, musician-focused workspaces.
+
+What changed:
+
+- Added separately persisted Signal, Timeline, and Intel workspace state without adding temporary navigation data to SetDraft.
+- Added a sticky narrow-screen workspace transport with selected-track context and a mirrored Listen control.
+- Made track selection reveal Intel and coaching actions reveal Timeline while preserving the user's set, filters, and active listening session.
+- Converted Set Coach, DJ Mentor, recognition diagnostics, capture history, tool events, and archive history into state-preserving responsive disclosures.
+- Moved infrequent archive/export/new-set actions into a compact utility menu on narrow screens.
+- Added controller tests and browser assertions for workspace switching, draft isolation, selected-track continuity, listening continuity, disclosure behavior, and viewport reveal.
+- Captured and reviewed dedicated Signal, Timeline, and Intel screenshots at phone and tablet widths.
+
+Why this matters:
+
+SetScope now behaves like a focused instrument on small screens instead of a desktop dashboard squeezed into a long page. The transport and current musical context stay available, secondary detail remains recoverable, and the same durable set model can support web, desktop, and future native layouts.
+
+## 2026-07-17 - Multidisciplinary Council Decision
+
+We asked independent systems, interface, music-pedagogy, audio, mathematical-visualization, psychoacoustics, and science-communication reviewers to challenge the finished responsive build and choose the next lead domino.
+
+What they agreed on:
+
+- SetScope has a credible technical and visual foundation, but its signature recognition loop needs production-grade durability before the toolbelt expands further.
+- The next vertical slice is a durable recognition transaction with exactly-once request IDs, binary audio transport, provider deadlines and cancellation, explicit outcomes, deep contracts, correlated logs, and SQLite persistence.
+- Every piece of evidence should disclose whether it is measured, internally generated, modeled, inferred, mapped, or purely part of the story world.
+- The next learning layer should share calibration and evidence across Pitch Gates and Audio Lab, following the loop: calibrate, hear, predict, perform, diagnose, prescribe, transfer.
+- Every room needs explicit idle, ready, active, result, and saved phases with one unmistakable primary command and a textual equivalent for Canvas state.
+- Rhythm Roulette should treat its current formula as a mission score rather than an objective measurement of groove, and future crate play should reward listening, transformation, space, and microtiming.
+- Beat Loom, Phase Loom, Pulse Rosette, Fourier Timbre Forge, Pocket Microscope, and a Transition Flight Simulator remain strong expansion paths after the shared contracts land.
+
+Scientific boundary:
+
+Frequency, phase, beating, spectra, timing, uncertainty, and acoustic models can support rigorous experiments. Sacred geometry, cymatic imagery, Tesla-inspired machinery, and cosmic diagrams belong as clearly labeled story or mapping layers unless a result is actually measured. Wonder can invite the experiment; evidence decides the claim.
+
+Why this matters:
+
+The roadmap now compounds instead of branching. Recognition durability creates the event ledger; provenance makes it trustworthy; the learning spine makes it useful; the phase grammar makes it understandable; and the more visionary music-and-geometry tools can reuse all four.
+
+## 2026-07-22 - Signal Receipt and Playable Phase Pass
+
+We ran a fresh whole-product audit with independent systems, music-pedagogy, interaction-design, accessibility, audio, and product-strategy reviewers, then implemented the slice where their recommendations overlapped.
+
+What changed:
+
+- Added persistent recognition session IDs, request IDs, observation IDs, set-relative timing, explicit outcomes, provider provenance, and latency evidence.
+- Added a bounded atomic recognition transaction ledger. Concurrent duplicate requests share one provider operation, committed requests replay after store recreation, and transaction files are kept out of Git.
+- Added AudD deadlines and client-disconnect cancellation instead of allowing one provider call to suspend continuous listening indefinitely.
+- Stopped provider errors, cancellations, and unmatched windows from becoming fake Unknown Track timeline rows or successful matches.
+- Added client-side observation deduplication and made archive retries reuse a client-generated ID; loaded archives now persist immediately.
+- Added inferred and demo-story provenance badges to Track Intel and the capture log.
+- Renamed Rhythm Roulette's computed Groove readout to Mission, preserved sequencer focus by updating cells in place, and added complete pressed-state labels.
+- Added keyboard arrow, Home, and End behavior to the responsive cockpit tabs.
+- Added textual state equivalents for the Pitch Gates, Audio Lab, and Rhythm Roulette canvases.
+- Made Pitch Gates require an input before starting, Audio Lab require a stable signal before logging, and Roulette disable impossible actions before a crate pull.
+- Labeled Audio Lab's synthetic no-signal trace as an Idle Display.
+- Rebalanced phone instruments so the current action stays in the first viewport and reduced the oversized tablet deck while retaining vinyl as the visual anchor.
+- Made API and browser test harnesses start the current checkout on ephemeral ports with useful startup diagnostics.
+- Added GitHub Actions for deterministic, contract, HTTP, and responsive Chromium verification and updated the README to match the real toolbelt.
+
+Why this matters:
+
+The application is more honest and more dependable at the same time. A recognition attempt now has identity, timing, provenance, and a replay-safe terminal result; an instrument tells the user what can actually happen next; and a fresh contributor can verify the exact current build without hidden process setup. The next production brick is binary audio plus SQLite, not another parallel feature surface.
+
+## 2026-07-22 - Signal Receipt V1
+
+We completed the recognition durability brick and connected its technical truth to the cockpit.
+
+What changed:
+
+- Replaced base64 JSON recognition uploads with bounded raw binary audio and compact `x-setscope-*` metadata headers.
+- Added a shared, versioned `RecognitionObservation` contract with deep validation for identity, outcome, provenance, timing, retryability, and privacy-safe audio metadata.
+- Adapted AudD to consume binary windows at the server edge while keeping raw audio ephemeral and out of responses and persistence.
+- Replaced the JSON recognition transaction file with Node's built-in SQLite ledger, including WAL mode, unique request IDs, bounded retention, concurrent duplicate suppression, and restart replay.
+- Added automatic import of the prior JSON transaction ledger, renaming it after a successful migration.
+- Added correlated JSON transaction logs containing receipt identity, outcome, provider, latency, and replay status without audio content.
+- Turned Capture Log into Signal Receipts. Matched, unmatched, invalid, cancelled, and provider-error windows now have honest terminal states; only matched receipts can create or open tracks.
+- Added a ShazamKit-shaped contract fixture to prove a native adapter can emit the same portable observation without uploading device audio.
+- Re-ran contract, migration, HTTP, state, and responsive Chromium checks across phone, tablet, and desktop layouts.
+
+Why this matters:
+
+Recognition is now a durable product capability instead of a demo-shaped API call. Every attempt has one replay-safe record, every visible result says what happened, and the future iOS implementation can swap in ShazamKit without inventing a second evidence model. The next lead domino is the shared adaptive practice and calibration spine, followed by consolidating the remaining set archive into SQLite.
+
+## 2026-07-22 - Shared Musician Profile
+
+We connected Pitch Gates and Audio Lab through the first adaptive learning contract.
+
+What changed:
+
+- Added a versioned, portable Musician Profile with center note, conservative safe span, detector settings, calibration evidence, practice history, and revision identity.
+- Migrated an existing personal Pitch Gates center and smoothing preference into the shared profile.
+- Added stable-live-note calibration to both tools. V1 labels the result a safe span and uses five semitones on either side rather than pretending one note measured a full vocal range.
+- Made Pitch Gates use the calibrated center for My Range challenges and display the shared next practice stage.
+- Added an Audio Lab My Range preset that generates five personalized tuner targets from the same profile.
+- Added the deterministic learning sequence Calibrate, Hear, Predict, Perform, Diagnose, Prescribe, and Transfer.
+- Made stable Audio Lab holds and completed Pitch Gates rounds update one shared prescription.
+- Added profile revision, accuracy, and practice-stage evidence to saved tool runs.
+- Added pure contract, migration, calibration, and prescription tests plus a browser test that calibrates in Pitch Gates, navigates to Audio Lab, verifies five shared targets, and advances the prescription with a stable hold.
+- Reviewed refreshed mobile and tablet screenshots and moved Audio Lab's five preset choices to a clean two-row tablet layout.
+
+Why this matters:
+
+The toolbelt is beginning to behave like one teacher instead of several unrelated demos. A musician can establish a playable center once, carry it across tools, and receive a next action grounded in actual practice evidence. The next learning brick is directional diagnosis and separately confirmed comfortable low/high bounds; the next persistence brick remains moving the set archive into SQLite.
+
+## 2026-07-23 - Confirmed Bounds and Directional Diagnosis
+
+We completed the second adaptive-learning brick without overstating what the detector knows.
+
+What changed:
+
+- Upgraded the portable Musician Profile to V2 with explicit estimated-versus-confirmed range state and separate low/high boundary evidence.
+- Added Audio Lab controls for Set center, Set low, and Set high.
+- Required a stable pitched frame, at least two semitones of separation from center, sensible ordering, and a bounded eighteen-semitone distance for each edge.
+- Kept the initial five-semitone span playable but labeled estimated until both edges are performed and saved.
+- Added visible anti-strain guidance beside the calibration controls.
+- Made Audio Lab's three demo pitches follow the current estimated or confirmed span so calibration can be tested without microphone permission.
+- Added signed pitch distance to deterministic Pitch Gates gate results and portable replays.
+- Added a pure diagnosis module that separates centered, high, low, mixed, and mostly-silent runs.
+- Fed diagnosis into the adaptive prescription, the visible Pitch Gates coach readout, the run log, the shared profile, and saved performance evidence.
+- Expanded unit coverage for profile migration, boundary rejection, confirmed ranges, and directional diagnosis.
+- Expanded browser QA to calibrate a center in Pitch Gates, confirm low/high notes in Audio Lab, generate personalized targets, complete a stable hold, and advance the shared learning stage.
+- Reviewed new phone and tablet screenshots for control fit, hierarchy, safety copy, and first-viewport actions.
+
+Why this matters:
+
+The app can now distinguish a convenient estimated range from notes the musician actually demonstrated, and it can turn misses into a specific next action instead of a generic score. The next learning brick is repeated-boundary confidence and interval-level history; the next infrastructure brick remains consolidating the set archive into SQLite.
+
+## 2026-07-24 - Unified SQLite Archive
+
+We completed the remaining local-persistence brick and kept the browser contract unchanged.
+
+What changed:
+
+- Added one shared WAL-enabled SQLite connection for recognition receipts and archived sets.
+- Replaced the JSON set archive with an indexed `archived_sets` table containing stable identity, timestamps, track count, and the complete normalized SetDraft V2 envelope.
+- Made archive upserts transactional with `BEGIN IMMEDIATE`, preserving the original save time while updating the latest revision.
+- Added automatic all-or-nothing migration from `data/sets.json`, with validation before import and a `.migrated` marker only after success.
+- Made corrupt legacy data fail clearly instead of silently losing or partially importing sets.
+- Added a configurable data-directory boundary so HTTP and browser suites run against isolated temporary databases rather than developer data.
+- Expanded boundary coverage for multiple sets, updates from independent SQLite connections, migration, corrupt input, and unchanged SetDraft V2 retrieval.
+- Expanded API and responsive browser coverage through the complete Save, list, load workflow.
+- Updated architecture, readiness, and contributor documentation to describe the database that actually runs.
+
+Why this matters:
+
+SetScope now has one dependable local home for both what it heard and what the musician chose to save. The frontend and future iOS adapter can keep using portable contracts while indexed study-library features grow behind the API. The next infrastructure brick is useful archive search across tracks, artists, tags, and evidence; the next learning brick is repeated-boundary confidence and interval-level history.
+
+## 2026-07-24 - Searchable Study Library
+
+We turned the local archive from a save drawer into the first version of a musical study library.
+
+What changed:
+
+- Added an FTS5 search index derived from each canonical archived SetDraft.
+- Indexed set metadata, track and artist details, tags, transitions, notes, recognition receipts, and attached practice evidence without changing the portable archive contract.
+- Replaced each set's search row inside the same transaction as its archive revision so stale terms cannot survive updates.
+- Added a versioned index rebuild path for existing SQLite archives.
+- Tokenized and bounded queries before constructing prefix matches, keeping punctuation and FTS operators from becoming executable search syntax.
+- Added concise Track, Practice, Signal, or Set match clues to explain why each result was returned.
+- Added a debounced archive search instrument, live result count, clear empty state, and a taller scrollable result rack to the Signal workspace.
+- Added store, HTTP, and responsive browser coverage for multi-term search, tags, practice evidence, no-match recovery, stale-term removal, and save/load behavior after filtering.
+- Reviewed the generated responsive screenshots and retained the existing compact hardware-panel visual grammar without clipping controls.
+
+Why this matters:
+
+A saved set is no longer a file the musician must remember by title. It is queryable memory: a way back to a transition, artist, practice run, tag, or recognition clue across listening sessions. The next archive brick is a dedicated study view with facets and set comparison; the next cross-product learning brick remains interval-level history and repeated-boundary confidence.
+
+## 2026-07-26 - GitHub Pages Release Path
+
+We prepared the complete accumulated SetScope build for a public, continuously deployed preview.
+
+What changed:
+
+- Added a minimal Pages artifact builder that publishes only the five app surfaces, browser modules, visual assets, and readable dev journal.
+- Added the official GitHub Actions Pages pipeline with verified build, artifact upload, protected deployment environment, concurrency control, and manual dispatch.
+- Added an explicit static Demo runtime for GitHub Pages while retaining the existing local-server architecture.
+- Kept timeline editing, audio instruments, minigames, archive save/load/search, and journal reading/editing useful without a backend.
+- Stored Pages archives and journal edits browser-locally instead of pretending GitHub Pages can provide SQLite or write repository files.
+- Kept live AudD recognition, the shared SQLite ledger, and markdown file persistence in the local server build.
+- Added unit coverage for browser-local archive and journal behavior.
+- Added a dedicated Chromium pass over the built Pages artifact, including Demo provider status, archive save/search, journal loading, console errors, and missing assets.
+- Folded the static deployment browser contract into the standard runtime CI gate.
+- Documented the production boundary and publishing workflow for future contributors.
+
+Why this matters:
+
+SetScope can now be shared as a real interactive artifact while its server and native capabilities continue to mature. The hosted preview is honest about which capabilities are browser-local, and every push to `main` has a repeatable path from source to tested public experience.

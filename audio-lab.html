@@ -4,13 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Audio Lab - SetScope</title>
-    <link rel="stylesheet" href="./src/pitch-gates.css" />
+    <link rel="stylesheet" href="./src/design-tokens.css" />
+    <link rel="stylesheet" href="./src/arcade-shell.css" />
     <link rel="stylesheet" href="./src/audio-lab.css" />
     <link rel="stylesheet" href="./src/theme.css" />
   </head>
   <body>
     <div class="game-app audio-lab-app">
-      <header class="game-topbar">
+      <header class="game-topbar app-header">
         <a class="back-link" data-set-return href="./index.html">
           <span class="mini-disc"></span>
           SetScope
@@ -42,39 +43,41 @@
           </div>
         </section>
         <section class="scope-rig">
-          <div class="scope-header">
-            <div>
+          <div class="scope-header metric-rack">
+            <div class="metric-cell" data-accent="signal">
               <span>Signal</span>
               <strong id="sourceLabel">NONE</strong>
             </div>
-            <div>
+            <div class="metric-cell" data-accent="score">
               <span>Clarity</span>
               <strong id="clarityValue">--</strong>
             </div>
-            <div>
+            <div class="metric-cell" data-accent="danger">
               <span>Cents</span>
               <strong id="centValue">--</strong>
             </div>
-            <div>
+            <div class="metric-cell" data-accent="target">
               <span>Target</span>
               <strong id="targetNote">A3</strong>
             </div>
-            <div>
+            <div class="metric-cell" data-accent="success">
               <span>RMS</span>
               <strong id="rmsValue">--</strong>
             </div>
-            <div>
+            <div class="metric-cell" data-accent="warning">
               <span>Peak</span>
               <strong id="peakValue">--</strong>
             </div>
           </div>
 
-          <div class="scope-screen">
+          <div class="scope-screen instrument-screen">
             <canvas id="scopeCanvas" aria-label="Oscilloscope display"></canvas>
             <div class="scope-grid" aria-hidden="true"></div>
+            <span class="scope-display-label" id="scopeDisplayLabel">Idle display</span>
+            <p class="sr-only" id="scopeCanvasStatus" role="status" aria-live="polite">No signal. Choose an input to begin measuring.</p>
           </div>
 
-          <div class="transport">
+          <div class="transport hardware-transport">
             <div class="source-controls" aria-label="Audio source">
               <button class="source-btn demo" id="toneBtn" title="Try an automatic silent tone demo">Demo tone</button>
               <button class="source-btn" id="micBtn" title="Use microphone">Mic</button>
@@ -86,13 +89,13 @@
             <div class="lab-actions">
               <button class="source-btn" id="freezeScopeBtn" aria-pressed="false">Freeze</button>
               <button class="source-btn" id="triggerScopeBtn" aria-pressed="false">Trigger</button>
-              <button class="start-btn" id="logSnapshotBtn">Log snapshot</button>
+              <button class="start-btn" id="logSnapshotBtn" disabled>Choose input</button>
             </div>
           </div>
         </section>
 
         <aside class="lab-panel audio-readout-panel">
-          <div class="lab-block note-card">
+          <div class="lab-block note-card" data-accent="pitch">
             <div class="block-title">Live Note</div>
             <strong class="note-display" id="liveNote">--</strong>
             <div class="readout-row">
@@ -104,22 +107,23 @@
             </div>
           </div>
 
-          <div class="lab-block">
+          <div class="lab-block" data-accent="target">
             <div class="block-title">Demo Pitch</div>
             <div class="segment-control" aria-label="Demo pitch">
-              <button data-demo-midi="48">C3</button>
-              <button class="active" data-demo-midi="57">A3</button>
-              <button data-demo-midi="69">A4</button>
+              <button data-demo-midi="43">G2</button>
+              <button class="active" data-demo-midi="48">C3</button>
+              <button data-demo-midi="53">F3</button>
             </div>
           </div>
 
-          <div class="lab-block">
+          <div class="lab-block" data-accent="danger">
             <div class="block-title">Tuner Target</div>
             <div class="segment-control preset-control" aria-label="Instrument preset">
               <button class="active" data-preset="chromatic">Chromatic</button>
               <button data-preset="guitar">Guitar</button>
               <button data-preset="bass">Bass</button>
               <button data-preset="voice">Voice</button>
+              <button data-preset="profile">My range</button>
             </div>
             <div class="segment-control target-control" aria-label="Target note">
               <button data-target-midi="48">C3</button>
@@ -136,7 +140,7 @@
             </div>
           </div>
 
-          <div class="lab-block">
+          <div class="lab-block" data-accent="success">
             <div class="block-title">Scope Controls</div>
             <label class="lab-slider">
               <span>Input</span>
@@ -159,7 +163,25 @@
             </div>
           </div>
 
-          <div class="lab-block">
+          <div class="lab-block profile-card" data-accent="pitch">
+            <div class="block-title">Musician Profile</div>
+            <div class="profile-metrics">
+              <div><span>Center</span><strong id="profileCenter">C3</strong></div>
+              <div><span>Safe span</span><strong id="profileRange">Not calibrated</strong></div>
+            </div>
+            <div class="snapshot-readout compact">
+              <strong id="profileStage">CALIBRATE</strong>
+              <span id="profileDetail">Choose an input, hold one easy note, then calibrate.</span>
+            </div>
+            <div class="segment-control profile-calibration-controls" aria-label="Comfortable range calibration">
+              <button id="profileCalibrateBtn">Set center</button>
+              <button id="profileLowBtn">Set low</button>
+              <button id="profileHighBtn">Set high</button>
+            </div>
+            <p class="range-safety">Comfort only. Stop immediately if a note feels strained.</p>
+          </div>
+
+          <div class="lab-block" data-accent="warning">
             <div class="block-title">Practice</div>
             <div class="snapshot-readout compact">
               <strong id="practiceStatus">Daily 0/5</strong>
@@ -167,7 +189,7 @@
             </div>
           </div>
 
-          <div class="lab-block">
+          <div class="lab-block" data-accent="info">
             <div class="block-title">Snapshot</div>
             <label class="track-attach">
               <span>Attach</span>

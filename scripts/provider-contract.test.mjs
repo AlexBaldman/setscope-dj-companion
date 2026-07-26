@@ -64,9 +64,10 @@ assert.equal(explicitReview.status, "review");
 assert.equal(explicitReview.needsReview, true);
 
 const audioResult = await recognizeAudioWindow({
+  requestId: "provider_contract_001",
   cursor: 0,
   audio: {
-    dataUrl: "data:audio/webm;base64,abc123",
+    bytes: Buffer.from("abc123"),
     durationMs: 4000,
     mimeType: "audio/webm",
     size: 1234,
@@ -77,8 +78,14 @@ const audioResult = await recognizeAudioWindow({
 assert.equal(audioResult.audio.hasData, true);
 assert.equal(audioResult.audio.durationMs, 4000);
 assert.equal(audioResult.match.raw.audio.hasData, true);
-assert.equal(audioResult.match.raw.audio.dataUrl, undefined);
+assert.equal(audioResult.match.raw.audio.bytes, undefined);
 assert.equal(audioResult.match.raw.metadata.windowSeconds, 4);
+assert.equal(audioResult.observation.requestId, "provider_contract_001");
+assert.equal(audioResult.observation.schema, "setscope.recognition-observation");
+assert.equal(audioResult.observation.schemaVersion, 1);
+assert.equal(audioResult.observation.outcome, "matched");
+assert.equal(audioResult.observation.provenance, process.env.AUDD_API_TOKEN ? "inference" : "story");
+assert.equal(typeof audioResult.observation.latencyMs, "number");
 
 assert.equal(isAudDConfigured({}), false);
 assert.equal(isAudDConfigured({ AUDD_API_TOKEN: "token" }), true);

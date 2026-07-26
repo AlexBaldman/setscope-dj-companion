@@ -7,21 +7,32 @@ export function isAudDConfigured(env = process.env) {
   return Boolean(getAudDToken(env));
 }
 
-export async function recognizeWithAudD({ audio, fetchImpl = fetch, env = process.env } = {}) {
+export async function recognizeWithAudD({ audio, fetchImpl = fetch, env = process.env, signal } = {}) {
   const token = getAudDToken(env);
   if (!token) return null;
-  if (!audio?.dataUrl) return null;
+  if (!audio?.bytes?.byteLength) return null;
 
-  const file = decodeDataUrl(audio.dataUrl, audio.mimeType);
+  const mimeType = audio.mimeType || "audio/webm";
   const form = new FormData();
   form.set("api_token", token);
   form.set("return", env.AUDD_RETURN || DEFAULT_RETURN_FIELDS);
-  form.set("audio", new Blob([file.buffer], { type: file.mimeType }), file.filename);
+  form.set("audio", new Blob([audio.bytes], { type: mimeType }), `setscope-window.${extensionForMimeType(mimeType)}`);
 
-  const response = await fetchImpl(AUDD_ENDPOINT, {
-    method: "POST",
-    body: form,
-  });
+  const timeoutMs = normalizeTimeout(env.AUDD_TIMEOUT_MS);
+  const timeoutSignal = AbortSignal.timeout(timeoutMs);
+  const requestSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
+  let response;
+  try {
+    response = await fetchImpl(AUDD_ENDPOINT, {
+      method: "POST",
+      body: form,
+      signal: requestSignal,
+    });
+  } catch (error) {
+    if (timeoutSignal.aborted && !signal?.aborted) throw new Error("audd_timeout", { cause: error });
+    if (signal?.aborted) throw new Error("recognition_cancelled", { cause: error });
+    throw error;
+  }
 
   if (!response.ok) {
     throw new Error(`audd_http_${response.status}`);
@@ -29,6 +40,11 @@ export async function recognizeWithAudD({ audio, fetchImpl = fetch, env = proces
 
   const payload = await response.json();
   return mapAudDResult(payload, { audio });
+}
+
+function normalizeTimeout(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 1000 && parsed <= 60000 ? parsed : 10000;
 }
 
 export function mapAudDResult(payload = {}, { audio } = {}) {
@@ -79,22 +95,6 @@ export function mapAudDResult(payload = {}, { audio } = {}) {
 
 function getAudDToken(env) {
   return env.AUDD_API_TOKEN || env.AUDD_TOKEN || "";
-}
-
-function decodeDataUrl(dataUrl, fallbackMimeType = "audio/webm") {
-  const match = /^data:([^;,]+)?(;base64)?,(.*)$/s.exec(dataUrl);
-  if (!match) {
-    throw new Error("invalid_audio_data_url");
-  }
-  const mimeType = match[1] || fallbackMimeType || "audio/webm";
-  const isBase64 = Boolean(match[2]);
-  const body = match[3] || "";
-  const buffer = isBase64 ? Buffer.from(body, "base64") : Buffer.from(decodeURIComponent(body));
-  return {
-    buffer,
-    mimeType,
-    filename: `setscope-window.${extensionForMimeType(mimeType)}`,
-  };
 }
 
 function extensionForMimeType(mimeType) {

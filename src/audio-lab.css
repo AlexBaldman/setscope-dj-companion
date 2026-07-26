@@ -1,4 +1,5 @@
 .audio-lab-app {
+  --room-accent: var(--scope-green);
   --scope-green: #7ef7ae;
   --scope-blue: #63c8ff;
   --scope-pink: #f26f91;
@@ -28,14 +29,6 @@
   align-self: start;
   gap: 12px;
   box-shadow: inset 0 2px 0 rgba(126, 247, 174, 0.13);
-}
-
-.scope-rig > * {
-  grid-column: 1;
-}
-
-.scope-rig > .transport {
-  grid-area: auto;
 }
 
 .scope-header {
@@ -94,11 +87,35 @@
 .scope-grid {
   position: absolute;
   inset: 0;
+  z-index: 2;
+  pointer-events: none;
   background:
     linear-gradient(rgba(126, 247, 174, 0.08) 1px, transparent 1px),
     linear-gradient(90deg, rgba(126, 247, 174, 0.08) 1px, transparent 1px);
   background-size: 48px 48px;
   opacity: 0.9;
+}
+
+.scope-grid::after {
+  content: "";
+  position: absolute;
+  inset: 50% 0 auto;
+  border-top: 1px solid rgba(126, 247, 174, 0.28);
+  box-shadow: 0 0 8px rgba(126, 247, 174, 0.12);
+}
+
+.scope-display-label {
+  position: absolute;
+  z-index: 3;
+  top: 10px;
+  left: 10px;
+  padding: 4px 7px;
+  border: 1px solid rgba(126, 247, 174, 0.28);
+  border-radius: 4px;
+  background: rgba(7, 16, 12, 0.82);
+  color: var(--scope-green);
+  font: 800 10px ui-monospace, SFMono-Regular, Menlo, monospace;
+  text-transform: uppercase;
 }
 
 .audio-readout-panel {
@@ -166,11 +183,63 @@
 }
 
 .preset-control {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   margin-bottom: 8px;
 }
 
+.profile-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.profile-metrics > div {
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface-2);
+}
+
+.profile-metrics span,
+.profile-metrics strong {
+  display: block;
+}
+
+.profile-metrics span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.profile-metrics strong {
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+  color: var(--scope-blue);
+  font: 800 13px ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.profile-calibrate-btn {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.profile-calibration-controls {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 8px;
+}
+
+.range-safety {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
 .target-control {
-  flex-wrap: wrap;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .level-strip {
@@ -270,6 +339,10 @@
   .audio-readout-panel .lab-block {
     min-width: 0;
   }
+
+  .preset-control {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 560px) {
@@ -282,12 +355,22 @@
   }
 
   .scope-header {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .scope-header > div {
+    min-height: 52px;
+    padding: 7px;
+  }
+
+  .scope-header strong {
+    font-size: 17px;
   }
 
   .scope-screen,
   #scopeCanvas {
-    height: clamp(280px, 74vw, 340px);
+    height: clamp(230px, 62vw, 280px);
   }
 
   .audio-readout-panel {
@@ -296,6 +379,12 @@
 
   .lab-actions {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+
+  .lab-actions .start-btn {
+    min-width: 0;
+    padding-inline: 8px;
+  }
+
 }

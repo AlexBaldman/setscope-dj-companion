@@ -1,4 +1,5 @@
 .roulette-app {
+  --room-accent: var(--amber);
   --roulette-ink: #101113;
   --roulette-panel: #19191d;
   --roulette-panel-2: #24242a;
@@ -108,22 +109,6 @@
   border: 1px solid var(--roulette-line);
   border-radius: 8px;
   background: var(--roulette-panel-2);
-}
-
-.roulette-score-rack div:nth-child(1) {
-  border-top-color: var(--amber);
-}
-
-.roulette-score-rack div:nth-child(2) {
-  border-top-color: var(--cyan);
-}
-
-.roulette-score-rack div:nth-child(3) {
-  border-top-color: var(--mint);
-}
-
-.roulette-score-rack div:nth-child(4) {
-  border-top-color: var(--pink);
 }
 
 .roulette-score-rack span {
@@ -355,6 +340,10 @@
 .lane-label {
   display: grid;
   place-items: center;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--roulette-panel-2);
   color: var(--muted);
   font-size: 10px;
   font-weight: 850;
@@ -378,8 +367,9 @@
 }
 
 .step-cell.current {
-  border-color: #ffe169;
+  border-color: var(--playhead);
   outline: 2px solid rgba(255, 225, 105, 0.55);
+  transform: translateY(-2px);
 }
 
 .roulette-mission {
@@ -466,7 +456,7 @@
   }
 
   .roulette-stage {
-    grid-template-rows: auto auto minmax(320px, 1fr) auto;
+    grid-template-rows: auto auto minmax(250px, 1fr) auto;
   }
 
   .roulette-marquee {
@@ -478,12 +468,33 @@
   }
 
   .roulette-score-rack {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .roulette-score-rack div {
+    padding: 7px 5px;
+  }
+
+  .roulette-score-rack strong {
+    font-size: 18px;
   }
 
   .record-shop-screen,
   #rouletteSceneCanvas {
-    min-height: 320px;
+    min-height: 250px;
+  }
+
+  .dig-overlay {
+    background:
+      linear-gradient(rgba(8, 9, 11, 0.76), rgba(8, 9, 11, 0.9)),
+      repeating-linear-gradient(0deg, transparent 0 8px, rgba(255, 255, 255, 0.04) 8px 10px);
+  }
+
+  .dig-overlay strong {
+    max-width: 280px;
+    font-size: 27px;
+    line-height: 1.05;
   }
 
   .sample-bank {
@@ -491,13 +502,20 @@
   }
 
   .sequencer {
-    grid-template-columns: 42px repeat(16, minmax(16px, 1fr));
-    gap: 3px;
+    grid-template-columns: 48px repeat(16, 44px);
+    gap: 4px;
     overflow-x: auto;
-    padding-bottom: 4px;
+    padding: 2px 0 8px;
+    scroll-snap-type: x proximity;
   }
 
   .step-cell {
-    min-width: 18px;
+    min-width: 44px;
+    min-height: 44px;
+    scroll-snap-align: start;
+  }
+
+  .lane-label {
+    min-height: 44px;
   }
 }

@@ -2,20 +2,15 @@
 
 ## Current State
 
-The SetScope folder is already a local git repository.
+The repository is connected to:
 
-Current branch:
-
-```bash
-main
+```text
+https://github.com/AlexBaldman/setscope-dj-companion
 ```
 
-Current commits:
+`main` is the release branch. Pushes run the full CI workflow and deploy the static artifact through `.github/workflows/pages.yml`.
 
-```bash
-aa1bb8e Add recognition HUD creative direction
-7e71e44 Initial SetScope prototype
-```
+The Pages artifact contains only the five public HTML surfaces, browser modules, visual assets, and the readable dev journal. Server code, local data, environment files, tests, and dependencies are not published.
 
 ## Fixing GitHub CLI Auth
 
@@ -41,26 +36,12 @@ Then finish the browser/device-code flow. When it works, this should pass:
 /opt/homebrew/Cellar/gh/2.92.0/bin/gh auth status
 ```
 
-## Create And Push Repo
+## Publish
 
-After auth is healthy:
+1. Run `npm run check`, `npm run smoke`, and `npm run test:runtime`.
+2. Run `npm run build:pages` to inspect the ignored `dist/` artifact.
+3. Commit and push `main`.
+4. Watch **SetScope CI** and **Deploy SetScope to GitHub Pages** in GitHub Actions.
+5. If Pages has never been enabled, choose **Settings → Pages → Source → GitHub Actions**.
 
-```bash
-/opt/homebrew/Cellar/gh/2.92.0/bin/gh repo create setscope-dj-companion --private --source=. --remote=origin --push
-```
-
-Use `--public` instead of `--private` if the repo should be public.
-
-If the repo already exists:
-
-```bash
-git remote add origin git@github.com:AlexBaldman/setscope-dj-companion.git
-git push -u origin main
-```
-
-Use the HTTPS remote instead if preferred:
-
-```bash
-git remote add origin https://github.com/AlexBaldman/setscope-dj-companion.git
-git push -u origin main
-```
+The deployment workflow follows GitHub's custom Pages workflow contract: `configure-pages`, `upload-pages-artifact`, and `deploy-pages`, with the `pages: write` and `id-token: write` permissions required by [GitHub's Pages documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).

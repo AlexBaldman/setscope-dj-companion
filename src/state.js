@@ -1,19 +1,21 @@
 import { cloneDemoTracks, demoTracks } from "./fixtures.js";
 import { randomColors, toSeconds, uid } from "./utils.js";
 import { normalizePerformanceMetadata } from "./migrations/performance-event-v1.js";
+import { migrateSetDraft, serializeSetDraft } from "./contracts/set-draft.js";
 
 const STORAGE_KEY = "setscope-draft-v1";
 
-export const state = hydrateState(loadState());
-state.skin = state.skin || "vinyl";
-state.query = state.query || "";
-state.reviewOnly = state.reviewOnly || false;
-state.signalFilter = state.signalFilter || "all";
-state.recognitionCursor = state.recognitionCursor || 0;
-state.captureLog = state.captureLog || [];
-state.audioEvents = state.audioEvents || [];
-state.archiveId = state.archiveId || null;
-state.archiveList = state.archiveList || [];
+const loadedState = loadState();
+export const state = hydrateState(loadedState);
+if (!state.recognitionSessionId) state.recognitionSessionId = uid();
+if (!state.recognitionStartedAt) state.recognitionStartedAt = new Date().toISOString();
+export const uiState = {
+  query: "",
+  reviewOnly: false,
+  signalFilter: "all",
+  archiveList: [],
+  archiveQuery: "",
+};
 
 let selectedId = state.tracks[0]?.id;
 
@@ -29,23 +31,24 @@ function loadState() {
 }
 
 export function hydrateState(nextState) {
+  const draft = migrateSetDraft(nextState);
   const demoByTitle = new Map(demoTracks.map((track) => [track.title, track]));
-  nextState.tracks = nextState.tracks.map((track) => ({
-    ...(demoByTitle.get(track.title) || {}),
-    ...track,
-    id: track.id || uid(),
+  draft.tracks = draft.tracks.map((track) => normalizeTrack({
+    ...(demoByTitle.get(track?.title) || {}),
+    ...(track && typeof track === "object" ? track : {}),
+    id: track?.id || uid(),
   }));
-  nextState.audioEvents = Array.isArray(nextState.audioEvents)
-    ? nextState.audioEvents.map((event) => ({
-        ...event,
-        metadata: normalizePerformanceMetadata(event.metadata),
-      }))
-    : [];
-  return nextState;
+  draft.audioEvents = draft.audioEvents
+    .filter((event) => event && typeof event === "object" && !Array.isArray(event))
+    .map((event) => ({
+      ...event,
+      metadata: normalizePerformanceMetadata(event.metadata),
+    }));
+  return draft;
 }
 
 export function persist() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(serializeSetDraft(state)));
 }
 
 export function getSelectedId() {
@@ -63,28 +66,32 @@ export function getSelectedTrack() {
 }
 
 export function normalizeTrack(track) {
-  track.tags = Array.isArray(track.tags) ? track.tags : [];
-  track.era = track.era || "Unknown era";
-  track.label = track.label || "Unknown label";
-  track.source = track.source || "Unverified";
-  track.texture = track.texture || "Open groove";
-  track.lineage = track.lineage || "Needs crate notes";
-  track.why = track.why || "Add transition notes after review.";
-  track.status = track.status || (track.confidence >= 85 && !track.needsReview ? "matched" : "review");
-  track.needsReview = "needsReview" in track ? Boolean(track.needsReview) : (track.confidence || 0) < 85;
-  return track;
+  const source = track && typeof track === "object" ? track : {};
+  const needsReview = "needsReview" in source ? Boolean(source.needsReview) : (source.confidence || 0) < 85;
+  return {
+    ...source,
+    tags: Array.isArray(source.tags) ? [...source.tags] : [],
+    era: source.era || "Unknown era",
+    label: source.label || "Unknown label",
+    source: source.source || "Unverified",
+    texture: source.texture || "Open groove",
+    lineage: source.lineage || "Needs crate notes",
+    why: source.why || "Add transition notes after review.",
+    notes: source.notes || "No notes yet.",
+    status: source.status || (source.confidence >= 85 && !needsReview ? "matched" : "review"),
+    needsReview,
+  };
 }
 
 export function visibleTracks() {
-  const query = state.query.trim().toLowerCase();
-  return state.tracks.filter((track) => {
-    normalizeTrack(track);
+  const query = uiState.query.trim().toLowerCase();
+  return state.tracks.map(normalizeTrack).filter((track) => {
     const searchable = [track.title, track.artist, track.era, track.label, track.source, track.transition, ...track.tags]
       .join(" ")
       .toLowerCase();
     const queryMatch = !query || searchable.includes(query);
-    const reviewMatch = !state.reviewOnly || track.needsReview;
-    const signalMatch = trackMatchesSignalFilter(track, state.signalFilter);
+    const reviewMatch = !uiState.reviewOnly || track.needsReview;
+    const signalMatch = trackMatchesSignalFilter(track, uiState.signalFilter);
     return queryMatch && reviewMatch && signalMatch;
   });
 }
@@ -118,6 +125,7 @@ export function toggleAudioEventLabel(eventId, label) {
     ...(event.metadata || {}),
     labels: event.labels,
   };
+  persist();
   return event;
 }
 
@@ -132,6 +140,7 @@ export function reassignAudioEvent(eventId, trackId) {
     trackId: event.trackId,
     time: event.time,
   };
+  persist();
   return event;
 }
 
@@ -139,23 +148,25 @@ export function promoteAudioEventToTrackNotes(eventId) {
   const event = getAudioEventById(eventId);
   const track = event?.trackId ? state.tracks.find((item) => item.id === event.trackId) : null;
   if (!event || !track) return null;
-  normalizeTrack(track);
+  normalizeTrackInPlace(track);
   const note = formatAudioEventNote(event);
   if (!track.notes.includes(note)) {
     track.notes = `${track.notes.trim()}\n\n${note}`.trim();
   }
   selectedId = track.id;
+  persist();
   return track;
 }
 
 export function appendSelectedTrackNote(note) {
   const track = getSelectedTrack();
   if (!track || !note) return null;
-  normalizeTrack(track);
+  normalizeTrackInPlace(track);
   const mentorNote = `DJ Mentor: ${note}`;
   if (!track.notes.includes(mentorNote)) {
     track.notes = `${track.notes.trim()}\n\n${mentorNote}`.trim();
   }
+  persist();
   return track;
 }
 
@@ -168,7 +179,7 @@ export function addTrack(track = {}) {
     bpm: track.bpm || 0,
     key: track.key || "-",
     transition: track.transition || "Blend",
-    tags: Array.isArray(track.tags) ? track.tags : [],
+    tags: Array.isArray(track.tags) ? [...track.tags] : [],
     confidence: track.confidence || 61,
     wave: track.wave || 50,
     colors: track.colors || randomColors(),
@@ -186,10 +197,18 @@ export function addTrack(track = {}) {
   };
   state.tracks.push(created);
   selectedId = created.id;
+  persist();
   return created;
 }
 
 export function upsertRecognizedTrack(match) {
+  const requestId = match.observation?.requestId || match.transaction?.requestId || "";
+  const priorCapture = requestId ? state.captureLog.find((entry) => entry.requestId === requestId) : null;
+  if (priorCapture) {
+    const priorTrack = state.tracks.find((track) => track.id === priorCapture.trackId);
+    if (priorTrack) selectedId = priorTrack.id;
+    return priorTrack || null;
+  }
   const existing = state.tracks.find((track) => track.time === match.time && track.title === match.title);
   const next = normalizeTrack({
     ...match,
@@ -204,34 +223,37 @@ export function upsertRecognizedTrack(match) {
     state.tracks.push(next);
     selectedId = next.id;
   }
-  sortTracksInPlace();
+  sortTracks();
   logCapture(match, selectedId);
+  persist();
   return next;
 }
 
 export function tagSelectedTrack(tag) {
   const track = state.tracks.find((item) => item.id === selectedId);
   if (!track || !tag) return false;
-  normalizeTrack(track);
+  normalizeTrackInPlace(track);
   if (track.tags.includes(tag)) {
     track.tags = track.tags.filter((item) => item !== tag);
-    logAudioEvent({
+    appendAudioEvent({
       type: "tag",
       trackId: track.id,
       time: track.time,
       title: "Tag removed",
       detail: `${tag} / ${track.title}`,
     });
+    persist();
     return true;
   }
   track.tags.push(tag);
-  logAudioEvent({
+  appendAudioEvent({
     type: "tag",
     trackId: track.id,
     time: track.time,
     title: "Crate tag",
     detail: `${tag} / ${track.title}`,
   });
+  persist();
   return true;
 }
 
@@ -254,8 +276,8 @@ export function mergeSelectedDuplicate() {
   if (!selected || !duplicate) return null;
   const keeper = toSeconds(selected.time) <= toSeconds(duplicate.time) ? selected : duplicate;
   const removed = keeper.id === selected.id ? duplicate : selected;
-  normalizeTrack(keeper);
-  normalizeTrack(removed);
+  normalizeTrackInPlace(keeper);
+  normalizeTrackInPlace(removed);
   keeper.tags = [...new Set([...keeper.tags, ...removed.tags])];
   keeper.confidence = Math.max(Number(keeper.confidence) || 0, Number(removed.confidence) || 0);
   keeper.status = keeper.status === "matched" || removed.status === "matched" ? "matched" : keeper.status;
@@ -271,18 +293,20 @@ export function mergeSelectedDuplicate() {
   });
   state.tracks = state.tracks.filter((track) => track.id !== removed.id);
   selectedId = keeper.id;
-  logAudioEvent({
+  appendAudioEvent({
     type: "merge",
     trackId: keeper.id,
     time: keeper.time,
     title: "Duplicate merged",
     detail: `${keeper.title} / removed ${removed.time}`,
   });
+  persist();
   return { keeper, removed };
 }
 
 export function sortTracksInPlace() {
-  state.tracks.sort((a, b) => toSeconds(a.time) - toSeconds(b.time));
+  sortTracks();
+  persist();
 }
 
 export function saveSelectedTrack(fields) {
@@ -299,6 +323,7 @@ export function saveSelectedTrack(fields) {
     status: "matched",
     notes: fields.notes.trim() || "No notes yet.",
   });
+  persist();
   return true;
 }
 
@@ -308,10 +333,12 @@ export function setSelectedTransition(transition) {
   track.transition = transition;
   track.needsReview = false;
   track.status = "matched";
+  persist();
   return true;
 }
 
-export function logCapture(match, trackId) {
+function logCapture(match, trackId) {
+  const observation = match.observation || {};
   state.captureLog.unshift({
     trackId,
     time: match.time,
@@ -320,28 +347,70 @@ export function logCapture(match, trackId) {
     provider: match.provider || "setscope-stub",
     confidence: match.confidence,
     status: match.status || (match.needsReview ? "review" : "matched"),
+    requestId: observation.requestId || match.transaction?.requestId || "",
+    outcome: observation.outcome || match.status || "unknown",
+    provenance: observation.provenance || (match.provider === "setscope-stub" ? "story" : "inference"),
     capturedAt: new Date().toISOString(),
   });
   state.captureLog = state.captureLog.slice(0, 24);
-  logAudioEvent({
+  appendAudioEvent({
     type: "recognition",
     trackId,
     time: match.time,
     title: match.title,
     detail: `${match.artist} / ${match.provider || "setscope-stub"} / ${match.confidence || 0}%`,
+    metadata: {
+      requestId: observation.requestId || match.transaction?.requestId || "",
+      outcome: observation.outcome || match.status || "unknown",
+      provenance: observation.provenance || (match.provider === "setscope-stub" ? "story" : "inference"),
+      latencyMs: observation.latencyMs,
+    },
   });
 }
 
+export function logRecognitionObservation(observation = {}) {
+  if (!observation.requestId || state.captureLog.some((entry) => entry.requestId === observation.requestId)) return false;
+  const labels = {
+    cancelled: ["Capture cancelled", "The audio window was stopped"],
+    invalid: ["Invalid window", "The signal receipt could not be validated"],
+    provider_error: ["Provider unavailable", "Recognition can retry this window"],
+    unmatched: ["No match found", "Try a cleaner or longer window"],
+  };
+  const [title, artist] = labels[observation.outcome] || ["Recognition receipt", "Review this window"];
+  state.captureLog.unshift({
+    trackId: "",
+    time: formatReceiptTime(observation.setElapsedMs),
+    title,
+    artist,
+    provider: observation.provider || "unknown-provider",
+    confidence: 0,
+    status: observation.outcome || "invalid",
+    requestId: observation.requestId,
+    outcome: observation.outcome || "invalid",
+    provenance: observation.provenance || "inference",
+    capturedAt: observation.completedAt || new Date().toISOString(),
+  });
+  state.captureLog = state.captureLog.slice(0, 24);
+  persist();
+  return true;
+}
+
+function formatReceiptTime(milliseconds) {
+  const totalSeconds = Math.floor(Math.max(0, Number(milliseconds) || 0) / 1000);
+  return `${String(Math.floor(totalSeconds / 60)).padStart(2, "0")}:${String(totalSeconds % 60).padStart(2, "0")}`;
+}
+
 export function logAudioEvent(event) {
-  state.audioEvents.unshift(createAudioEvent(event));
-  state.audioEvents = state.audioEvents.slice(0, 100);
+  const created = appendAudioEvent(event);
+  persist();
+  return created;
 }
 
 export function persistAudioEvent(event) {
-  const latest = loadState();
+  const latest = hydrateState(loadState());
   const created = createAudioEvent(event);
   latest.audioEvents = [created, ...(Array.isArray(latest.audioEvents) ? latest.audioEvents : [])].slice(0, 100);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(latest));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(serializeSetDraft(latest)));
   state.audioEvents = latest.audioEvents;
   return created;
 }
@@ -394,9 +463,28 @@ export function resetForNewSet() {
   state.captureLog = [];
   state.audioEvents = [];
   state.recognitionCursor = 0;
-  state.archiveList = [];
+  state.recognitionSessionId = uid();
+  state.recognitionStartedAt = new Date().toISOString();
+  uiState.archiveList = [];
   state.tracks = [];
   selectedId = undefined;
+  persist();
+}
+
+function appendAudioEvent(event) {
+  const created = createAudioEvent(event);
+  state.audioEvents.unshift(created);
+  state.audioEvents = state.audioEvents.slice(0, 100);
+  return created;
+}
+
+function normalizeTrackInPlace(track) {
+  Object.assign(track, normalizeTrack(track));
+  return track;
+}
+
+function sortTracks() {
+  state.tracks.sort((a, b) => toSeconds(a.time) - toSeconds(b.time));
 }
 
 function normalizeMatchText(value) {

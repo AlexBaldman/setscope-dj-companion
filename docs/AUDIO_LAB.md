@@ -12,6 +12,7 @@ Audio Lab is SetScope's first Listening Lab tool: a compact tuner and oscillosco
 - Tuner target selection with instrument presets and a 2-second stable-hold meter.
 - Daily practice count and streak tracking.
 - Snapshot logging into the shared audio-event timeline as structured `analysis` metadata, optionally attached to a set timeline track.
+- Shared center/low/high live-note calibration, personal tuner targets, anti-strain guidance, and adaptive practice progression that carries into Pitch Gates.
 
 ## Why It Matters
 
@@ -23,3 +24,4 @@ Pitch Gates proved the musical-game loop. Audio Lab proves the shared audio foun
 2. Add alternate tuner temperaments and custom preset creation.
 3. Add a spectrogram lane once frequency-bin analysis is introduced.
 4. Promote Audio Lab snapshots into editable timeline annotations inside the main cockpit.
+5. Add repeated boundary confirmation and explicit user comfort confirmation separate from pitch-detector confidence.

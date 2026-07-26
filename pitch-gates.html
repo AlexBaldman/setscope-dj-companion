@@ -4,12 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pitch Gates - SetScope Arcade</title>
+    <link rel="stylesheet" href="./src/design-tokens.css" />
+    <link rel="stylesheet" href="./src/arcade-shell.css" />
     <link rel="stylesheet" href="./src/pitch-gates.css" />
     <link rel="stylesheet" href="./src/theme.css" />
   </head>
   <body>
     <div class="game-app">
-      <header class="game-topbar">
+      <header class="game-topbar app-header">
         <a class="back-link" data-set-return href="./index.html">
           <span class="mini-disc"></span>
           SetScope
@@ -20,7 +22,7 @@
         </div>
         <div class="game-tools">
           <nav class="tool-rack compact" data-tool-rack data-current-tool="pitch-gates" aria-label="SetScope tools"></nav>
-          <div class="lcd-pill" id="audioStatus">INPUT OFF</div>
+          <div class="lcd-pill" id="audioStatus" aria-live="polite">INPUT OFF</div>
           <button class="theme-toggle" data-theme-toggle aria-label="Switch to light mode" title="Switch to light mode">
             <img src="./assets/theme/lightning-bulb-toggle-ui.png" alt="" />
           </button>
@@ -41,22 +43,23 @@
           </div>
         </section>
         <section class="cabinet">
-          <div class="score-rack">
-            <div><span>Score</span><strong id="score">0000</strong></div>
-            <div><span>Streak</span><strong id="streak">00</strong></div>
-            <div><span>Lives</span><strong id="lives">3</strong></div>
-            <div><span>Best</span><strong id="bestScore">0000</strong></div>
+          <div class="score-rack metric-rack">
+            <div class="metric-cell" data-accent="score"><span>Score</span><strong id="score">0000</strong></div>
+            <div class="metric-cell" data-accent="streak"><span>Streak</span><strong id="streak">00</strong></div>
+            <div class="metric-cell" data-accent="danger"><span>Lives</span><strong id="lives">3</strong></div>
+            <div class="metric-cell" data-accent="warning"><span>Best</span><strong id="bestScore">0000</strong></div>
           </div>
 
-          <div class="screen-shell">
+          <div class="screen-shell instrument-screen">
             <canvas id="pitchGameCanvas" aria-label="Pitch Gates game board"></canvas>
+            <p class="sr-only" id="pitchCanvasStatus" role="status" aria-live="polite">Choose an input, then start a round.</p>
             <div class="ready-overlay" id="readyOverlay">
               <strong>PITCH GATES</strong>
-              <span id="overlayStatus">READY FOR INPUT</span>
+              <span id="overlayStatus">CHOOSE AN INPUT</span>
             </div>
           </div>
 
-          <div class="transport">
+          <div class="transport hardware-transport">
             <div class="source-controls" aria-label="Audio source">
               <button class="source-btn demo" id="toneBtn" title="Try an automatic silent tone demo">Demo tone</button>
               <button class="source-btn" id="micBtn" title="Use microphone">Mic</button>
@@ -65,16 +68,17 @@
               <input id="audioFileInput" class="file-input" type="file" accept="audio/*" aria-label="Choose audio file" />
               <button class="source-btn stop" id="stopAudioBtn" title="Stop audio input">Stop</button>
             </div>
-            <button class="start-btn" id="startRoundBtn">Start round</button>
+            <button class="start-btn" id="startRoundBtn" disabled>Choose input</button>
           </div>
         </section>
 
         <aside class="lab-panel">
-          <div class="lab-block live-readout">
+          <div class="lab-block live-readout" data-accent="pitch">
             <div class="block-title">Live Note</div>
             <strong class="note-display" id="liveNote">--</strong>
-            <div class="readout-row">
+            <div class="readout-row live-pitch-data">
               <div><span>Hz</span><strong id="liveHz">--</strong></div>
+              <div><span>Cents</span><strong id="liveCents">--</strong></div>
               <div><span>Clarity</span><strong id="liveClarity">--</strong></div>
             </div>
             <div class="tuning-meter" id="tuningMeter">
@@ -82,28 +86,35 @@
             </div>
           </div>
 
-          <div class="lab-block">
+          <div class="lab-block" data-accent="target">
             <div class="block-title">Target</div>
             <strong class="target-display" id="targetNote">C4</strong>
             <div class="pitch-guide" id="pitchGuide" aria-live="polite">LISTEN</div>
+            <p class="pitch-diagnosis" id="diagnosisStatus">Complete a round for directional diagnosis.</p>
             <div class="readout-row">
               <div><span>Gate</span><strong id="gateCount">0/12</strong></div>
               <div><span>Range</span><strong id="rangeLabel">Mid</strong></div>
             </div>
           </div>
 
-          <div class="lab-block">
-            <div class="block-title">Comfort Zone</div>
+          <div class="lab-block" data-accent="danger">
+            <div class="block-title">Musician Profile</div>
             <div class="segment-control range-control" aria-label="Pitch range">
               <button class="active" data-register="low">Low</button>
               <button data-register="mid">Mid</button>
               <button data-register="high">High</button>
-              <button id="captureComfortBtn">My note</button>
+              <button id="captureComfortBtn">Calibrate</button>
             </div>
             <div class="comfort-readout"><span>Center</span><strong id="comfortNote">C3</strong></div>
+            <div class="profile-readout">
+              <span>Safe span</span><strong id="profileRange">Not calibrated</strong>
+              <span>Bounds</span><strong id="profileBounds">ESTIMATED</strong>
+              <span>Next</span><strong id="profileStage">CALIBRATE</strong>
+              <p id="profileDetail">Choose an input, hold one easy note, then calibrate.</p>
+            </div>
           </div>
 
-          <div class="lab-block">
+          <div class="lab-block" data-accent="success">
             <div class="block-title">Speed</div>
             <div class="segment-control" aria-label="Game speed">
               <button class="active" data-speed="easy">Easy</button>
@@ -112,7 +123,7 @@
             </div>
           </div>
 
-          <div class="lab-block">
+          <div class="lab-block" data-accent="warning">
             <div class="block-title">Assist</div>
             <div class="segment-control" aria-label="Pitch forgiveness">
               <button class="active" data-assist="gentle">Gentle</button>
@@ -126,7 +137,7 @@
             </label>
           </div>
 
-          <div class="lab-block hit-log-block">
+          <div class="lab-block hit-log-block" data-accent="info">
             <div class="block-title">Run Log</div>
             <div class="hit-log" id="hitLog"></div>
           </div>

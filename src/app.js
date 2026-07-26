@@ -2,6 +2,7 @@ import { getApiHealth, getProviderDiagnostics } from "./api.js";
 import { importAudio } from "./audio.js";
 import { els } from "./dom.js";
 import { buildPracticeHref } from "./practice-context.js";
+import { createCockpitWorkspace, mountResponsiveDisclosures } from "./cockpit-workspace.js";
 import { applySkin, createRenderer, makeBars } from "./render.js";
 import { nearestTrackFromMap } from "./set-map.js";
 import {
@@ -11,7 +12,6 @@ import {
   getSelectedTrack,
   mergeSelectedDuplicate,
   nextTimecode,
-  persist,
   promoteAudioEventToTrackNotes,
   reassignAudioEvent,
   saveSelectedTrack,
@@ -21,18 +21,29 @@ import {
   state,
   tagSelectedTrack,
   toggleAudioEventLabel,
+  uiState,
 } from "./state.js";
 import { createWorkflows } from "./workflows.js";
 import { showToast } from "./utils.js";
 
 let workflows;
 let selectedAudioEventId = "";
+const cockpitWorkspace = createCockpitWorkspace();
+mountResponsiveDisclosures();
+const sessionMenu = document.querySelector(".session-menu");
+const compactCockpit = window.matchMedia("(max-width: 959px)");
+if (compactCockpit.matches) sessionMenu.open = false;
+compactCockpit.addEventListener("change", (event) => { sessionMenu.open = !event.matches; });
+sessionMenu.querySelectorAll("button").forEach((button) => {
+  button.addEventListener("click", () => { if (compactCockpit.matches) sessionMenu.open = false; });
+});
 
 const renderer = createRenderer(els, {
   onSelectTrack(id) {
     if (!id) return;
     setSelectedId(id);
     renderer.render();
+    if (cockpitWorkspace.isNarrow()) cockpitWorkspace.select("intel", { reveal: true });
   },
   onOpenAudioEvent(id) {
     openAudioEvent(id);
@@ -99,6 +110,7 @@ function providerById(providers = [], id) {
 function providerShortLabel(provider) {
   if (provider === "audd") return "AudD";
   if (provider === "setscope-stub") return "Stub";
+  if (provider === "setscope-static") return "Demo";
   return provider || "API on";
 }
 
@@ -190,9 +202,8 @@ function promoteSelectedAudioEvent() {
 }
 
 function setSignalFilter(filter) {
-  state.signalFilter = filter || "all";
+  uiState.signalFilter = filter || "all";
   renderer.renderTimeline();
-  persist();
 }
 
 function toggleSelectedEventLabel(label) {
@@ -207,17 +218,19 @@ function toggleSelectedEventLabel(label) {
 function runCoachAction(dataset) {
   const action = dataset.coachAction;
   if (action === "review") {
-    state.reviewOnly = true;
-    state.signalFilter = "all";
+    uiState.reviewOnly = true;
+    uiState.signalFilter = "all";
     if (dataset.trackId) setSelectedId(dataset.trackId);
     renderer.render();
+    if (cockpitWorkspace.isNarrow()) cockpitWorkspace.select("timeline", { reveal: true });
     showToast(els, "Review lane armed");
     return;
   }
   if (action === "signals") {
-    state.reviewOnly = false;
-    state.signalFilter = "with-events";
+    uiState.reviewOnly = false;
+    uiState.signalFilter = "with-events";
     renderer.render();
+    if (cockpitWorkspace.isNarrow()) cockpitWorkspace.select("timeline", { reveal: true });
     showToast(els, "Signal lane open");
     return;
   }
@@ -284,6 +297,7 @@ document.querySelector("#audioInput").addEventListener("change", (event) => {
 });
 document.querySelector("#demoBtn").addEventListener("click", workflows.runDemo);
 els.listenBtn.addEventListener("click", workflows.toggleListening);
+els.workspaceListenBtn.addEventListener("click", workflows.toggleListening);
 document.querySelector("#providerTestBtn").addEventListener("click", workflows.testProviderWithSample);
 document.querySelector("#archiveBtn").addEventListener("click", workflows.archiveSet);
 document.querySelector("#exportBtn").addEventListener("click", workflows.exportData);
@@ -295,14 +309,12 @@ document.querySelector("#reassignEventBtn").addEventListener("click", reassignSe
 document.querySelector("#promoteEventBtn").addEventListener("click", promoteSelectedAudioEvent);
 
 els.timelineSearch.addEventListener("input", (event) => {
-  state.query = event.target.value;
+  uiState.query = event.target.value;
   renderer.renderTimeline();
-  persist();
 });
 els.reviewToggle.addEventListener("click", () => {
-  state.reviewOnly = !state.reviewOnly;
+  uiState.reviewOnly = !uiState.reviewOnly;
   renderer.renderTimeline();
-  persist();
 });
 els.signalFilterButtons.forEach((button) => {
   button.addEventListener("click", () => setSignalFilter(button.dataset.signalFilter));

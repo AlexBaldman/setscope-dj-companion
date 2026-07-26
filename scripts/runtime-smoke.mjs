@@ -1,9 +1,12 @@
 import { mkdtemp } from "node:fs/promises";
+import { spawn } from "node:child_process";
+import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium } from "playwright";
 
-const baseUrl = (process.env.BASE_URL || "http://127.0.0.1:5173").replace(/\/$/, "");
+const managedServer = process.env.BASE_URL ? null : await startRuntimeServer();
+const baseUrl = (process.env.BASE_URL || managedServer.baseUrl).replace(/\/$/, "");
 const artifactDir = process.env.RUNTIME_ARTIFACT_DIR || (await mkdtemp(join(tmpdir(), "setscope-runtime-")));
 const desktopViewport = { width: 1440, height: 1100 };
 const compactViewport = { width: 1024, height: 768 };
@@ -15,6 +18,7 @@ let browser;
 try {
   browser = await chromium.launch({ headless: true });
 } catch (error) {
+  managedServer?.process.kill();
   throw new Error(`Playwright could not launch Chromium. Run "npx playwright install chromium" if this is a fresh machine. ${error.message}`);
 }
 
@@ -25,6 +29,7 @@ try {
   await runMobileOverflowPass();
 } finally {
   await browser.close();
+  managedServer?.process.kill();
 }
 
 if (failures.length) {
@@ -92,6 +97,7 @@ async function runMobileOverflowPass() {
 
 async function runResponsiveOverflowPass(viewName, viewport) {
   const context = await browser.newContext({ viewport });
+  await installFakeMicrophone(context);
   const page = await context.newPage();
   const logs = captureRuntimeProblems(page, viewName);
   const routes = [
@@ -103,10 +109,69 @@ async function runResponsiveOverflowPass(viewName, viewport) {
   ];
   for (const [label, path] of routes) {
     await goto(page, path);
+    if (path === "/" && viewport.width <= 959) {
+      await verifyResponsiveCockpit(page, viewName);
+      continue;
+    }
     await auditPage(page, label);
+    if (viewport.width <= 768) await verifyFirstViewportAction(page, path, viewName);
   }
   collectRuntimeProblems(logs);
   await context.close();
+}
+
+async function verifyFirstViewportAction(page, path, viewName) {
+  const selector = {
+    "/pitch-gates.html": "#startRoundBtn",
+    "/audio-lab.html": "#logSnapshotBtn",
+    "/rhythm-roulette.html": "#blindDigBtn",
+  }[path];
+  if (!selector) return;
+  const geometry = await page.locator(selector).evaluate((element) => ({
+    bottom: element.getBoundingClientRect().bottom,
+    viewport: window.innerHeight,
+  }));
+  assert(geometry.bottom <= geometry.viewport + 1, `${viewName} ${path} should keep its contextual primary action in the first viewport`);
+}
+
+async function verifyResponsiveCockpit(page, viewName) {
+  await expectVisible(page, "#cockpitWorkspaceNav", `${viewName} cockpit workspace navigation`);
+  const draftBefore = await page.evaluate(() => localStorage.getItem("setscope-draft-v1"));
+
+  await page.locator("#workspaceSignalTab").click();
+  await expectVisible(page, "#signalWorkspace", `${viewName} Signal workspace`);
+  assert(!(await page.locator("#timelineWorkspace").isVisible()), `${viewName} should hide Timeline while Signal is active`);
+  assert(!(await page.locator("#setCoachPanel").evaluate((node) => node.open)), `${viewName} secondary Signal modules should start collapsed`);
+  await auditPage(page, `setscope-${viewName}-signal`);
+  await page.locator("#setCoachPanel > summary").click();
+  assert(await page.locator("#setCoachPanel").evaluate((node) => node.open), `${viewName} should expand Set Coach on demand`);
+
+  await page.locator("#workspaceTimelineTab").click();
+  await expectVisible(page, "#timelineWorkspace", `${viewName} Timeline workspace`);
+  await auditPage(page, `setscope-${viewName}-timeline`);
+  const selectedTitle = ((await page.locator(".track-row").first().locator(".track-name").textContent()) || "").trim();
+  await page.locator(".track-row").first().click();
+  await expectVisible(page, "#intelWorkspace", `${viewName} Intel workspace after track selection`);
+  await expectText(page, "#workspaceNowTitle", selectedTitle, `${viewName} persistent selected track`);
+  assert((await page.locator("body").getAttribute("data-cockpit-workspace")) === "intel", `${viewName} track selection should open Intel`);
+  const workspaceTop = await page.locator("#cockpitWorkspaceNav").evaluate((element) => element.getBoundingClientRect().top);
+  assert(Math.abs(workspaceTop) < 2, `${viewName} automatic workspace changes should reveal the workspace navigation`);
+  await auditPage(page, `setscope-${viewName}-intel`);
+
+  const draftAfter = await page.evaluate(() => localStorage.getItem("setscope-draft-v1"));
+  assert(draftAfter === draftBefore, `${viewName} workspace navigation should not mutate SetDraft`);
+
+  if (viewName === "mobile") {
+    await page.locator(".session-menu > summary").click();
+    await expectVisible(page, "#archiveBtn", "mobile set action menu");
+    await page.locator(".session-menu > summary").click();
+    await page.locator("#workspaceListenBtn").click();
+    await page.waitForFunction(() => document.body.dataset.listening === "active");
+    await page.locator("#workspaceTimelineTab").click();
+    assert((await page.locator("#workspaceListenBtn").getAttribute("aria-pressed")) === "true", "mobile listening should survive workspace switches");
+    await page.locator("#workspaceListenBtn").click();
+    await page.waitForFunction(() => document.body.dataset.listening === "idle");
+  }
 }
 
 async function verifySetScope(page) {
@@ -130,6 +195,39 @@ async function verifySetScope(page) {
   assert(deckFit.activePads === 1, "vinyl deck should expose one latched transition pad");
   await page.locator("#mentorActionList [data-coach-action=\"mentor-note\"]").click();
   await expectText(page, "#toast", "Mentor note saved", "mentor note toast");
+  const draftBeforeFilter = await page.evaluate(() => localStorage.getItem("setscope-draft-v1"));
+  const draftContract = JSON.parse(draftBeforeFilter || "{}");
+  assert(draftContract.schema === "setscope.set-draft" && draftContract.schemaVersion === 2, "cockpit commands should persist SetDraft V2");
+  await page.locator("#timelineSearch").fill("temporary no-match filter");
+  const draftAfterFilter = await page.evaluate(() => localStorage.getItem("setscope-draft-v1"));
+  assert(draftAfterFilter === draftBeforeFilter, "temporary timeline filters and rendering should not persist the draft");
+  await page.locator("#timelineSearch").fill("");
+
+  const archivedTitle = ((await page.locator("#setTitle").textContent()) || "").trim();
+  await page.locator("#archiveBtn").click();
+  await expectText(page, "#toast", "Set archived", "archive save toast");
+  await page.locator("#setArchivePanel").evaluate((panel) => {
+    panel.open = true;
+  });
+  const archivedSet = page.locator("#archiveList [data-set-id]").first();
+  await archivedSet.waitFor({ state: "visible" });
+  await expectText(page, "#archiveList [data-set-id]", archivedTitle, "archived set summary");
+  const archivedTrackTitle = ((await page.locator(".track-row .track-name").first().textContent()) || "").trim();
+  await page.locator("#archiveSearch").fill(archivedTrackTitle.split(" ").slice(0, 2).join(" "));
+  await expectText(page, "#archiveCount", "1 found", "archive search count");
+  await expectText(page, ".archive-match-strip", archivedTrackTitle, "archive track match clue");
+  await page.locator("#archiveSearch").fill("missing archive phrase");
+  await expectText(page, "#archiveCount", "0 found", "empty archive search count");
+  await expectText(page, "#archiveList", "No matching sets", "empty archive search state");
+  await page.locator("#archiveSearch").fill("");
+  await expectText(page, "#archiveCount", "1 saved", "cleared archive search count");
+  await page.locator("#setTitle").evaluate((title) => {
+    title.textContent = "Unsaved working title";
+  });
+  await archivedSet.click();
+  await expectText(page, "#toast", "Set loaded", "archive load toast");
+  await expectText(page, "#setTitle", archivedTitle, "reloaded archive title");
+
   await auditPage(page, "setscope-desktop");
 }
 
@@ -184,6 +282,12 @@ async function verifyRhythmRoulette(page) {
   await expectCount(page, ".record-card", 3, "Rhythm Roulette mystery pulls");
   await expectCount(page, ".sample-pad:not(.empty)", 12, "Rhythm Roulette sample pads");
   await expectCount(page, ".step-cell", 64, "Rhythm Roulette beat grid");
+  const focusedStep = page.locator(".step-cell").first();
+  await page.locator("#playBeatBtn").click();
+  await focusedStep.focus();
+  await page.waitForTimeout(350);
+  assert(await focusedStep.evaluate((node) => document.activeElement === node), "Rhythm Roulette playback should preserve sequencer keyboard focus");
+  await page.locator("#playBeatBtn").click();
   await page.locator("#surpriseBeatBtn").click();
   await page.locator("#saveRouletteBtn").click();
   await expectText(page, "#rouletteStatus", "RUN SAVED", "Rhythm Roulette save status");
@@ -197,9 +301,16 @@ async function verifyRhythmRoulette(page) {
 async function verifyPitchGates(page) {
   await goto(page, "/pitch-gates.html");
   await expectVisible(page, "#pitchGameCanvas", "Pitch Gates canvas");
+  await expectText(page, "#overlayStatus", "CHOOSE AN INPUT", "Pitch Gates idle guidance");
   await expectVisible(page, "#captureComfortBtn", "Pitch Gates comfort-note control");
   await page.locator("[data-assist=\"balanced\"]").click();
   assert(await page.locator("[data-assist=\"balanced\"]").evaluate((node) => node.classList.contains("active")), "Pitch Gates should change assist presets");
+  assert(await page.locator("#startRoundBtn").isDisabled(), "Pitch Gates should require an input before a round");
+  await page.locator("#toneBtn").click();
+  await page.waitForFunction(() => document.querySelector("#liveNote")?.textContent !== "--");
+  await page.locator("#captureComfortBtn").click();
+  await expectText(page, "#profileStage", "CALIBRATE", "Pitch Gates should request confirmed comfort bounds");
+  assert(!(await page.locator("#profileRange").textContent()).includes("Not calibrated"), "Pitch Gates should save a safe calibrated span");
   await page.locator("#startRoundBtn").click();
   const overlayHidden = await page.locator("#readyOverlay").evaluate((node) => node.classList.contains("hidden"));
   assert(overlayHidden, "Pitch Gates should hide ready overlay after starting a round");
@@ -209,15 +320,38 @@ async function verifyPitchGates(page) {
 async function verifyAudioLab(page) {
   await goto(page, "/audio-lab.html");
   await expectVisible(page, "#scopeCanvas", "Audio Lab scope canvas");
+  assert(await page.locator("#logSnapshotBtn").isDisabled(), "Audio Lab should require a signal before logging a snapshot");
+  await expectText(page, "#scopeDisplayLabel", "Idle display", "Audio Lab truthful idle display");
+  await expectText(page, "#sourceLabel", "NONE", "Audio Lab initial source label");
+  await expectText(page, "#profileStage", "CALIBRATE", "Audio Lab shared boundary calibration stage");
+  assert(!(await page.locator("#profileRange").textContent()).includes("Not calibrated"), "Audio Lab should load Pitch Gates calibration");
+  await page.locator('[data-preset="profile"]').click();
+  assert((await page.locator("[data-target-midi]").count()) === 5, "Audio Lab should build tuner targets from the shared safe span");
+  await page.locator("#toneBtn").click();
+  await page.waitForFunction(() => document.querySelector("#liveNote")?.textContent !== "--");
+  await page.locator("[data-demo-midi]").nth(0).click();
+  await page.waitForFunction(() => document.querySelector("#liveNote")?.textContent === document.querySelectorAll("[data-demo-midi]")[0]?.textContent);
+  await page.locator("#profileLowBtn").click();
+  await page.locator("[data-demo-midi]").nth(2).click();
+  await page.waitForFunction(() => document.querySelector("#liveNote")?.textContent === document.querySelectorAll("[data-demo-midi]")[2]?.textContent);
+  await page.locator("#profileHighBtn").click();
+  await expectText(page, "#profileRange", "Confirmed", "Audio Lab confirmed comfort span");
+  await expectText(page, "#profileStage", "HEAR", "confirmed comfort span should advance to hearing");
+  await page.locator("[data-demo-midi]").nth(1).click();
+  await page.waitForFunction(() => document.querySelector("#liveNote")?.textContent === document.querySelectorAll("[data-demo-midi]")[1]?.textContent);
+  await page.waitForTimeout(2500);
+  await expectText(page, "#profileStage", "PREDICT", "Audio Lab stable hold should advance the shared prescription");
   await page.locator("#freezeScopeBtn").click();
   await page.locator("#triggerScopeBtn").click();
-  await expectText(page, "#sourceLabel", "NONE", "Audio Lab initial source label");
+  const segmentHeight = await page.locator("[data-demo-midi]").nth(1).evaluate((node) => node.getBoundingClientRect().height);
+  assert(segmentHeight >= 40, "Audio Lab segmented controls should use the shared hardware sizing");
   await auditPage(page, "audio-lab-desktop");
 }
 
 async function verifyJournal(page) {
   await goto(page, "/journal.html");
   await expectVisible(page, "#page", "Journal page");
+  await expectCount(page, "[data-tool-rack] .tool-rack-item", 5, "Journal shared tool navigation");
   await page.locator("[data-paper=\"graph\"]").click();
   const paper = await page.locator("body").getAttribute("data-paper");
   assert(paper === "graph", "Journal should switch to graph paper");
@@ -242,13 +376,24 @@ async function auditPage(page, label) {
         .filter((node) => {
           const rect = node.getBoundingClientRect();
           const style = getComputedStyle(node);
-          return style.display !== "none" && rect.width > 2 && (rect.left < -1 || rect.right > document.documentElement.clientWidth + 1);
+          const scrollRegion = node.parentElement?.closest(".sequencer, .tool-rack, [data-scroll-region]");
+          const boundedScroller = Boolean(scrollRegion)
+            && ["auto", "scroll"].includes(getComputedStyle(scrollRegion).overflowX)
+            && scrollRegion.scrollWidth > scrollRegion.clientWidth;
+          return !boundedScroller && style.display !== "none" && rect.width > 2 && (rect.left < -1 || rect.right > document.documentElement.clientWidth + 1);
         })
         .map((node) => node.id || node.getAttribute("aria-label") || node.textContent?.trim().slice(0, 24) || node.tagName),
       clippedTitleInputs: [...document.querySelectorAll(".entry-title")]
         .filter((node) => node.scrollWidth > node.clientWidth + 1)
         .map((node) => node.id || "entry-title"),
       title: document.title,
+      undersizedPriorityTargets: [...document.querySelectorAll(".tool-rack-item, .segment-control button, .entry-move button, .step-cell")]
+        .filter((node) => {
+          const rect = node.getBoundingClientRect();
+          const style = getComputedStyle(node);
+          return style.display !== "none" && (rect.width < 43 || rect.height < 43);
+        })
+        .map((node) => node.id || node.getAttribute("aria-label") || node.className),
     };
   });
   assert(!result.overflowX, `${label} should not have horizontal overflow`);
@@ -256,6 +401,7 @@ async function auditPage(page, label) {
   assert(result.clippedTitleInputs.length === 0, `${label} should fit journal titles: ${result.clippedTitleInputs.join(", ")}`);
   assert(result.duplicateIds.length === 0, `${label} should not have duplicate ids: ${result.duplicateIds.join(", ")}`);
   assert(result.brokenImages.length === 0, `${label} should not have broken images: ${result.brokenImages.join(", ")}`);
+  if (label.endsWith("-mobile")) assert(result.undersizedPriorityTargets.length === 0, `${label} should keep priority touch targets at 44px: ${result.undersizedPriorityTargets.join(", ")}`);
 }
 
 async function expectVisible(page, selector, label) {
@@ -265,7 +411,28 @@ async function expectVisible(page, selector, label) {
 }
 
 async function expectText(page, selector, text, label) {
-  await page.locator(selector).waitFor({ state: "visible", timeout: 5000 });
+  const locator = page.locator(selector);
+  await locator.waitFor({ state: "visible", timeout: 5000 });
+  await locator.evaluate(
+    (element, expected) => new Promise((resolve, reject) => {
+      if ((element.textContent || "").includes(expected)) {
+        resolve();
+        return;
+      }
+      const observer = new MutationObserver(() => {
+        if ((element.textContent || "").includes(expected)) {
+          observer.disconnect();
+          resolve();
+        }
+      });
+      observer.observe(element, { characterData: true, childList: true, subtree: true });
+      setTimeout(() => {
+        observer.disconnect();
+        reject(new Error(`Timed out waiting for "${expected}"`));
+      }, 5000);
+    }),
+    text,
+  );
   const content = (await page.locator(selector).textContent()) || "";
   assert(content.includes(text), `${label} should include "${text}", saw "${content}"`);
 }
@@ -299,4 +466,41 @@ function collectRuntimeProblems(problems) {
 
 function assert(condition, message) {
   if (!condition) failures.push(message);
+}
+
+async function startRuntimeServer() {
+  const port = await reservePort();
+  const dataDirectory = await mkdtemp(join(tmpdir(), "setscope-runtime-data-"));
+  const output = [];
+  const child = spawn(process.execPath, ["server.mjs"], {
+    env: { ...process.env, PORT: String(port), SETSCOPE_DATA_DIR: dataDirectory },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  child.stdout.on("data", (chunk) => output.push(chunk.toString()));
+  child.stderr.on("data", (chunk) => output.push(chunk.toString()));
+  const baseUrl = `http://127.0.0.1:${port}`;
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < 8000) {
+    if (child.exitCode !== null) throw new Error(`runtime_server_exited: ${output.join("").trim()}`);
+    try {
+      const response = await fetch(`${baseUrl}/api/health`);
+      if (response.ok) return { baseUrl, process: child };
+    } catch {
+      // Server has not started listening yet.
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  child.kill();
+  throw new Error(`runtime_server_start_timeout: ${output.join("").trim()}`);
+}
+
+function reservePort() {
+  return new Promise((resolve, reject) => {
+    const server = createServer();
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+      server.close(() => resolve(address.port));
+    });
+  });
 }

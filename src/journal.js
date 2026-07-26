@@ -13,11 +13,14 @@ const els = {
   entryTitle: document.querySelector("#entryTitle"),
   entryBody: document.querySelector("#entryBody"),
   markdownSource: document.querySelector("#markdownSource"),
+  sourcePanel: document.querySelector("#sourcePanel"),
   saveStatus: document.querySelector("#saveStatus"),
   page: document.querySelector("#page"),
   pageNumber: document.querySelector("#pageNumber"),
   paperButtons: document.querySelectorAll("[data-paper]"),
 };
+
+if (window.matchMedia("(max-width: 520px)").matches) els.sourcePanel.open = false;
 
 function parseJournal(markdown) {
   const lines = markdown.split("\n");

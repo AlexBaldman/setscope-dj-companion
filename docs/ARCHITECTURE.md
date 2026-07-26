@@ -7,8 +7,11 @@
 - `pitch-gates.html`: standalone musician-helper arcade surface.
 - `rhythm-roulette.html`: standalone blind-crate beat-making game surface.
 - `src/styles.css`: visual system, responsive layout, vinyl/sampler/car/CD skin styling.
+- `src/arcade-shell.css`: shared standalone-tool tokens, page shell, hardware controls, readouts, and responsive topbar behavior.
 - `src/app.js`: app bootstrap and event wiring.
+- `src/cockpit-workspace.js`: responsive Signal/Timeline/Intel workspace controller plus independently persisted disclosure preferences.
 - `src/state.js`: browser state, hydration, persistence, selected-track state, track mutation helpers.
+- `src/contracts/set-draft.js`: versioned durable draft schema, legacy migration, serialization allowlist, and structural validation.
 - `src/render.js`: timeline, inspector, summary, capture log, archive list, current-track rendering, attached toolbelt signal rendering, and event detail drawer rendering.
 - `src/set-coach.js`: local set-readiness scoring, ranked next actions, and creative prompts for the cockpit Set Coach.
 - `src/dj-mentor.js`: deterministic DJ Mentor model for selected-track story beats, practice missions, dig prompts, and event move cards.
@@ -27,11 +30,16 @@
 - `src/pitch-gates/pitch-filter.js`: game-specific confidence hysteresis, octave correction, median/EMA smoothing, and dropout grace over reusable raw pitch frames.
 - `src/pitch-gates/reducer.js`: pure run state, timestamped input, scoring, domain events, projection, and final-state hashing.
 - `src/pitch-gates/replay.js`: portable replay creation and deterministic reconstruction.
-- `src/pitch-gates.css`: arcade-lab game surface and responsive controls.
-- `src/rhythm-roulette.js` and `src/rhythm-roulette.css`: blind record-pull game, pixel-art shop canvas, generated beat playback, sequencer UI, and learning-event output.
+- `src/pitch-gates.css`: Pitch Gates cabinet, game surface, tuning controls, and page-specific responsive layout.
+- `src/rhythm-roulette.js` and `src/rhythm-roulette.css`: thin blind-record controller, sequencer UI, page-specific record-shop styling, and learning-event output.
+- `src/rhythm-roulette/catalog.js` and `src/rhythm-roulette/challenge.js`: stable sample identifiers plus seeded, versioned crate pulls and challenge rules.
+- `src/rhythm-roulette/reducer.js` and `src/rhythm-roulette/replay.js`: pure beat-pattern transitions, scoring, run hashing, and deterministic replay reconstruction.
+- `src/rhythm-roulette/audio-engine.js` and `src/rhythm-roulette/scene.js`: isolated Web Audio synthesis and pixel-scene rendering adapters.
 - `src/vendor/pitchy.js`: locally bundled Pitchy detector used without a CDN runtime dependency.
 - `src/theme.js` and `src/theme.css`: persisted cross-surface theme control and light-mode treatment.
+- `src/design-tokens.css`: shared foundation, semantic signal colors, room identity hook, control sizing, typography, and motion tokens.
 - `src/tool-registry.js`: shared SetScope tool rack and registered tool metadata.
+- `docs/DESIGN_SYSTEM.md`: screenshot-led design principles, audit findings, implemented decisions, and responsive backlog.
 - `assets/theme/lightning-bulb-toggle-ui.png`: original inked lightning-filament theme-toggle illustration.
 - `src/workflows.js`: recognition loop, archive save/load, export/copy, mic capture, new-set workflow.
 - `src/dom.js`: DOM element references for the main app.
@@ -42,14 +50,18 @@
 - `server/env.mjs`: tiny local `.env` loader for development secrets.
 - `server/routes.mjs`: API route dispatch.
 - `server/static.mjs`: static app file serving.
-- `server/archive-store.mjs`: file-backed set archive.
+- `server/database.mjs`: shared SQLite connection and configurable data-directory boundary.
+- `server/archive-store.mjs`: transactional SQLite set archive, FTS5 study index, match explanations, and legacy JSON migration.
+- `server/archive-schema.mjs`: archive-envelope validation and migration into the shared SetDraft V2 contract.
 - `server/journal-store.mjs`: markdown journal persistence.
 - `server/audd-provider.mjs`: AudD recognition adapter and result mapper.
 - `server/provider-schema.mjs`: validation for normalized provider matches.
 - `server/provider-normalizer.mjs`: shared provider-to-SetScope match normalization.
 - `server/recognition-provider.mjs`: stub recognition provider, track analysis, and provider response normalization.
-- `server/json.mjs`: JSON request/response helpers.
-- `data/sets.json`: created on demand by the archive API.
+- `server/recognition-store.mjs`: bounded, atomic, replay-safe recognition transaction ledger keyed by request ID.
+- `server/json.mjs`: bounded JSON request parsing plus structured HTTP error responses.
+- `data/setscope.sqlite`: shared local database for recognition receipts and archived sets.
+- `data/sets.json`: legacy archive imported and renamed on first successful migration.
 
 ## What Is Working
 
@@ -69,40 +81,58 @@
 - Shared toolbelt modules now separate browser source lifecycle, pitch analysis frames, and structured performance-event persistence.
 - Audio Lab proves those shared modules on a second utility surface and writes `analysis` snapshots into the toolbelt timeline.
 - A shared tool registry now gives each surface the same navigation rack.
+- Standalone tools now share an explicit arcade shell instead of importing another tool's page stylesheet.
+- Browser drafts now migrate into a versioned `SetDraftV2` contract; rendering and selectors are pure, durable commands own persistence, and temporary filters live in separate UI state.
+- API JSON bodies have route-specific size limits and explicit `400`, `413`, and `422` responses; archive writes are validated, serialized, and atomically replaced.
 - Audio Lab now includes reusable widget primitives: tuner presets, level metering, zero-crossing trigger behavior, daily practice streaks, and set-track attachment.
 - The main cockpit now derives attached toolbelt signals from `state.audioEvents`, showing compact badges on timeline rows, richer selected-track moments, and metadata chips in the Toolbelt Events panel.
 - Toolbelt events can now be inspected in a drawer, reassigned to a track, and promoted into durable track notes.
 - Toolbelt events can be labeled, and the set timeline can be filtered by signal type or label.
 - Set Coach turns the current timeline into a readiness score, ranked next actions, and creative prompts that can steer review mode, signal filtering, and event labeling.
 - DJ Mentor reads selected tracks and toolbelt events to render practice missions, dig prompts, mentor notes, and event move cards.
-- Rhythm Roulette adds a beat-making game that writes saved blind-crate flips into the same structured audio event timeline.
+- Rhythm Roulette generates deterministic blind-crate challenges, applies beat edits through a pure reducer, verifies portable replays, and writes saved runs into the same structured audio event timeline.
+- Shared app headers, semantic accent tokens, metric racks, instrument screens, hardware transports, focus treatment, and reduced-motion behavior now give every surface a consistent interaction language without flattening its visual identity.
 - DJ Mentor practice launches now carry the selected track into Pitch Gates, Rhythm Roulette, and Audio Lab; completed runs auto-attach, receive practice labels, and return to the cockpit with the saved event open.
 - The main deck now runs a continuous listening transport with explicit start/stop ownership, configurable cadence, abortable capture/API work, session metrics, and bounded retry behavior.
+- SetScope now projects the same cockpit into three explicit responsive workspaces. Workspace selection and disclosure preferences are isolated from SetDraft, selected-track actions reveal the relevant narrow-screen workspace, and Listen remains available across every mode.
+- Recognition windows now carry persistent session identity, set-relative timing, request and observation IDs, explicit outcomes, provider deadlines, cancellation, and visible provenance. Bounded binary audio stays ephemeral, committed observations replay from SQLite after restart without invoking the provider again, and provider errors cannot create fake timeline tracks.
+- Pitch Gates, Audio Lab, and Rhythm Roulette now expose truthful idle/ready/active/result states, contextual disabled actions, and screen-readable Canvas summaries. Roulette playback updates cells in place so keyboard focus survives every tick.
+- Pitch Gates and Audio Lab now share Musician Profile V2. Stable-center calibration begins with an estimated safe span; separately captured low/high notes confirm its boundaries. Signed gate distances produce centered/high/low/mixed/silent diagnosis, and profile revision, diagnosis, targets, and deterministic seven-stage prescriptions travel across both tools and into saved evidence.
+- API and runtime suites start the current checkout on ephemeral ports, and GitHub Actions runs the same contract, HTTP, and responsive browser checks.
 
 ## Main Risks
 
 - The main frontend has been split into modules, which removes the largest immediate maintainability issue.
 - Backend concerns have been split into route, static, archive, journal, and recognition-provider modules.
-- Archive persistence is JSON-file based. This is fine for local prototyping, but concurrent writes, larger archives, and search/filtering should move to SQLite.
+- Archive persistence now uses the same WAL-enabled SQLite database as recognition receipts. Saves are transactional, IDs are unique, legacy JSON is migrated atomically, and independent connections are covered by boundary tests.
+- Archive discovery uses a derived FTS5 index over the portable SetDraft envelope. The SetDraft JSON remains canonical; search rows are replaced in the same transaction as each save and can be rebuilt from canonical data by version.
 - Provider matches are normalized, clamped, and schema-validated at the server boundary.
-- The frontend state currently mixes durable set data with UI-only state. A small store module would make save/load behavior easier to reason about.
+- Domain commands still mutate the in-memory draft object for compatibility. The persistence boundary is explicit now, but a future reducer/store can make command transitions immutable without changing the serialized contract.
 - Web audio-source capture is permission-scoped: arbitrary computer playback cannot be silently sampled, and shared system-audio choices vary by browser/OS.
 - Continuous listening is deliberately sequential so slow recognition responses cannot overlap capture windows or reorder timeline writes.
 
 ## Recommended Next Refactor
 
-1. Keep the provider layer native-app ready.
+1. Add a dedicated archive study view with sorting, faceted filters, set comparison, and track-level jump targets on top of the completed full-text index.
+
+2. Extend the adaptive spine with repeated boundary confirmation, per-interval accuracy history, and call-and-response drills. Keep user comfort confirmation distinct from detector confidence.
+
+3. Extend the now-visible recognition provenance badges across mentor interpretation, generated signals, scientific models, and saved performance evidence.
+
+4. Extract the implemented phase behavior into a shared controller and apply it to the Journal and cockpit Next Move surface.
+
+5. Add screenshot comparison baselines for the common app header, responsive cockpit workspaces, and instrument primitives now that their composition is stable.
+
+6. Keep the provider layer native-app ready.
    - Web can use AudD or future AcoustID/ACRCloud adapters behind `/api/recognize`.
    - iOS can use ShazamKit behind the same normalized match contract.
    - Keep API keys and vendor details outside the UI and archive schema.
 
-2. Replace JSON archive with SQLite once saved sets become more than a local demo.
+7. Expand schema validation to tracks and audio events before archive migration.
 
-3. Expand schema validation to archived sets and audio events before migrating storage.
+9. Promote the reusable Audio Lab controls into smaller component modules as Beat Loom and the next musician helpers arrive.
 
-4. Promote the reusable Audio Lab controls into smaller component modules as the next musician helpers arrive.
-
-5. Preserve portable schemas and challenge definitions for a native SwiftUI/ShazamKit iOS application and a Tauri-first desktop capture spike; see `docs/PLATFORM_STRATEGY.md`.
+10. Preserve portable schemas and challenge definitions for a native SwiftUI/ShazamKit iOS application and a Tauri-first desktop capture spike; see `docs/PLATFORM_STRATEGY.md`.
 
 ## Recognition Adapter Contract
 
@@ -110,6 +140,21 @@
 {
   cursor: 1,
   detectedAt: "2026-05-23T00:00:00.000Z",
+  observation: {
+    schema: "setscope.recognition-observation",
+    schemaVersion: 1,
+    observationId: "observation_recognition_123",
+    requestId: "recognition_123",
+    sessionId: "set_session_123",
+    setElapsedMs: 266000,
+    outcome: "matched",
+    provenance: "inference",
+    provider: "audd",
+    latencyMs: 824,
+    retryable: false,
+    audio: { durationMs: 8000, mimeType: "audio/webm", size: 48211, hasData: true }
+  },
+  transaction: { requestId: "recognition_123", replayed: false },
   match: {
     time: "04:26",
     title: "Palm Trees At Noon",

@@ -23,6 +23,7 @@ const {
   promoteAudioEventToTrackNotes,
   reassignAudioEvent,
   state,
+  uiState,
   visibleTracks,
 } = await import("../src/state.js");
 
@@ -45,6 +46,7 @@ const event = createPitchGatesCompletionEvent({
   resolved: 12,
   totalGates: 12,
   lives: 3,
+  diagnosis: { code: "high", biasCents: 37, detail: "Landings tended high." },
 });
 
 const savedPitchEvent = persistPerformanceEvent(event);
@@ -54,6 +56,7 @@ assert.equal(savedDraft.audioEvents[0].title, "Pitch Gates run");
 assert.equal(savedDraft.audioEvents[0].type, "instrument");
 assert.equal(savedDraft.audioEvents[0].metadata.modeId, "pitch-gates");
 assert.equal(savedDraft.audioEvents[0].metadata.details.speed, "rush");
+assert.equal(savedDraft.audioEvents[0].metadata.details.diagnosis.code, "high");
 assert.deepEqual(savedDraft.audioEvents[0].labels, ["practice"]);
 assert.equal(savedPitchEvent.id, savedDraft.audioEvents[0].id);
 assert.equal(state.audioEvents[0].metadata.score, 2760);
@@ -71,6 +74,11 @@ const rouletteEvent = createRhythmRouletteCompletionEvent({
   time: "08:08",
   trackTitle: "Context Track",
   mission: "Flip the transition",
+  challengeId: "rhythm-roulette-v1-808",
+  seed: 808,
+  replayHash: "a1b2c3d4",
+  replayActionCount: 7,
+  endReason: "saved",
 });
 assert.equal(rouletteEvent.modeId, "rhythm-roulette");
 assert.equal(rouletteEvent.details.game, "Rhythm Roulette");
@@ -79,6 +87,11 @@ assert.equal(rouletteEvent.details.challengeBonus, 320);
 assert.equal(rouletteEvent.evidence.summary.includes("Blind Pull"), true);
 assert.equal(rouletteEvent.trackId, "roulette-track");
 assert.equal(rouletteEvent.details.mission, "Flip the transition");
+assert.equal(rouletteEvent.details.challengeId, "rhythm-roulette-v1-808");
+assert.equal(rouletteEvent.details.seed, 808);
+assert.equal(rouletteEvent.details.replayHash, "a1b2c3d4");
+assert.equal(rouletteEvent.details.replayActionCount, 7);
+assert.equal(rouletteEvent.details.endReason, "saved");
 
 persistPerformanceEvent({
   kind: "performance",
@@ -154,11 +167,11 @@ const reassigned = reassignAudioEvent(attachedEvent.id, state.tracks[1].id);
 assert.equal(reassigned.trackId, state.tracks[1].id);
 assert.equal(reassigned.time, state.tracks[1].time);
 assert.equal(toggleAudioEventLabel(attachedEvent.id, "review").labels.includes("review"), true);
-state.signalFilter = "review";
+uiState.signalFilter = "review";
 assert.equal(visibleTracks().some((track) => track.id === state.tracks[1].id), true);
 assert.equal(toggleAudioEventLabel(attachedEvent.id, "review").labels.includes("review"), false);
 assert.equal(visibleTracks().some((track) => track.id === state.tracks[1].id), false);
-state.signalFilter = "all";
+uiState.signalFilter = "all";
 
 const coach = createSetCoachModel();
 assert.equal(Number.isFinite(coach.readinessScore), true);

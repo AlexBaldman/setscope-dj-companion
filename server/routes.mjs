@@ -1,4 +1,4 @@
-import { readJson, sendJson } from "./json.mjs";
+import { readBinary, readJson, sendJson } from "./json.mjs";
 import {
   analyzeTracks,
   getRecognitionDiagnostics,
@@ -7,7 +7,7 @@ import {
   recognizeAudioWindow,
 } from "./recognition-provider.mjs";
 
-export function createApiRouter({ archiveStore, journalStore }) {
+export function createApiRouter({ archiveStore, journalStore, recognitionStore }) {
   return async function routeApi(url, request, response) {
     if (url.pathname === "/api/health") {
       sendJson(response, 200, {
@@ -24,20 +24,38 @@ export function createApiRouter({ archiveStore, journalStore }) {
     }
 
     if (url.pathname === "/api/recognize" && request.method === "POST") {
-      const body = await readJson(request);
-      sendJson(response, 200, await recognizeAudioWindow({
-        cursor: body.cursor,
-        audio: body.audio,
+      const audio = await readBinary(request);
+      const requestId = header(request, "x-setscope-request-id");
+      const cursor = finiteHeader(request, "x-setscope-cursor");
+      const sessionId = header(request, "x-setscope-session-id");
+      const setElapsedMs = finiteHeader(request, "x-setscope-set-elapsed-ms");
+      const windowMs = finiteHeader(request, "x-setscope-window-ms");
+      const controller = new AbortController();
+      request.once("aborted", () => controller.abort("client_aborted"));
+      const transaction = await recognitionStore.execute(requestId, () => recognizeAudioWindow({
+        requestId,
+        cursor,
+        audio: { ...audio, durationMs: windowMs },
+        signal: controller.signal,
         metadata: {
-          tracks: body.tracks,
-          windowSeconds: body.windowSeconds,
+          sessionId,
+          setElapsedMs,
+          windowSeconds: Math.max(1, Math.round(windowMs / 1000)),
         },
       }));
+      logRecognitionTransaction(transaction, requestId);
+      sendJson(response, 200, {
+        ...transaction.value,
+        transaction: {
+          requestId,
+          replayed: transaction.replayed,
+        },
+      });
       return;
     }
 
     if (url.pathname === "/api/analyze" && request.method === "POST") {
-      const body = await readJson(request);
+      const body = await readJson(request, { maxBytes: 1024 * 1024 });
       const tracks = Array.isArray(body.tracks) ? body.tracks : [];
       sendJson(response, 200, analyzeTracks(tracks));
       return;
@@ -49,7 +67,7 @@ export function createApiRouter({ archiveStore, journalStore }) {
     }
 
     if (url.pathname === "/api/journal" && request.method === "POST") {
-      const body = await readJson(request);
+      const body = await readJson(request, { maxBytes: 2 * 1024 * 1024 });
       if (typeof body.markdown !== "string") {
         sendJson(response, 400, { error: "markdown_required" });
         return;
@@ -60,12 +78,13 @@ export function createApiRouter({ archiveStore, journalStore }) {
     }
 
     if (url.pathname === "/api/sets" && request.method === "GET") {
-      sendJson(response, 200, { sets: await archiveStore.listSets() });
+      const query = String(url.searchParams.get("q") || "").slice(0, 160);
+      sendJson(response, 200, { query, sets: await archiveStore.listSets({ query }) });
       return;
     }
 
     if (url.pathname === "/api/sets" && request.method === "POST") {
-      const body = await readJson(request);
+      const body = await readJson(request, { maxBytes: 5 * 1024 * 1024 });
       const saved = await archiveStore.saveSet(body.set || body);
       sendJson(response, 200, { ok: true, set: saved });
       return;
@@ -84,4 +103,27 @@ export function createApiRouter({ archiveStore, journalStore }) {
 
     sendJson(response, 404, { error: "not_found" });
   };
+}
+
+function header(request, name) {
+  const value = request.headers?.[name];
+  return Array.isArray(value) ? value[0] || "" : String(value || "");
+}
+
+function finiteHeader(request, name) {
+  const parsed = Number(header(request, name));
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+}
+
+function logRecognitionTransaction(transaction, requestId) {
+  const observation = transaction.value?.observation || {};
+  console.log(JSON.stringify({
+    event: "recognition_transaction",
+    requestId,
+    observationId: observation.observationId || "",
+    outcome: observation.outcome || "invalid",
+    provider: observation.provider || "unknown-provider",
+    latencyMs: observation.latencyMs || 0,
+    replayed: transaction.replayed,
+  }));
 }

@@ -1,5 +1,10 @@
 data/sets.json
+data/sets.json.migrated
+data/recognition-transactions.json
+data/recognition-transactions.json.migrated
+data/setscope.sqlite*
 .env
 *-setscope.png
 node_modules/
+dist/
 .DS_Store

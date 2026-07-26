@@ -4,12 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SetScope DJ Companion</title>
+    <link rel="stylesheet" href="./src/design-tokens.css" />
     <link rel="stylesheet" href="./src/styles.css" />
     <link rel="stylesheet" href="./src/theme.css" />
   </head>
   <body>
     <div class="app">
-      <header class="topbar">
+      <header class="topbar app-header">
         <div class="brand">
           <div class="mark" aria-hidden="true"></div>
           <div>
@@ -29,27 +30,9 @@
           <button class="theme-toggle" data-theme-toggle aria-label="Switch to light mode" title="Switch to light mode">
             <img src="./assets/theme/lightning-bulb-toggle-ui.png" alt="" />
           </button>
-          <a class="quiet-btn" href="./pitch-gates.html" title="Open Pitch Gates">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M4 17c3-7 5-10 8-10s4 7 8 3" />
-              <circle cx="16" cy="7" r="2" />
-            </svg>
-            Arcade
-          </a>
-          <a class="quiet-btn" href="./audio-lab.html" title="Open Audio Lab">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M4 12h3l2-7 4 14 2-7h5" />
-              <path d="M4 19h16" />
-            </svg>
-            Lab
-          </a>
-          <a class="quiet-btn" href="./journal.html" title="Open dev journal">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-              <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z" />
-            </svg>
-            Journal
-          </a>
+          <details class="session-menu" open>
+            <summary aria-label="Set actions" title="Set actions">•••</summary>
+            <div class="session-menu-items">
           <button class="quiet-btn" id="archiveBtn" title="Archive set">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 8v13H3V8" />
@@ -73,6 +56,8 @@
             </svg>
             New
           </button>
+            </div>
+          </details>
           <button class="primary-btn" id="listenBtn" title="Start listening" aria-pressed="false">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 3a6 6 0 0 0-6 6v4a6 6 0 0 0 12 0V9a6 6 0 0 0-6-6Z" />
@@ -84,8 +69,28 @@
         </div>
       </header>
 
+      <nav class="cockpit-workspace-nav" id="cockpitWorkspaceNav" aria-label="Cockpit workspace">
+        <div class="cockpit-workspace-tabs" role="tablist" aria-label="Cockpit views">
+          <button id="workspaceSignalTab" role="tab" data-cockpit-workspace="signal" aria-controls="signalWorkspace">Signal</button>
+          <button id="workspaceTimelineTab" role="tab" data-cockpit-workspace="timeline" aria-controls="timelineWorkspace">Timeline</button>
+          <button id="workspaceIntelTab" role="tab" data-cockpit-workspace="intel" aria-controls="intelWorkspace">Intel</button>
+        </div>
+        <div class="cockpit-workspace-now">
+          <span>Selected</span>
+          <strong id="workspaceNowTitle">Warm Up The Room</strong>
+          <small id="workspaceNowArtist">K.M. Session Band</small>
+        </div>
+        <button class="workspace-listen-btn" id="workspaceListenBtn" title="Start listening" aria-pressed="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 3a6 6 0 0 0-6 6v4a6 6 0 0 0 12 0V9a6 6 0 0 0-6-6Z" />
+            <path d="M19 11v2a7 7 0 0 1-14 0v-2" />
+          </svg>
+          <span id="workspaceListenLabel">Listen</span>
+        </button>
+      </nav>
+
       <main class="layout">
-        <section class="panel">
+        <section class="panel" id="signalWorkspace" role="tabpanel" aria-labelledby="workspaceSignalTab" data-workspace-panel="signal">
           <div class="panel-header">
             <div class="panel-title">Signal</div>
             <div class="status-group">
@@ -206,8 +211,8 @@
               </div>
             </div>
 
-            <div class="info-block set-coach" id="setCoachPanel">
-              <div class="coach-head">
+            <details class="info-block set-coach signal-disclosure" id="setCoachPanel" data-responsive-disclosure open>
+              <summary class="coach-head">
                 <div>
                   <h2>Set Coach</h2>
                   <p id="coachGrade">Reading the room</p>
@@ -216,7 +221,7 @@
                   <strong id="coachScore">--</strong>
                   <span>ready</span>
                 </div>
-              </div>
+              </summary>
               <div class="coach-stat-grid" aria-label="Set coach stats">
                 <div><span>Review</span><strong id="coachReviewCount">0</strong></div>
                 <div><span>Signals</span><strong id="coachSignalCount">0/0</strong></div>
@@ -225,16 +230,16 @@
               </div>
               <div class="coach-action-list" id="coachActionList"></div>
               <div class="coach-prompt-list" id="coachPromptList"></div>
-            </div>
+            </details>
 
-            <div class="info-block dj-mentor" id="djMentorPanel">
-              <div class="mentor-head">
+            <details class="info-block dj-mentor signal-disclosure" id="djMentorPanel" data-responsive-disclosure open>
+              <summary class="mentor-head">
                 <div>
                   <h2>DJ Mentor</h2>
                   <p id="mentorStoryBeat">Reading the set arc</p>
                 </div>
                 <span id="mentorEnergy">Pocket</span>
-              </div>
+              </summary>
               <div class="mentor-readout">
                 <span id="mentorMove">Blend pocket</span>
                 <strong id="mentorWhy">Select a set moment to hear the mentor read.</strong>
@@ -248,10 +253,10 @@
                 <div class="mentor-tool-rack" id="mentorToolRack"></div>
               </div>
               <div class="mentor-action-list" id="mentorActionList"></div>
-            </div>
+            </details>
 
-            <div class="info-block">
-              <h2>Recognition Stack</h2>
+            <details class="info-block signal-disclosure" id="recognitionStackPanel" data-responsive-disclosure open>
+              <summary><h2>Recognition Stack</h2><span>Provider setup</span></summary>
               <div class="provider-panel">
                 <div>
                   <span id="providerName">SetScope Stub</span>
@@ -305,26 +310,37 @@
                   Test provider
                 </button>
               </div>
-            </div>
+            </details>
 
-            <div class="info-block">
-              <h2>Capture Log</h2>
+            <details class="info-block signal-disclosure" id="captureLogPanel" data-responsive-disclosure open>
+              <summary><h2>Signal Receipts</h2><span>Recent windows</span></summary>
               <div class="capture-log" id="captureLog"></div>
-            </div>
+            </details>
 
-            <div class="info-block">
-              <h2>Toolbelt Events</h2>
+            <details class="info-block signal-disclosure" id="toolbeltEventsPanel" data-responsive-disclosure open>
+              <summary><h2>Toolbelt Events</h2><span>Saved signals</span></summary>
               <div class="audio-event-log" id="audioEventLog"></div>
-            </div>
+            </details>
 
-            <div class="info-block">
-              <h2>Set Archive</h2>
+            <details class="info-block signal-disclosure" id="setArchivePanel" data-responsive-disclosure open>
+              <summary><h2>Set Archive</h2><span>Saved sets</span></summary>
+              <div class="archive-library-tools">
+                <input
+                  class="search-input"
+                  id="archiveSearch"
+                  type="search"
+                  aria-label="Search archived sets"
+                  placeholder="Search tracks, artists, tags, transitions"
+                  autocomplete="off"
+                />
+                <span class="archive-count" id="archiveCount" aria-live="polite">0 saved</span>
+              </div>
               <div class="archive-list" id="archiveList"></div>
-            </div>
+            </details>
           </div>
         </section>
 
-        <section class="panel timeline-panel">
+        <section class="panel timeline-panel" id="timelineWorkspace" role="tabpanel" aria-labelledby="workspaceTimelineTab" data-workspace-panel="timeline">
           <div class="panel-header">
             <div class="panel-title">Set Timeline</div>
             <div class="timeline-controls">
@@ -385,7 +401,7 @@
           </div>
         </section>
 
-        <aside class="panel inspector">
+        <aside class="panel inspector" id="intelWorkspace" role="tabpanel" aria-labelledby="workspaceIntelTab" data-workspace-panel="intel">
           <div class="panel-header">
             <div class="panel-title">Track Intel</div>
             <button class="icon-btn" id="saveTrackBtn" title="Save changes">

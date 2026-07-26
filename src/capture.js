@@ -34,10 +34,10 @@ export async function captureAudioWindow(stream, durationMs = 4000, { signal } =
         finish(resolve, {
           blob,
           payload: {
+            blob,
             mimeType: blob.type,
             size: blob.size,
             durationMs,
-            dataUrl: await blobToDataUrl(blob),
           },
         });
       } catch {
@@ -75,10 +75,10 @@ export async function createSampleAudioPayload(durationMs = 8000) {
 
   const blob = new Blob([buffer], { type: "audio/wav" });
   return {
+    blob,
     mimeType: blob.type,
     size: blob.size,
     durationMs,
-    dataUrl: await blobToDataUrl(blob),
   };
 }
 
@@ -89,15 +89,6 @@ function chooseMimeType() {
     "audio/mp4",
   ];
   return candidates.find((candidate) => MediaRecorder.isTypeSupported(candidate)) || "";
-}
-
-function blobToDataUrl(blob) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.addEventListener("load", () => resolve(reader.result));
-    reader.addEventListener("error", reject);
-    reader.readAsDataURL(blob);
-  });
 }
 
 function writeWavHeader(view, { sampleRate, frameCount }) {

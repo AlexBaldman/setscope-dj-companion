@@ -11,6 +11,7 @@ import {
   resumePitchGatesRun,
 } from "../src/pitch-gates/reducer.js";
 import { createPitchGatesReplay, replayPitchGates } from "../src/pitch-gates/replay.js";
+import { diagnosePitchGateResults } from "../src/pitch-gates/diagnosis.js";
 
 const challenge = createPitchGatesChallenge({ seed: 424242, register: "mid", speed: "groove", totalGates: 12 });
 assert.equal(validatePitchGatesChallenge(challenge).valid, true);
@@ -86,6 +87,17 @@ assert.equal(hashPitchGatesRun(advancePitchGatesTo(boundaryRun, boundaryGate.eva
 
 const lostInputRun = advancePitchGatesTo(createPitchGatesRun(oneGate), boundaryGate.evaluateAtMs);
 assert.equal(lostInputRun.gateResults[0].outcome, "miss", "missing input should resolve as a miss without throwing");
+assert.equal(diagnosePitchGateResults([lostInputRun.gateResults[0]]).code, "silent");
+assert.equal(diagnosePitchGateResults([
+  { outcome: "miss", signedDistance: 1.1 },
+  { outcome: "near", signedDistance: 0.8 },
+  { outcome: "miss", signedDistance: 0.7 },
+]).code, "high");
+assert.equal(diagnosePitchGateResults([
+  { outcome: "miss", signedDistance: -1.1 },
+  { outcome: "near", signedDistance: -0.8 },
+  { outcome: "miss", signedDistance: -0.7 },
+]).code, "low");
 
 let windowedRun = createPitchGatesRun(oneGate);
 for (const offset of [-200, -150, -100, -50]) {

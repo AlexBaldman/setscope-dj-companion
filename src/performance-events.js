@@ -44,6 +44,11 @@ export function createPitchGatesCompletionEvent({
   replayHash = "",
   replayActionCount = 0,
   endReason = "",
+  profileId = "",
+  profileRevision = 0,
+  accuracy = 0,
+  practiceStage = "",
+  diagnosis = {},
 } = {}) {
   return createPerformanceEvent({
     modeId: "pitch-gates",
@@ -66,6 +71,11 @@ export function createPitchGatesCompletionEvent({
       replayHash,
       replayActionCount,
       endReason,
+      profileId,
+      profileRevision,
+      accuracy,
+      practiceStage,
+      diagnosis,
     },
     evidence: {
       summary: `${sourceLabel} / ${register} / ${score} pts / streak ${streak}`,
@@ -86,6 +96,11 @@ export function createRhythmRouletteCompletionEvent({
   time = "--:--",
   trackTitle = "",
   mission = "",
+  challengeId = "",
+  seed = 0,
+  replayHash = "",
+  replayActionCount = 0,
+  endReason = "",
 } = {}) {
   const recordLine = records.map((record) => record.title).filter(Boolean).join(" + ");
   return createPerformanceEvent({
@@ -111,6 +126,11 @@ export function createRhythmRouletteCompletionEvent({
       })),
       trackTitle,
       mission,
+      challengeId,
+      seed,
+      replayHash,
+      replayActionCount,
+      endReason,
     },
     evidence: {
       summary: `${recordLine || "No records"} / ${bpm || "--"} BPM / ${score || 0} pts`,

@@ -8,6 +8,7 @@ Pitch Gates is SetScope's first playable musician helper: sing or play a single 
 - Orb-and-gate game loop with score, streak, lives, three pitch registers, and three speeds.
 - A silent `Demo tone` input that follows gates automatically so the interaction is instantly testable.
 - Completed rounds write a structured `instrument` performance event into SetScope's saved toolbelt timeline.
+- A shared Musician Profile supplies a calibrated center, estimated or confirmed span, detector smoothing, directional landing diagnosis, and the next adaptive practice stage.
 
 ## Audio Inputs
 
@@ -32,7 +33,7 @@ It does not yet identify which instrument created a sound. Instrument classifica
 
 1. Add a tuner and oscilloscope view powered by `src/audio-session.js` and `src/pitch-analysis.js`.
 2. Store note hits and misses as richer practice events, not only round summaries.
-3. Add guided scales, interval drills, call-and-response phrases, and vocal-range calibration.
+3. Add per-interval history, guided scales, and call-and-response phrases using the confirmed comfort bounds.
 4. Prototype instrument-family classification for clean samples, with transparent confidence.
 5. Share portable pitch-analysis contracts with the future iOS app.
 

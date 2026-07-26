@@ -11,6 +11,7 @@ import {
   normalizeTrack,
   persist,
   state,
+  uiState,
   visibleTracks,
 } from "./state.js";
 import { compactEra, escapeHtml, mode } from "./utils.js";
@@ -44,7 +45,6 @@ export function createRenderer(els, handlers) {
     renderNow(track);
     renderCaptureLog();
     renderAudioEvents();
-    persist();
   }
 
   function renderTimeline() {
@@ -76,11 +76,11 @@ export function createRenderer(els, handlers) {
     els.timelineCount.textContent = `${tracks.length}/${state.tracks.length} tracks`;
     const progress = Math.min(100, Math.max(8, state.tracks.length * 13));
     els.progressFill.style.width = `${progress}%`;
-    els.reviewToggle.classList.toggle("active", state.reviewOnly);
+    els.reviewToggle.classList.toggle("active", uiState.reviewOnly);
     els.signalFilterButtons.forEach((button) => {
-      button.classList.toggle("active", button.dataset.signalFilter === state.signalFilter);
+      button.classList.toggle("active", button.dataset.signalFilter === uiState.signalFilter);
     });
-    els.timelineSearch.value = state.query;
+    els.timelineSearch.value = uiState.query;
     renderSummary();
     renderSetCoach();
     renderDjMentor();
@@ -100,6 +100,7 @@ export function createRenderer(els, handlers) {
       <li>${track.time} entry with ${track.transition.toLowerCase()} transition</li>
       <li>${track.bpm} BPM, Camelot ${track.key}</li>
       <li>${track.confidence || 76}% recognition confidence</li>
+      <li><span class="evidence-kind" data-kind="${escapeHtml(track.observation?.provenance || (track.provider === "setscope-stub" ? "story" : "inference"))}">${escapeHtml(formatEvidenceKind(track.observation?.provenance || (track.provider === "setscope-stub" ? "story" : "inference")))}</span> ${escapeHtml(track.observation?.outcome || track.status || "review")}</li>
       ${renderTrackToolbeltMoments(trackEvents)}
     `;
     els.dnaGrid.innerHTML = `
@@ -126,6 +127,8 @@ export function createRenderer(els, handlers) {
     normalizeTrack(track);
     els.nowTitle.textContent = track.title;
     els.nowArtist.textContent = track.artist;
+    els.workspaceNowTitle.textContent = track.title;
+    els.workspaceNowArtist.textContent = track.artist;
     els.nowBpm.textContent = track.bpm;
     els.nowKey.textContent = track.key;
     els.nowConfidence.textContent = `${track.confidence || 0}%`;
@@ -214,19 +217,20 @@ export function createRenderer(els, handlers) {
   function renderCaptureLog() {
     const items = state.captureLog.slice(0, 6);
     if (!items.length) {
-      els.captureLog.innerHTML = `<p>No recognition captures yet.</p>`;
+      els.captureLog.innerHTML = `<p>No signal receipts yet.</p>`;
       return;
     }
     els.captureLog.innerHTML = items
       .map(
         (item) => `
-          <button class="capture-item" data-capture-id="${escapeHtml(item.trackId || "")}">
+          <button class="capture-item" ${item.trackId ? `data-capture-id="${escapeHtml(item.trackId)}"` : "disabled"} data-outcome="${escapeHtml(item.outcome || item.status || "unknown")}">
             <div class="capture-badge">${escapeHtml(item.time || "--:--")}</div>
             <div>
               <strong>${escapeHtml(item.title)}</strong>
               <span>${escapeHtml(item.artist)} / ${escapeHtml(item.provider || "local")}</span>
+              <small class="evidence-kind" data-kind="${escapeHtml(item.provenance || "inference")}">${escapeHtml(formatEvidenceKind(item.provenance || "inference"))}</small>
             </div>
-            <div class="capture-score">${escapeHtml(item.status || "review")}</div>
+            <div class="capture-score">${escapeHtml(formatReceiptOutcome(item.outcome || item.status))}</div>
           </button>
         `,
       )
@@ -234,6 +238,16 @@ export function createRenderer(els, handlers) {
     els.captureLog.querySelectorAll("[data-capture-id]").forEach((button) => {
       button.addEventListener("click", () => handlers.onSelectTrack(button.dataset.captureId));
     });
+  }
+
+  function formatReceiptOutcome(outcome) {
+    return {
+      cancelled: "cancelled",
+      invalid: "invalid",
+      matched: "matched",
+      provider_error: "retry",
+      unmatched: "no match",
+    }[outcome] || outcome || "review";
   }
 
   function renderAudioEvents() {
@@ -285,9 +299,14 @@ export function createRenderer(els, handlers) {
   }
 
   function renderArchiveList() {
-    const sets = state.archiveList.slice(0, 6);
+    const sets = uiState.archiveList.slice(0, 20);
+    if (els.archiveCount) {
+      els.archiveCount.textContent = uiState.archiveQuery
+        ? `${sets.length} found`
+        : `${sets.length} saved`;
+    }
     if (!sets.length) {
-      els.archiveList.innerHTML = `<p>No archived sets yet.</p>`;
+      els.archiveList.innerHTML = `<p>${uiState.archiveQuery ? "No matching sets." : "No archived sets yet."}</p>`;
       return;
     }
     els.archiveList.innerHTML = sets
@@ -297,6 +316,7 @@ export function createRenderer(els, handlers) {
             <div>
               <strong>${escapeHtml(set.name || "Untitled set")}</strong>
               <span>${set.trackCount || 0} tracks / ${escapeHtml(formatArchiveDate(set.updatedAt))}</span>
+              ${renderArchiveMatches(set.matches)}
             </div>
             <div class="capture-score">Load</div>
           </button>
@@ -306,6 +326,13 @@ export function createRenderer(els, handlers) {
     els.archiveList.querySelectorAll("[data-set-id]").forEach((button) => {
       button.addEventListener("click", () => handlers.onLoadArchivedSet(button.dataset.setId));
     });
+  }
+
+  function renderArchiveMatches(matches) {
+    if (!Array.isArray(matches) || !matches.length) return "";
+    return `<div class="archive-match-strip">${matches
+      .map((match) => `<i><b>${escapeHtml(match.label)}</b>${escapeHtml(match.value)}</i>`)
+      .join("")}</div>`;
   }
 
   return { render, renderTimeline, renderArchiveList, renderEventDetail };
@@ -505,4 +532,16 @@ function formatStatus(status, needsReview) {
   if (status === "unknown") return "Unknown";
   if (status === "review" || needsReview) return "Review";
   return "Locked";
+}
+
+function formatEvidenceKind(kind) {
+  const labels = {
+    "internal-digital": "Internal digital",
+    inference: "Inferred",
+    measured: "Measured",
+    model: "Model",
+    mapping: "Mapping",
+    story: "Demo story",
+  };
+  return labels[kind] || "Inferred";
 }

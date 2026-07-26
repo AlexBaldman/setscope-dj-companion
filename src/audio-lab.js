@@ -10,6 +10,15 @@ import {
 } from "./audio-widgets.js";
 import { createPerformanceEvent, persistPerformanceEvent } from "./performance-events.js";
 import { createPitchAnalyzer, isPitchedFrame, midiToFrequency, midiToNote } from "./pitch-analysis.js";
+import {
+  calibrateMusicianProfile,
+  confirmMusicianBoundary,
+  createPracticePrescription,
+  loadMusicianProfile,
+  musicianProfileTargets,
+  recordPracticeResult,
+  saveMusicianProfile,
+} from "./musician-profile.js";
 import { mountPracticeContext } from "./practice-context.js";
 
 const bufferLength = 2048;
@@ -48,10 +57,19 @@ const els = {
   peakValue: document.querySelector("#peakValue"),
   practiceDetail: document.querySelector("#practiceDetail"),
   practiceStatus: document.querySelector("#practiceStatus"),
+  profileCalibrateBtn: document.querySelector("#profileCalibrateBtn"),
+  profileHighBtn: document.querySelector("#profileHighBtn"),
+  profileLowBtn: document.querySelector("#profileLowBtn"),
+  profileCenter: document.querySelector("#profileCenter"),
+  profileDetail: document.querySelector("#profileDetail"),
+  profileRange: document.querySelector("#profileRange"),
+  profileStage: document.querySelector("#profileStage"),
   rmsMeter: document.querySelector("#rmsMeter"),
   rmsValue: document.querySelector("#rmsValue"),
   snapshotDetail: document.querySelector("#snapshotDetail"),
   snapshotStatus: document.querySelector("#snapshotStatus"),
+  scopeCanvasStatus: document.querySelector("#scopeCanvasStatus"),
+  scopeDisplayLabel: document.querySelector("#scopeDisplayLabel"),
   sourceLabel: document.querySelector("#sourceLabel"),
   targetNote: document.querySelector("#targetNote"),
   targetControl: document.querySelector(".target-control"),
@@ -62,13 +80,18 @@ const els = {
   tuningMeter: document.querySelector("#tuningMeter"),
 };
 
+const logSnapshotBtn = document.querySelector("#logSnapshotBtn");
+let lastAccessibleStatus = "";
+document.body.dataset.phase = "idle";
+
 const targetHoldMs = 2000;
 const targetToleranceCents = 8;
 const dailyGoal = 5;
 let animationId;
-let selectedDemoMidi = 57;
+let musicianProfile = loadMusicianProfile();
+let selectedDemoMidi = musicianProfile.centerMidi;
 let activePreset = "chromatic";
-let targetMidi = 57;
+let targetMidi = selectedDemoMidi;
 let inputGain = 1;
 let scopeGain = 2;
 let timeScale = 1;
@@ -86,6 +109,7 @@ populateTrackAttachSelect(practiceContext.track?.id);
 drawScope();
 renderFrame();
 renderPractice();
+renderMusicianProfile();
 
 document.querySelector("#toneBtn").addEventListener("click", () => useDemoTone());
 document.querySelector("#micBtn").addEventListener("click", () => useMicrophone());
@@ -93,7 +117,10 @@ document.querySelector("#shareBtn").addEventListener("click", () => useSharedAud
 document.querySelector("#fileBtn").addEventListener("click", () => document.querySelector("#audioFileInput").click());
 document.querySelector("#audioFileInput").addEventListener("change", (event) => useAudioFile(event.target.files[0]));
 document.querySelector("#stopAudioBtn").addEventListener("click", stopAudio);
-document.querySelector("#logSnapshotBtn").addEventListener("click", logSnapshot);
+logSnapshotBtn.addEventListener("click", logSnapshot);
+els.profileCalibrateBtn.addEventListener("click", calibrateLiveNote);
+els.profileLowBtn.addEventListener("click", () => captureBoundary("low"));
+els.profileHighBtn.addEventListener("click", () => captureBoundary("high"));
 els.freezeScopeBtn.addEventListener("click", toggleFreezeScope);
 els.triggerScopeBtn.addEventListener("click", toggleTriggerScope);
 els.inputGainControl.addEventListener("input", () => {
@@ -119,8 +146,8 @@ document.querySelectorAll("[data-preset]").forEach((button) => {
   button.addEventListener("click", () => {
     activePreset = button.dataset.preset;
     setActive(document.querySelectorAll("[data-preset]"), button);
-    const preset = tunerPresets[activePreset];
-    targetMidi = preset.targets.includes(targetMidi) ? targetMidi : preset.targets[0];
+    const targets = getActiveTargets();
+    targetMidi = targets.includes(targetMidi) ? targetMidi : targets[0];
     renderTargetButtons();
   });
 });
@@ -170,6 +197,9 @@ async function useDemoTone() {
 function startAnalysis(status) {
   pitchAnalyzer.reset();
   setAudioStatus(status, true);
+  document.body.dataset.phase = "ready";
+  logSnapshotBtn.disabled = true;
+  logSnapshotBtn.textContent = "Waiting for signal";
   startAnimation();
 }
 
@@ -178,6 +208,9 @@ function stopAudio() {
   currentFrame = null;
   lastLevel = { rms: 0, peak: 0 };
   setAudioStatus("INPUT OFF", false);
+  document.body.dataset.phase = "idle";
+  logSnapshotBtn.disabled = true;
+  logSnapshotBtn.textContent = "Choose input";
   renderFrame();
   drawScope();
 }
@@ -202,7 +235,13 @@ function update() {
 function renderFrame() {
   const source = audioSession.getSourceLabel();
   els.sourceLabel.textContent = source.toUpperCase();
+  els.scopeDisplayLabel.textContent = audioSession.isActive() ? `${source} signal` : "Idle display";
   if (!currentFrame) {
+    if (audioSession.isActive()) {
+      document.body.dataset.phase = "ready";
+      logSnapshotBtn.disabled = true;
+      logSnapshotBtn.textContent = "Waiting for signal";
+    }
     els.liveNote.textContent = "--";
     els.liveHz.textContent = "--";
     els.liveMidi.textContent = "--";
@@ -213,9 +252,13 @@ function renderFrame() {
     renderLevelMeter(lastLevel);
     els.tuningMeter.style.setProperty("--needle", "50%");
     resetHold();
+    renderAccessibleScopeStatus();
     return;
   }
   const roundedMidi = Math.round(currentFrame.midi);
+  document.body.dataset.phase = "active";
+  logSnapshotBtn.disabled = false;
+  logSnapshotBtn.textContent = "Log snapshot";
   const cents = centsFromMidiTarget(currentFrame.midi, targetMidi);
   els.liveNote.textContent = midiToNote(roundedMidi);
   els.liveHz.textContent = currentFrame.frequency.toFixed(1);
@@ -225,6 +268,18 @@ function renderFrame() {
   els.rmsValue.textContent = `${Math.round(lastLevel.rms * 100)}%`;
   els.peakValue.textContent = `${Math.round(lastLevel.peak * 100)}%`;
   els.tuningMeter.style.setProperty("--needle", `${Math.max(4, Math.min(96, 50 + cents / 2))}%`);
+  renderAccessibleScopeStatus();
+}
+
+function renderAccessibleScopeStatus() {
+  const source = audioSession.getSourceLabel();
+  const text = currentFrame
+    ? `${source} signal. Note ${midiToNote(Math.round(currentFrame.midi))}, ${Math.round(centsFromMidiTarget(currentFrame.midi, targetMidi))} cents from target ${midiToNote(targetMidi)}. Detector clarity ${Math.round(currentFrame.clarity * 100)} percent. Scope ${scopeFrozen ? "frozen" : "live"}.`
+    : `${audioSession.isActive() ? source : "No"} signal. No stable pitch detected. Scope ${scopeFrozen ? "frozen" : "showing an idle display"}.`;
+  if (text !== lastAccessibleStatus) {
+    els.scopeCanvasStatus.textContent = text;
+    lastAccessibleStatus = text;
+  }
 }
 
 function drawScope() {
@@ -314,7 +369,10 @@ function logSnapshot() {
       targetNote: midiToNote(targetMidi),
       targetFrequency: midiToFrequency(targetMidi).toFixed(1),
       stableHold: holdLocked,
-      preset: tunerPresets[activePreset].label,
+      profileId: musicianProfile.profileId,
+      profileRevision: musicianProfile.revision,
+      practiceStage: createPracticePrescription(musicianProfile).stage,
+      preset: activePreset === "profile" ? "My range" : tunerPresets[activePreset].label,
       inputGain,
       scopeGain,
       timeScale,
@@ -382,7 +440,8 @@ function toggleTriggerScope() {
 
 function renderTargetButtons() {
   const preset = tunerPresets[activePreset] || tunerPresets.chromatic;
-  els.targetControl.innerHTML = preset.targets
+  const targets = activePreset === "profile" ? musicianProfileTargets(musicianProfile) : preset.targets;
+  els.targetControl.innerHTML = targets
     .map((midi) => {
       const target = formatTarget(midi);
       return `<button class="${midi === targetMidi ? "active" : ""}" data-target-midi="${midi}" title="${target.frequency.toFixed(1)} Hz">${target.label}</button>`;
@@ -398,6 +457,12 @@ function renderTargetButtons() {
   });
   els.targetNote.textContent = midiToNote(targetMidi);
   resetHold();
+}
+
+function getActiveTargets() {
+  return activePreset === "profile"
+    ? musicianProfileTargets(musicianProfile)
+    : (tunerPresets[activePreset] || tunerPresets.chromatic).targets;
 }
 
 function renderLevelMeter(level) {
@@ -416,13 +481,94 @@ function recordPracticeLock() {
   practiceStats.streak += 1;
   practiceStats.lastLockedAt = new Date().toISOString();
   savePracticeStats(practiceStorageKey, practiceStats);
+  musicianProfile = saveMusicianProfile(recordPracticeResult(musicianProfile, {
+    accuracy: 100,
+    modeId: "audio-lab",
+    stableLock: true,
+  }));
   renderPractice();
+  renderMusicianProfile();
 }
 
 function renderPractice() {
   const daily = Math.min(practiceStats.dailyLocks, dailyGoal);
   els.practiceStatus.textContent = `Daily ${daily}/${dailyGoal}`;
   els.practiceDetail.textContent = `Streak ${practiceStats.streak} / ${dailyGoal - daily > 0 ? `${dailyGoal - daily} locks to goal` : "daily goal complete"}`;
+}
+
+function calibrateLiveNote() {
+  if (!currentFrame) {
+    els.profileStage.textContent = "NEED NOTE";
+    els.profileDetail.textContent = "Choose an input and hold one clear, comfortable note.";
+    return;
+  }
+  try {
+    musicianProfile = saveMusicianProfile(calibrateMusicianProfile(musicianProfile, currentFrame, {
+      sourceLabel: audioSession.getSourceLabel(),
+    }));
+    selectedDemoMidi = musicianProfile.centerMidi;
+    targetMidi = musicianProfile.centerMidi;
+    activePreset = "profile";
+    setActive(document.querySelectorAll("[data-preset]"), document.querySelector('[data-preset="profile"]'));
+    renderTargetButtons();
+    renderMusicianProfile();
+  } catch {
+    els.profileStage.textContent = "HOLD STEADY";
+    els.profileDetail.textContent = "Wait for a stable pitch, then calibrate again.";
+  }
+}
+
+function captureBoundary(boundary) {
+  if (!currentFrame) {
+    renderCalibrationMessage("NEED NOTE", "Choose an input and hold a clear, comfortable note.");
+    return;
+  }
+  try {
+    musicianProfile = saveMusicianProfile(confirmMusicianBoundary(musicianProfile, boundary, currentFrame));
+    activePreset = "profile";
+    setActive(document.querySelectorAll("[data-preset]"), document.querySelector('[data-preset="profile"]'));
+    renderTargetButtons();
+    renderMusicianProfile();
+  } catch (error) {
+    const detail = error.message === "center_calibration_required"
+      ? "Set the center note before confirming the edges."
+      : boundary === "low"
+        ? "Choose a comfortable note at least two semitones below center."
+        : "Choose a comfortable note at least two semitones above center.";
+    renderCalibrationMessage("TRY AGAIN", detail);
+  }
+}
+
+function renderCalibrationMessage(status, detail) {
+  els.profileStage.textContent = status;
+  els.profileDetail.textContent = detail;
+}
+
+function renderMusicianProfile() {
+  const prescription = createPracticePrescription(musicianProfile);
+  els.profileCenter.textContent = midiToNote(musicianProfile.centerMidi);
+  els.profileRange.textContent = musicianProfile.calibration.status === "calibrated"
+    ? `${musicianProfile.calibration.rangeStatus === "confirmed" ? "Confirmed" : "Estimated"} / ${midiToNote(musicianProfile.lowMidi)} to ${midiToNote(musicianProfile.highMidi)}`
+    : "Not calibrated";
+  els.profileStage.textContent = prescription.stage.toUpperCase();
+  els.profileDetail.textContent = prescription.detail;
+  els.profileCalibrateBtn.textContent = musicianProfile.calibration.status === "calibrated" ? "Recenter" : "Set center";
+  els.profileLowBtn.textContent = musicianProfile.calibration.boundaries.low.confirmed ? `Low ${midiToNote(musicianProfile.lowMidi)}` : "Set low";
+  els.profileHighBtn.textContent = musicianProfile.calibration.boundaries.high.confirmed ? `High ${midiToNote(musicianProfile.highMidi)}` : "Set high";
+  renderDemoPitchButtons();
+}
+
+function renderDemoPitchButtons() {
+  const demoMidis = [
+    Math.max(24, musicianProfile.centerMidi - 5),
+    musicianProfile.centerMidi,
+    Math.min(88, musicianProfile.centerMidi + 5),
+  ];
+  document.querySelectorAll("[data-demo-midi]").forEach((button, index) => {
+    button.dataset.demoMidi = String(demoMidis[index]);
+    button.textContent = midiToNote(demoMidis[index]);
+    button.classList.toggle("active", selectedDemoMidi === demoMidis[index]);
+  });
 }
 
 function populateTrackAttachSelect(selectedTrackId = "") {

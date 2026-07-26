@@ -4,13 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rhythm Roulette - SetScope</title>
-    <link rel="stylesheet" href="./src/pitch-gates.css" />
+    <link rel="stylesheet" href="./src/design-tokens.css" />
+    <link rel="stylesheet" href="./src/arcade-shell.css" />
     <link rel="stylesheet" href="./src/rhythm-roulette.css" />
     <link rel="stylesheet" href="./src/theme.css" />
   </head>
   <body>
     <div class="game-app roulette-app">
-      <header class="game-topbar">
+      <header class="game-topbar app-header">
         <a class="back-link" data-set-return href="./index.html">
           <span class="mini-disc"></span>
           SetScope
@@ -48,22 +49,23 @@
             <i id="challengeBadge">Needle drop</i>
           </div>
 
-          <div class="roulette-score-rack">
-            <div><span>BPM</span><strong id="rouletteBpm">--</strong></div>
-            <div><span>Pulls</span><strong id="pullCount">0/3</strong></div>
-            <div><span>Groove</span><strong id="grooveScore">00</strong></div>
-            <div><span>Best</span><strong id="bestRouletteScore">0000</strong></div>
+          <div class="roulette-score-rack metric-rack">
+            <div class="metric-cell" data-accent="tempo"><span>BPM</span><strong id="rouletteBpm">--</strong></div>
+            <div class="metric-cell" data-accent="score"><span>Pulls</span><strong id="pullCount">0/3</strong></div>
+            <div class="metric-cell" data-accent="success"><span>Mission</span><strong id="grooveScore">00</strong></div>
+            <div class="metric-cell" data-accent="danger"><span>Best</span><strong id="bestRouletteScore">0000</strong></div>
           </div>
 
-          <div class="record-shop-screen">
+          <div class="record-shop-screen instrument-screen">
             <canvas id="rouletteSceneCanvas" aria-label="Pixel art blindfold record shop scene"></canvas>
+            <p class="sr-only" id="rouletteA11yStatus" role="status" aria-live="polite">Mask on. Pull three records to begin.</p>
             <div class="dig-overlay" id="digOverlay">
               <strong>Blindfold crate dig</strong>
               <span>Grab three mystery records, chop them, then build a loop.</span>
             </div>
           </div>
 
-          <div class="roulette-transport">
+          <div class="roulette-transport hardware-transport">
             <button class="dig-btn" id="blindDigBtn">Blind dig</button>
             <button class="source-btn" id="surpriseBeatBtn">Auto flip</button>
             <button class="source-btn" id="playBeatBtn">Play</button>
@@ -73,23 +75,23 @@
         </section>
 
         <aside class="roulette-panel">
-          <div class="lab-block">
+          <div class="lab-block" data-accent="score">
             <div class="block-title">Mystery Pulls</div>
             <div class="record-pulls" id="recordPulls"></div>
           </div>
 
-          <div class="lab-block">
+          <div class="lab-block" data-accent="tempo">
             <div class="block-title">Sample Pads</div>
             <div class="current-sample" id="currentSampleReadout">Pull records to load the pad bank.</div>
             <div class="sample-bank" id="sampleBank"></div>
           </div>
 
-          <div class="lab-block">
+          <div class="lab-block" data-accent="danger">
             <div class="block-title">Beat Grid</div>
             <div class="sequencer" id="sequencerGrid" aria-label="Rhythm sequencer grid"></div>
           </div>
 
-          <div class="lab-block">
+          <div class="lab-block" data-accent="success">
             <div class="block-title">Mission</div>
             <div class="roulette-mission">
               <strong id="missionTitle">No peeking</strong>
@@ -97,7 +99,7 @@
             </div>
           </div>
 
-          <div class="lab-block">
+          <div class="lab-block" data-accent="warning">
             <div class="block-title">Crate Receipt</div>
             <div class="crate-receipt" id="crateReceipt">No receipt yet.</div>
           </div>
