@@ -179,16 +179,18 @@ async function verifySetScope(page) {
   await expectVisible(page, "#djMentorPanel", "SetScope DJ Mentor panel");
   await expectVisible(page, "#setCoachPanel", "SetScope coach panel");
   await expectVisible(page, "#nextMovePanel", "SetScope next move panel");
-  await expectText(page, "#nextMoveMode", "Pitch Gates", "first session recommendation");
+  await expectVisible(page, "#skillGraphPanel", "cross-session skill constellation");
+  await expectText(page, "#skillFocus", "Signal", "new learner skill focus");
+  await expectText(page, "#nextMoveMode", "Audio Lab", "first session recommendation");
   await page.locator("#nextMoveBtn").click();
-  await page.waitForURL(/pitch-gates\.html/);
+  await page.waitForURL(/audio-lab\.html/);
   await expectVisible(page, "[data-practice-context]", "armed practice mission");
   const missionContract = await page.evaluate(() => {
     const draft = JSON.parse(localStorage.getItem("setscope-draft-v1") || "{}");
     return draft.practiceMissions?.[0];
   });
   assert(missionContract?.status === "active", "next move should persist an active mission");
-  assert(missionContract?.modeId === "pitch-gates", "next move should preserve its tool");
+  assert(missionContract?.modeId === "audio-lab", "next move should preserve its tool");
   assert(new URL(page.url()).searchParams.get("missionId") === missionContract.id, "tool route should carry the mission id");
   await page.locator("[data-context-return]").click();
   await page.waitForURL(/\/(?:index\.html)?(?:\?|$)/);

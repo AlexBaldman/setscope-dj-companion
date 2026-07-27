@@ -171,6 +171,7 @@ See [docs/PITCH_GATES.md](docs/PITCH_GATES.md) for minigame inputs, browser audi
 See [docs/ADAPTIVE_PRACTICE.md](docs/ADAPTIVE_PRACTICE.md) for the shared Musician Profile and learning loop.
 See [docs/ARCADE_LAB_ROADMAP.md](docs/ARCADE_LAB_ROADMAP.md) for the multi-minigame control system and next playable modes.
 See [docs/PLATFORM_STRATEGY.md](docs/PLATFORM_STRATEGY.md) for the native iOS and desktop packaging recommendation.
+See [docs/MIDI_IDEA_BANK.md](docs/MIDI_IDEA_BANK.md) for the device-first MIDI Playground, Alex's hardware compatibility matrix, and the long-range music/game/geometry inspiration bank.
 
 ## Product Priorities
 

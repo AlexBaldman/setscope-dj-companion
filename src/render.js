@@ -3,6 +3,8 @@ import { createDjMentorModel, createDjMoveCard } from "./dj-mentor.js";
 import { buildPracticeHref } from "./practice-context.js";
 import { createSetCoachModel } from "./set-coach.js";
 import { deriveSessionSpine, modeLabel } from "./session-spine.js";
+import { loadMusicianProfile } from "./musician-profile.js";
+import { deriveSkillGraph, loadSkillLedger } from "./skill-graph.js";
 import {
   audioEventLabels,
   audioEventsForTrack,
@@ -85,13 +87,14 @@ export function createRenderer(els, handlers) {
     renderSummary();
     renderSetCoach();
     renderDjMentor();
-    renderSessionSpine();
+    const skillGraph = renderSkillGraph();
+    renderSessionSpine(skillGraph);
     drawSetMap(els.setMapCanvas, state.tracks.map(normalizeTrack), getSelectedId());
   }
 
-  function renderSessionSpine() {
+  function renderSessionSpine(skillGraph) {
     const track = getSelectedTrack();
-    const session = deriveSessionSpine(state, track);
+    const session = deriveSessionSpine(state, track, { skillGraph });
     const move = session.nextMove;
     els.nextMoveEyebrow.textContent = move.eyebrow;
     els.nextMoveTitle.textContent = move.title;
@@ -107,6 +110,31 @@ export function createRenderer(els, handlers) {
     els.nextMoveBtn.dataset.mission = move.prompt;
     els.nextMoveBtn.dataset.missionId = move.missionId;
     els.nextMoveBtn.dataset.trackId = move.trackId || "";
+  }
+
+  function renderSkillGraph() {
+    const graph = deriveSkillGraph({
+      profile: loadMusicianProfile(),
+      ledger: loadSkillLedger(),
+      events: state.audioEvents,
+    });
+    els.skillOverall.textContent = graph.overall;
+    els.skillFocus.textContent = `${graph.focus.label} / ${graph.focus.detail}`;
+    els.skillEvidence.textContent = `${graph.trustedEvidence} trusted / ${graph.guidedEvidence} guided`;
+    els.skillGraphNodes.innerHTML = graph.nodes
+      .map((node) => `
+        <div class="skill-node" data-skill="${escapeHtml(node.id)}" style="--skill-level:${node.level};--skill-confidence:${node.confidence}">
+          <div class="skill-node-orbit" aria-hidden="true"><i></i></div>
+          <div>
+            <strong>${escapeHtml(node.label)}</strong>
+            <span>${escapeHtml(node.detail)} / ${escapeHtml(node.status)}</span>
+          </div>
+          <b>${node.level}</b>
+          <small>${node.confidence}% proof</small>
+        </div>
+      `)
+      .join("");
+    return graph;
   }
 
   function renderInspector(track) {

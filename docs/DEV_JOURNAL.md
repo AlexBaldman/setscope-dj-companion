@@ -1232,3 +1232,36 @@ The toolbelt now has a center. A recognized record can become an assignment, an
 assignment can become evidence, and that evidence determines the next useful
 move. The same portable mission shape can later coordinate ShazamKit, native
 audio capture, and SwiftUI tools without rebuilding the learning model.
+
+## 2026-07-27 - Cross-Session Skill Constellation and MIDI Bench
+
+We made learning history survive individual sets and grounded the MIDI roadmap in
+the controllers available for hands-on testing.
+
+What changed:
+
+- Added a portable, bounded Skill Ledger that deduplicates performance receipts
+  across set resets.
+- Added Ear, Pitch, Rhythm, Signal, and Transfer nodes with separate performance
+  level and trusted-evidence confidence.
+- Kept demo and guided activity visible without allowing it to promote mastery.
+- Fed the weakest meaningful skill back into Next Move after a track's core loop.
+- Made a new learner establish a comfortable, trustworthy signal in Audio Lab
+  before chasing pitch targets.
+- Added a responsive Skill Constellation to the Signal workspace.
+- Added deterministic coverage for evidence normalization, deduplication,
+  cross-session aggregation, and assistance boundaries.
+- Researched Web MIDI, MIDI 2.0, CoreMIDI, permissions, Profiles, MPE, and adapter
+  boundaries from current primary documentation.
+- Created `docs/MIDI_IDEA_BANK.md` with more than eighty product ideas, expert
+  lenses, scientific-framing guardrails, architecture, and staged priorities.
+- Centered the first hardware work on the Sensel Morph overlays, original Korg
+  nanoKEY, Maschine Studio, Maschine Jam, and a protocol-probed DJ Hero deck.
+
+Why this matters:
+
+SetScope can now remember what the musician is actually developing instead of
+only remembering a high score. The next hardware brick also has a real test bench:
+we can begin with a simple keyboard, graduate to pressure and pad matrices, and
+let the vintage DJ controller reveal whether it needs MIDI, Gamepad, or HID rather
+than guessing.

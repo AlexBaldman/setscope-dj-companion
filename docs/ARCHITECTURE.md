@@ -26,6 +26,7 @@
 - `src/performance-events.js`: structured toolbelt practice/game event persistence.
 - `src/practice-context.js`: URL-addressable selected-track assignments, tool mission display, and exact track/event return links.
 - `src/session-spine.js`: portable Practice Mission contract, session progression model, and context-aware Next Move recommendation.
+- `src/skill-graph.js`: bounded cross-session skill ledger, trusted-evidence normalization, and five-node learner constellation.
 - `src/pitch-gates.js`: thin page controller for pitch input, the source clock, Canvas projection, and timeline event output.
 - `src/pitch-gates/challenge.js`: seeded, versioned Pitch Gates challenge generation with fixed musical timestamps.
 - `src/pitch-gates/pitch-filter.js`: game-specific confidence hysteresis, octave correction, median/EMA smoothing, and dropout grace over reusable raw pitch frames.
@@ -41,6 +42,7 @@
 - `src/design-tokens.css`: shared foundation, semantic signal colors, room identity hook, control sizing, typography, and motion tokens.
 - `src/tool-registry.js`: shared SetScope tool rack and registered tool metadata.
 - `docs/DESIGN_SYSTEM.md`: screenshot-led design principles, audit findings, implemented decisions, and responsive backlog.
+- `docs/MIDI_IDEA_BANK.md`: researched MIDI capability boundaries, device-first hardware plan, feature catalog, and portable adapter direction.
 - `assets/theme/lightning-bulb-toggle-ui.png`: original inked lightning-filament theme-toggle illustration.
 - `src/workflows.js`: recognition loop, archive save/load, export/copy, mic capture, new-set workflow.
 - `src/dom.js`: DOM element references for the main app.
@@ -95,6 +97,7 @@
 - Shared app headers, semantic accent tokens, metric racks, instrument screens, hardware transports, focus treatment, and reduced-motion behavior now give every surface a consistent interaction language without flattening its visual identity.
 - DJ Mentor practice launches now carry the selected track into Pitch Gates, Rhythm Roulette, and Audio Lab; completed runs auto-attach, receive practice labels, and return to the cockpit with the saved event open.
 - The Session Spine now persists track-specific practice missions inside the SetDraft envelope, recommends the next useful tool, resumes unfinished assignments, and closes missions against exact performance-event evidence.
+- Completed tool runs now also write deduplicated cross-session skill receipts. The Skill Constellation keeps level separate from evidence confidence, excludes guided/demo work from promotion, and can steer Next Move toward calibration or a weak trusted skill.
 - The main deck now runs a continuous listening transport with explicit start/stop ownership, configurable cadence, abortable capture/API work, session metrics, and bounded retry behavior.
 - SetScope now projects the same cockpit into three explicit responsive workspaces. Workspace selection and disclosure preferences are isolated from SetDraft, selected-track actions reveal the relevant narrow-screen workspace, and Listen remains available across every mode.
 - Recognition windows now carry persistent session identity, set-relative timing, request and observation IDs, explicit outcomes, provider deadlines, cancellation, and visible provenance. Bounded binary audio stays ephemeral, committed observations replay from SQLite after restart without invoking the provider again, and provider errors cannot create fake timeline tracks.
@@ -115,11 +118,11 @@
 
 ## Recommended Next Refactor
 
-1. Add a unified session-history view that reads the new mission ledger alongside recognition receipts and performance evidence, with a concise Next Move launcher available from Timeline and Intel.
+1. Build the MIDI Playground Hardware Census and normalized MIDI observation contract, then connect the nanoKEY, Sensel Morph, Maschine Studio, and Maschine Jam through deterministic adapters.
 
-2. Add a dedicated archive study view with sorting, faceted filters, set comparison, and track-level jump targets on top of the completed full-text index.
+2. Add a unified session-history view that reads the mission and skill ledgers alongside recognition receipts and performance evidence.
 
-3. Extend the adaptive spine with cross-session skill history and call-and-response drills. Keep user comfort confirmation distinct from detector confidence.
+3. Add a dedicated archive study view with sorting, faceted filters, set comparison, and track-level jump targets on top of the completed full-text index.
 
 4. Extend the now-visible recognition provenance badges across mentor interpretation, generated signals, scientific models, and saved performance evidence.
 

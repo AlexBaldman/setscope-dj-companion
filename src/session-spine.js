@@ -64,7 +64,7 @@ export function completePracticeMission(mission, event, completedAt = new Date()
   };
 }
 
-export function deriveSessionSpine(draft = {}, selectedTrack = null) {
+export function deriveSessionSpine(draft = {}, selectedTrack = null, { skillGraph = null } = {}) {
   const tracks = Array.isArray(draft.tracks) ? draft.tracks : [];
   const events = Array.isArray(draft.audioEvents) ? draft.audioEvents : [];
   const missions = (Array.isArray(draft.practiceMissions) ? draft.practiceMissions : []).map(normalizePracticeMission);
@@ -72,7 +72,7 @@ export function deriveSessionSpine(draft = {}, selectedTrack = null) {
   const trackMissions = track ? missions.filter((mission) => mission.trackId === track.id) : [];
   const completedModes = completedModesForTrack(track, events, trackMissions);
   const activeMission = trackMissions.find((mission) => mission.status === "active") || null;
-  const nextMove = activeMission ? moveFromMission(activeMission, track) : recommendMove(track, completedModes);
+  const nextMove = activeMission ? moveFromMission(activeMission, track) : recommendMove(track, completedModes, skillGraph);
   const completed = missions.filter((mission) => mission.status === "complete").length;
   const practicedTrackIds = new Set([
     ...missions.filter((mission) => mission.status === "complete").map((mission) => mission.trackId),
@@ -96,7 +96,7 @@ export function modeLabel(modeId) {
   return MODE_LABELS[modeId] || "Practice";
 }
 
-function recommendMove(track, completedModes) {
+function recommendMove(track, completedModes, skillGraph) {
   if (!track) {
     return {
       modeId: "",
@@ -114,6 +114,14 @@ function recommendMove(track, completedModes) {
       title: "Put the signal on the bench",
       detail: "A cleaner read will make every later note and practice result more trustworthy.",
       prompt: `Capture the cleanest stable signal around ${track.title}, compare it with the ${track.key || "open"} key tag, and save one evidence-backed read.`,
+    });
+  }
+  if (skillGraph?.focus?.id === "signal" && skillGraph.focus.evidenceCount === 0) {
+    return buildMove("audio-lab", track, {
+      eyebrow: "Establish your signal",
+      title: "Find a comfortable center",
+      detail: "A stable starting note gives every pitch mission a playable home base.",
+      prompt: `Use Audio Lab to find one comfortable stable note, set your center, and attach the cleanest read to ${track.title}.`,
     });
   }
   if (!completedModes.has("pitch-gates")) {
@@ -141,10 +149,32 @@ function recommendMove(track, completedModes) {
       prompt: `Capture one stable signal from ${track.title}, compare pitch and level, and attach the cleanest snapshot to this set moment.`,
     });
   }
+  return skillMove(track, skillGraph?.focus);
+}
+
+function skillMove(track, focus) {
+  if (focus?.modeId === "rhythm-roulette") {
+    return buildMove("rhythm-roulette", track, {
+      eyebrow: "Skill focus / Rhythm",
+      title: "Deepen the pocket",
+      detail: `${focus.confidence}% confidence / ${focus.level}% level. Build more trusted rhythm evidence.`,
+      prompt: `Make a fresh unassisted flip beside ${track.title}; clear the constraint and improve pocket or originality.`,
+    });
+  }
+  if (focus?.modeId === "audio-lab") {
+    return buildMove("audio-lab", track, {
+      eyebrow: "Skill focus / Signal",
+      title: "Strengthen the read",
+      detail: `${focus.confidence}% confidence / ${focus.level}% level. Add a stable, precise signal receipt.`,
+      prompt: `Capture a stable hold from ${track.title}, center it cleanly, and save trustworthy signal evidence.`,
+    });
+  }
   return buildMove("pitch-gates", track, {
-    eyebrow: "Level up the loop",
-    title: "Beat your cleanest take",
-    detail: "This moment has a full evidence trail. Repeat it with less assistance or a tighter register.",
+    eyebrow: `Skill focus / ${focus?.label || "Pitch"}`,
+    title: focus?.id === "transfer" ? "Bring the skill back to music" : "Beat your cleanest take",
+    detail: focus
+      ? `${focus.confidence}% confidence / ${focus.level}% level. The graph is choosing the next useful repetition.`
+      : "This moment has a full evidence trail. Repeat it with less assistance or a tighter register.",
     prompt: `Replay the hook mission for ${track.title} with a steadier hold and improve the last trustworthy score.`,
   });
 }

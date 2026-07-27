@@ -1,6 +1,7 @@
 import { persistAudioEvent } from "./state.js";
 import { createPerformanceEventV2, QUARANTINED_METADATA_V1 } from "./contracts/performance-event.js";
 import { normalizePerformanceMetadata } from "./migrations/performance-event-v1.js";
+import { recordSkillEvidence } from "./skill-graph.js";
 
 export function createPerformanceEvent({
   modeId,
@@ -168,7 +169,7 @@ export function persistPerformanceEvent(event) {
       metadata,
     });
   }
-  return persistAudioEvent({
+  const saved = persistAudioEvent({
     type: audioEventTypeForMode(metadata.modeId),
     labels: labelsForMode(metadata.modeId),
     trackId: metadata.trackId,
@@ -177,6 +178,8 @@ export function persistPerformanceEvent(event) {
     detail: metadata.evidence?.summary || `${metadata.sourceLabel} / ${metadata.score} pts / streak ${metadata.streak}`,
     metadata,
   });
+  recordSkillEvidence(metadata, saved.id);
+  return saved;
 }
 
 function labelsForMode(modeId) {
