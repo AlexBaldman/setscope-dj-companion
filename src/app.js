@@ -8,6 +8,7 @@ import { nearestTrackFromMap } from "./set-map.js";
 import {
   addTrack as addStateTrack,
   appendSelectedTrackNote,
+  armPracticeMission,
   getAudioEventById,
   getSelectedTrack,
   mergeSelectedDuplicate,
@@ -252,6 +253,19 @@ function runCoachAction(dataset) {
   }
 }
 
+function launchNextMove() {
+  const track = getSelectedTrack();
+  const modeId = els.nextMoveBtn.dataset.modeId;
+  if (!track || !modeId) return;
+  const mission = armPracticeMission({
+    modeId,
+    track,
+    prompt: els.nextMoveBtn.dataset.mission,
+  });
+  if (!mission) return;
+  window.location.href = buildPracticeHref(modeId, track, mission.prompt, mission.id);
+}
+
 function readRouteContext() {
   const params = new URLSearchParams(window.location.search);
   const trackId = params.get("track") || "";
@@ -261,7 +275,7 @@ function readRouteContext() {
   }
   return {
     eventId,
-    hasContext: params.has("track") || params.has("event") || params.has("mission"),
+    hasContext: params.has("track") || params.has("event") || params.has("mission") || params.has("missionId"),
   };
 }
 
@@ -270,6 +284,7 @@ function clearRouteContext() {
   url.searchParams.delete("track");
   url.searchParams.delete("event");
   url.searchParams.delete("mission");
+  url.searchParams.delete("missionId");
   window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
 }
 
@@ -307,6 +322,7 @@ document.querySelector("#mergeDuplicateBtn").addEventListener("click", mergeDupl
 document.querySelector("#closeEventDrawerBtn").addEventListener("click", closeAudioEvent);
 document.querySelector("#reassignEventBtn").addEventListener("click", reassignSelectedAudioEvent);
 document.querySelector("#promoteEventBtn").addEventListener("click", promoteSelectedAudioEvent);
+els.nextMoveBtn.addEventListener("click", launchNextMove);
 
 els.timelineSearch.addEventListener("input", (event) => {
   uiState.query = event.target.value;

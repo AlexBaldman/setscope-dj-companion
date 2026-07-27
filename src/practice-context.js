@@ -1,3 +1,6 @@
+import { migrateSetDraft, serializeSetDraft } from "./contracts/set-draft.js";
+import { completePracticeMission } from "./session-spine.js";
+
 const DRAFT_STORAGE_KEY = "setscope-draft-v1";
 
 export const practiceToolPaths = {
@@ -6,20 +9,22 @@ export const practiceToolPaths = {
   "rhythm-roulette": "./rhythm-roulette.html",
 };
 
-export function buildPracticeHref(modeId, track, mission = "") {
+export function buildPracticeHref(modeId, track, mission = "", missionId = "") {
   const path = practiceToolPaths[modeId];
   const trackId = typeof track === "string" ? track : track?.id;
   if (!path || !trackId) return path || "./index.html";
   const params = new URLSearchParams({ track: trackId });
   if (mission.trim()) params.set("mission", mission.trim());
+  if (missionId) params.set("missionId", missionId);
   return `${path}?${params.toString()}`;
 }
 
-export function buildSetReturnHref(track, eventId = "") {
+export function buildSetReturnHref(track, eventId = "", missionId = "") {
   const trackId = typeof track === "string" ? track : track?.id;
   const params = new URLSearchParams();
   if (trackId) params.set("track", trackId);
   if (eventId) params.set("event", eventId);
+  if (missionId) params.set("missionId", missionId);
   const query = params.toString();
   return `./index.html${query ? `?${query}` : ""}`;
 }
@@ -46,8 +51,12 @@ export function resolvePracticeContext({ modeId, search = "", draft = null } = {
   const tracks = Array.isArray(draft?.tracks) ? draft.tracks : [];
   const track = tracks.find((item) => item.id === trackId);
   if (!track) return null;
+  const missionId = params.get("missionId") || "";
+  const storedMission = (Array.isArray(draft?.practiceMissions) ? draft.practiceMissions : [])
+    .find((mission) => mission.id === missionId && mission.trackId === track.id && mission.modeId === modeId);
   return {
-    mission: params.get("mission")?.trim() || missionForMode(modeId, track),
+    mission: storedMission?.prompt || params.get("mission")?.trim() || missionForMode(modeId, track),
+    missionId: storedMission?.id || missionId,
     modeId,
     track,
   };
@@ -80,7 +89,7 @@ export function mountPracticeContext(
     };
   }
 
-  const setReturnHref = buildSetReturnHref(context.track);
+  const setReturnHref = buildSetReturnHref(context.track, "", context.missionId);
   updateReturnLinks(root, setReturnHref);
   if (host) {
     host.hidden = false;
@@ -95,14 +104,30 @@ export function mountPracticeContext(
   return {
     ...context,
     markComplete(event) {
+      completeStoredPracticeMission(context.missionId, event);
       const trackId = event?.trackId || context.track.id;
-      const href = buildSetReturnHref(trackId, event?.id);
+      const href = buildSetReturnHref(trackId, event?.id, context.missionId);
       updateReturnLinks(root, href);
       if (!host) return;
       host.dataset.state = "saved";
       setText(host, "[data-context-status]", event?.trackId ? "Run attached" : "Run logged");
     },
   };
+}
+
+function completeStoredPracticeMission(missionId, event, storage = globalThis.localStorage) {
+  if (!missionId || !storage) return null;
+  try {
+    const draft = migrateSetDraft(JSON.parse(storage.getItem(DRAFT_STORAGE_KEY) || "null"));
+    const index = draft.practiceMissions.findIndex((mission) => mission.id === missionId);
+    if (index < 0) return null;
+    const completed = completePracticeMission(draft.practiceMissions[index], event);
+    draft.practiceMissions[index] = completed;
+    storage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(serializeSetDraft(draft)));
+    return completed;
+  } catch {
+    return null;
+  }
 }
 
 function updateReturnLinks(root, href) {

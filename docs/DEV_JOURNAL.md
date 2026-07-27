@@ -1198,3 +1198,37 @@ The games now give the player a beat to understand the assignment, protect them
 from detector uncertainty, and make authored choices more important than
 machine-generated activity. On phones, the playable instrument and result state
 also arrive substantially sooner.
+
+## 2026-07-27 - The Session Spine
+
+We connected listening, track study, practice, and saved evidence into one
+continuous session loop.
+
+What changed:
+
+- Added a portable Practice Mission contract with session, track, tool, prompt,
+  lifecycle, and result-event identity.
+- Extended the existing SetDraft V2 envelope with an additive mission ledger, so
+  archived sets and static builds retain their learning history without a second
+  store.
+- Added a context-aware Next Move instrument to SetScope. It routes uncertain
+  tracks through Audio Lab and advances clean tracks through Pitch Gates, Rhythm
+  Roulette, and signal inspection.
+- Made active missions resumable instead of creating duplicates.
+- Carried exact mission identity, selected track, timestamp, and prompt into all
+  three tools.
+- Made completed tool runs close the originating mission and return the saved
+  performance event to the correct set moment.
+- Added live session totals for records caught, tracks practiced, and missions
+  cleared.
+- Added pure progression and mission-contract tests plus a complete browser
+  click-through from SetScope into Pitch Gates and back.
+- Reviewed desktop, tablet, and mobile captures for overflow, label fit, touch
+  size, and hierarchy.
+
+Why this matters:
+
+The toolbelt now has a center. A recognized record can become an assignment, an
+assignment can become evidence, and that evidence determines the next useful
+move. The same portable mission shape can later coordinate ShazamKit, native
+audio capture, and SwiftUI tools without rebuilding the learning model.

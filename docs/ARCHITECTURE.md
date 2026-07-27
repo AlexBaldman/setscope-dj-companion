@@ -25,6 +25,7 @@
 - `src/pitch-analysis.js`: Pitchy-backed pitch frames and musical pitch helpers.
 - `src/performance-events.js`: structured toolbelt practice/game event persistence.
 - `src/practice-context.js`: URL-addressable selected-track assignments, tool mission display, and exact track/event return links.
+- `src/session-spine.js`: portable Practice Mission contract, session progression model, and context-aware Next Move recommendation.
 - `src/pitch-gates.js`: thin page controller for pitch input, the source clock, Canvas projection, and timeline event output.
 - `src/pitch-gates/challenge.js`: seeded, versioned Pitch Gates challenge generation with fixed musical timestamps.
 - `src/pitch-gates/pitch-filter.js`: game-specific confidence hysteresis, octave correction, median/EMA smoothing, and dropout grace over reusable raw pitch frames.
@@ -93,6 +94,7 @@
 - Rhythm Roulette generates deterministic blind-crate challenges, applies beat edits through a pure reducer, verifies portable replays, and writes saved runs into the same structured audio event timeline.
 - Shared app headers, semantic accent tokens, metric racks, instrument screens, hardware transports, focus treatment, and reduced-motion behavior now give every surface a consistent interaction language without flattening its visual identity.
 - DJ Mentor practice launches now carry the selected track into Pitch Gates, Rhythm Roulette, and Audio Lab; completed runs auto-attach, receive practice labels, and return to the cockpit with the saved event open.
+- The Session Spine now persists track-specific practice missions inside the SetDraft envelope, recommends the next useful tool, resumes unfinished assignments, and closes missions against exact performance-event evidence.
 - The main deck now runs a continuous listening transport with explicit start/stop ownership, configurable cadence, abortable capture/API work, session metrics, and bounded retry behavior.
 - SetScope now projects the same cockpit into three explicit responsive workspaces. Workspace selection and disclosure preferences are isolated from SetDraft, selected-track actions reveal the relevant narrow-screen workspace, and Listen remains available across every mode.
 - Recognition windows now carry persistent session identity, set-relative timing, request and observation IDs, explicit outcomes, provider deadlines, cancellation, and visible provenance. Bounded binary audio stays ephemeral, committed observations replay from SQLite after restart without invoking the provider again, and provider errors cannot create fake timeline tracks.
@@ -113,22 +115,24 @@
 
 ## Recommended Next Refactor
 
-1. Add a dedicated archive study view with sorting, faceted filters, set comparison, and track-level jump targets on top of the completed full-text index.
+1. Add a unified session-history view that reads the new mission ledger alongside recognition receipts and performance evidence, with a concise Next Move launcher available from Timeline and Intel.
 
-2. Extend the adaptive spine with repeated boundary confirmation, per-interval accuracy history, and call-and-response drills. Keep user comfort confirmation distinct from detector confidence.
+2. Add a dedicated archive study view with sorting, faceted filters, set comparison, and track-level jump targets on top of the completed full-text index.
 
-3. Extend the now-visible recognition provenance badges across mentor interpretation, generated signals, scientific models, and saved performance evidence.
+3. Extend the adaptive spine with cross-session skill history and call-and-response drills. Keep user comfort confirmation distinct from detector confidence.
 
-4. Extract the implemented phase behavior into a shared controller and apply it to the Journal and cockpit Next Move surface.
+4. Extend the now-visible recognition provenance badges across mentor interpretation, generated signals, scientific models, and saved performance evidence.
 
-5. Add screenshot comparison baselines for the common app header, responsive cockpit workspaces, and instrument primitives now that their composition is stable.
+5. Extract the implemented phase behavior into a shared controller and apply it to the Journal and cockpit Next Move surface.
 
-6. Keep the provider layer native-app ready.
+6. Add screenshot comparison baselines for the common app header, responsive cockpit workspaces, and instrument primitives now that their composition is stable.
+
+7. Keep the provider layer native-app ready.
    - Web can use AudD or future AcoustID/ACRCloud adapters behind `/api/recognize`.
    - iOS can use ShazamKit behind the same normalized match contract.
    - Keep API keys and vendor details outside the UI and archive schema.
 
-7. Expand schema validation to tracks and audio events before archive migration.
+8. Expand schema validation to tracks, practice missions, and audio events before archive migration.
 
 9. Promote the reusable Audio Lab controls into smaller component modules as Beat Loom and the next musician helpers arrive.
 

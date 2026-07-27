@@ -27,6 +27,7 @@ assert.equal(migrated.schemaVersion, SET_DRAFT_VERSION);
 assert.equal(migrated.skin, "sampler");
 assert.equal(migrated.recognitionSessionId, "");
 assert.equal(migrated.recognitionStartedAt, "");
+assert.deepEqual(migrated.practiceMissions, []);
 assert.equal(migrated.tracks[0].title, "Legacy Groove");
 assert.equal("query" in migrated, false);
 assert.equal("reviewOnly" in migrated, false);

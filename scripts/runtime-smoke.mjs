@@ -178,6 +178,21 @@ async function verifySetScope(page) {
   await goto(page, "/");
   await expectVisible(page, "#djMentorPanel", "SetScope DJ Mentor panel");
   await expectVisible(page, "#setCoachPanel", "SetScope coach panel");
+  await expectVisible(page, "#nextMovePanel", "SetScope next move panel");
+  await expectText(page, "#nextMoveMode", "Pitch Gates", "first session recommendation");
+  await page.locator("#nextMoveBtn").click();
+  await page.waitForURL(/pitch-gates\.html/);
+  await expectVisible(page, "[data-practice-context]", "armed practice mission");
+  const missionContract = await page.evaluate(() => {
+    const draft = JSON.parse(localStorage.getItem("setscope-draft-v1") || "{}");
+    return draft.practiceMissions?.[0];
+  });
+  assert(missionContract?.status === "active", "next move should persist an active mission");
+  assert(missionContract?.modeId === "pitch-gates", "next move should preserve its tool");
+  assert(new URL(page.url()).searchParams.get("missionId") === missionContract.id, "tool route should carry the mission id");
+  await page.locator("[data-context-return]").click();
+  await page.waitForURL(/\/(?:index\.html)?(?:\?|$)/);
+  await expectText(page, "#nextMoveAction", "Resume", "armed mission resume state");
   const deckFit = await page.evaluate(() => {
     const deck = document.querySelector(".deck-visual")?.getBoundingClientRect();
     const pads = [...document.querySelectorAll(".sampler-pad")];

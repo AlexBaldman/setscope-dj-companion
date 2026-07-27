@@ -2,6 +2,7 @@ import { drawSetMap } from "./set-map.js";
 import { createDjMentorModel, createDjMoveCard } from "./dj-mentor.js";
 import { buildPracticeHref } from "./practice-context.js";
 import { createSetCoachModel } from "./set-coach.js";
+import { deriveSessionSpine, modeLabel } from "./session-spine.js";
 import {
   audioEventLabels,
   audioEventsForTrack,
@@ -84,7 +85,28 @@ export function createRenderer(els, handlers) {
     renderSummary();
     renderSetCoach();
     renderDjMentor();
+    renderSessionSpine();
     drawSetMap(els.setMapCanvas, state.tracks.map(normalizeTrack), getSelectedId());
+  }
+
+  function renderSessionSpine() {
+    const track = getSelectedTrack();
+    const session = deriveSessionSpine(state, track);
+    const move = session.nextMove;
+    els.nextMoveEyebrow.textContent = move.eyebrow;
+    els.nextMoveTitle.textContent = move.title;
+    els.nextMoveDetail.textContent = move.detail;
+    els.nextMoveMode.textContent = move.modeId ? modeLabel(move.modeId) : "Listen";
+    els.nextMoveAction.textContent = move.action;
+    els.nextMoveTrack.textContent = track?.title || "Catch the first record";
+    els.sessionCaptured.textContent = session.stats.captured;
+    els.sessionPracticed.textContent = session.stats.practiced;
+    els.sessionCompleted.textContent = session.stats.missionsCompleted;
+    els.nextMoveBtn.disabled = !move.modeId;
+    els.nextMoveBtn.dataset.modeId = move.modeId;
+    els.nextMoveBtn.dataset.mission = move.prompt;
+    els.nextMoveBtn.dataset.missionId = move.missionId;
+    els.nextMoveBtn.dataset.trackId = move.trackId || "";
   }
 
   function renderInspector(track) {

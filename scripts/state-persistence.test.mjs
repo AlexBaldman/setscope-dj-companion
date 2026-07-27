@@ -24,6 +24,7 @@ persist();
 const durableOnly = JSON.parse(localStorage.getItem("setscope-draft-v1"));
 assert.equal(durableOnly.schema, "setscope.set-draft");
 assert.equal(durableOnly.schemaVersion, 2);
+assert.deepEqual(durableOnly.practiceMissions, []);
 assert.equal("query" in durableOnly, false);
 assert.equal("reviewOnly" in durableOnly, false);
 assert.equal("signalFilter" in durableOnly, false);

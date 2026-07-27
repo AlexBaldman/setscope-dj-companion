@@ -13,6 +13,7 @@ export function migrateSetDraft(input = {}) {
     archiveId: typeof source.archiveId === "string" && source.archiveId ? source.archiveId : null,
     captureLog: cloneArray(source.captureLog),
     audioEvents: cloneArray(source.audioEvents),
+    practiceMissions: cloneArray(source.practiceMissions),
     tracks: cloneArray(source.tracks),
   };
 }
@@ -29,6 +30,7 @@ export function validateSetDraft(input) {
   if (!Array.isArray(input?.tracks)) errors.push("tracks must be an array");
   if (!Array.isArray(input?.captureLog)) errors.push("captureLog must be an array");
   if (!Array.isArray(input?.audioEvents)) errors.push("audioEvents must be an array");
+  if (!Array.isArray(input?.practiceMissions)) errors.push("practiceMissions must be an array");
   if (typeof input?.recognitionSessionId !== "string") errors.push("recognitionSessionId must be text");
   if (typeof input?.recognitionStartedAt !== "string") errors.push("recognitionStartedAt must be text");
   return { ok: errors.length === 0, errors };

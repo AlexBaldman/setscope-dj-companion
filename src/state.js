@@ -2,6 +2,11 @@ import { cloneDemoTracks, demoTracks } from "./fixtures.js";
 import { randomColors, toSeconds, uid } from "./utils.js";
 import { normalizePerformanceMetadata } from "./migrations/performance-event-v1.js";
 import { migrateSetDraft, serializeSetDraft } from "./contracts/set-draft.js";
+import {
+  completePracticeMission as closePracticeMission,
+  createPracticeMission,
+  normalizePracticeMission,
+} from "./session-spine.js";
 
 const STORAGE_KEY = "setscope-draft-v1";
 
@@ -44,6 +49,9 @@ export function hydrateState(nextState) {
       ...event,
       metadata: normalizePerformanceMetadata(event.metadata),
     }));
+  draft.practiceMissions = draft.practiceMissions
+    .filter((mission) => mission && typeof mission === "object" && !Array.isArray(mission))
+    .map(normalizePracticeMission);
   return draft;
 }
 
@@ -168,6 +176,38 @@ export function appendSelectedTrackNote(note) {
   }
   persist();
   return track;
+}
+
+export function armPracticeMission({ modeId, track = getSelectedTrack(), prompt = "", source = "next-move" } = {}) {
+  if (!track?.id) return null;
+  const active = state.practiceMissions.find(
+    (mission) => mission.trackId === track.id && mission.modeId === modeId && mission.status === "active",
+  );
+  if (active) return active;
+  const mission = createPracticeMission({
+    id: uid(),
+    sessionId: state.recognitionSessionId,
+    track,
+    modeId,
+    prompt,
+    source,
+  });
+  state.practiceMissions.unshift(mission);
+  state.practiceMissions = state.practiceMissions.slice(0, 50);
+  persist();
+  return mission;
+}
+
+export function completePracticeMission(missionId, event) {
+  if (!missionId) return null;
+  const latest = hydrateState(loadState());
+  const index = latest.practiceMissions.findIndex((mission) => mission.id === missionId);
+  if (index < 0) return null;
+  const completed = closePracticeMission(latest.practiceMissions[index], event);
+  latest.practiceMissions[index] = completed;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(serializeSetDraft(latest)));
+  state.practiceMissions = latest.practiceMissions;
+  return completed;
 }
 
 export function addTrack(track = {}) {
@@ -462,6 +502,7 @@ export function resetForNewSet() {
   state.archiveId = null;
   state.captureLog = [];
   state.audioEvents = [];
+  state.practiceMissions = [];
   state.recognitionCursor = 0;
   state.recognitionSessionId = uid();
   state.recognitionStartedAt = new Date().toISOString();
