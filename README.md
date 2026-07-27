@@ -23,6 +23,7 @@ SetScope is a local-first DJ set companion and musician toolbelt. It turns a lis
 - Audio Lab, a tuner and oscilloscope with practice locks and track-aware snapshots
 - shared musician calibration and adaptive practice guidance across Pitch Gates and Audio Lab
 - Rhythm Roulette, a deterministic blind-crate sequencer with portable run replays
+- MIDI Playground, a controller census, event monitor, and MIDI Learn workbench
 - responsive Signal, Timeline, and Intel workspaces for phone, tablet, and desktop
 
 Run it locally:
@@ -33,7 +34,7 @@ npm run dev
 
 Then open `http://127.0.0.1:5173`.
 
-The shared tool rack opens Pitch Gates, Audio Lab, Rhythm Roulette, and the Dev Journal. Microphone, an audio file, an internal demo source, or explicitly shared browser/system audio can drive supported tools.
+The shared tool rack opens Pitch Gates, Audio Lab, Rhythm Roulette, MIDI Playground, and the Dev Journal. Microphone, an audio file, an internal demo source, explicitly shared browser/system audio, touch, keyboard, or mapped MIDI can drive supported tools.
 
 The app can still be opened directly from `index.html`, but the recognition demo uses the local API server.
 
@@ -172,6 +173,8 @@ See [docs/ADAPTIVE_PRACTICE.md](docs/ADAPTIVE_PRACTICE.md) for the shared Musici
 See [docs/ARCADE_LAB_ROADMAP.md](docs/ARCADE_LAB_ROADMAP.md) for the multi-minigame control system and next playable modes.
 See [docs/PLATFORM_STRATEGY.md](docs/PLATFORM_STRATEGY.md) for the native iOS and desktop packaging recommendation.
 See [docs/MIDI_IDEA_BANK.md](docs/MIDI_IDEA_BANK.md) for the device-first MIDI Playground, Alex's hardware compatibility matrix, and the long-range music/game/geometry inspiration bank.
+See [docs/BEAT_SCHOOL_ROADMAP.md](docs/BEAT_SCHOOL_ROADMAP.md) for the hip-hop-first pad curriculum, educational scoring model, keyboard expansion, and original loop studio.
+See [docs/MUSIC_GAME_REMIX_ATLAS.md](docs/MUSIC_GAME_REMIX_ATLAS.md) for original game-mode families inspired by the full history of rhythm, puzzle, arcade, instrument, and science-exhibit interaction.
 
 ## Product Priorities
 

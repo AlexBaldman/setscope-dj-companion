@@ -9,6 +9,7 @@ const publicFiles = [
   "pitch-gates.html",
   "audio-lab.html",
   "rhythm-roulette.html",
+  "midi-playground.html",
   "journal.html",
 ];
 const publicDirectories = ["src", "assets"];

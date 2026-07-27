@@ -38,6 +38,12 @@ try {
   await page.goto(`http://127.0.0.1:${port}/journal.html?static-demo=1`, { waitUntil: "networkidle" });
   await page.waitForFunction(() => document.querySelector("#saveStatus")?.textContent === "Loaded");
   assert((await page.locator("#entryList .entry-card").count()) > 5);
+
+  await page.goto(`http://127.0.0.1:${port}/midi-playground.html?static-demo=1`, { waitUntil: "networkidle" });
+  await page.locator("#demoMidiBtn").click();
+  await page.waitForFunction(() => Number(document.querySelector("#eventCount")?.textContent) >= 4);
+  assert.equal(await page.locator("#padField > i").count(), 16);
+  assert((await page.locator("#midiEventLog .midi-event").count()) >= 4);
   assert.deepEqual(problems, []);
   console.log("GitHub Pages browser checks passed");
 } finally {

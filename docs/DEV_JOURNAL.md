@@ -1265,3 +1265,40 @@ only remembering a high score. The next hardware brick also has a real test benc
 we can begin with a simple keyboard, graduate to pressure and pad matrices, and
 let the vintage DJ controller reveal whether it needs MIDI, Gamepad, or HID rather
 than guessing.
+
+## 2026-07-27 - MIDI Playground and Beat School Path
+
+We turned the device-first MIDI plan into a working browser instrument and
+defined the learning experience it should unlock.
+
+What changed:
+
+- Added a versioned normalized observation contract for MIDI, Gamepad, HID, and
+  deterministic demo input.
+- Added parsing for notes, pressure, control changes, program changes, pitch
+  bend, transport, and clock messages.
+- Built a responsive MIDI Playground with a 4x4 pad monitor, bounded event log,
+  connection status, and a census rack for the actual hardware bench.
+- Added ordinary Web MIDI access without SysEx plus explicit Gamepad and WebHID
+  probes for the DJ Hero controller and other unusual devices.
+- Added local MIDI Learn mappings that capture the next gesture as a semantic
+  SetScope action.
+- Added parser, browser, static-build, navigation, and responsive coverage.
+- Defined Beat School as the post-census flagship: hip-hop pad fundamentals
+  first, keyboard chords and theory next, and original looping as the capstone.
+- Documented the Hear, Watch, Imitate, Repair, Perform, Remix, Save lesson loop
+  and separate scoring for accuracy, pocket, dynamics, memory, recovery, and
+  originality.
+
+Why this matters:
+
+Hardware is no longer an isolated integration project. Every controller can feed
+the same portable event language, and that language now has a clear destination:
+a forgiving, musically honest learning game that grows into creation.
+
+We also created `docs/MUSIC_GAME_REMIX_ATLAS.md` to turn the broader music-game
+vision into connected product families. Pocket Highway, Beat Rescue, Sample
+Alchemy, Harmony Blocks, Orbit Choir, Scratch Circuit, Rhythm Architect, and the
+vibration rooms all reuse the same input, clock, replay, evidence, and creation
+spine. The first recommendation remains Pocket Highway because it converts the
+new MIDI foundation directly into the first Beat School lesson.

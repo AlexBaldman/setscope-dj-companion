@@ -51,6 +51,7 @@ async function runDesktopFlow() {
   await verifyRhythmRoulette(page);
   await verifyPitchGates(page);
   await verifyAudioLab(page);
+  await verifyMidiPlayground(page);
   await verifyJournal(page);
   collectRuntimeProblems(logs);
   await context.close();
@@ -105,6 +106,7 @@ async function runResponsiveOverflowPass(viewName, viewport) {
     [`roulette-${viewName}`, "/rhythm-roulette.html"],
     [`pitch-gates-${viewName}`, "/pitch-gates.html"],
     [`audio-lab-${viewName}`, "/audio-lab.html"],
+    [`midi-${viewName}`, "/midi-playground.html"],
     [`journal-${viewName}`, "/journal.html"],
   ];
   for (const [label, path] of routes) {
@@ -125,6 +127,7 @@ async function verifyFirstViewportAction(page, path, viewName) {
     "/pitch-gates.html": "#startRoundBtn",
     "/audio-lab.html": "#logSnapshotBtn",
     "/rhythm-roulette.html": "#blindDigBtn",
+    "/midi-playground.html": "#connectMidiBtn",
   }[path];
   if (!selector) return;
   const geometry = await page.locator(selector).evaluate((element) => ({
@@ -377,10 +380,26 @@ async function verifyAudioLab(page) {
   await auditPage(page, "audio-lab-desktop");
 }
 
+async function verifyMidiPlayground(page) {
+  await goto(page, "/midi-playground.html");
+  await expectVisible(page, "#padField", "MIDI Playground pad monitor");
+  await expectCount(page, "#padField > i", 16, "MIDI Playground pad matrix");
+  await expectCount(page, "#deviceSlots [data-device-family]", 5, "MIDI hardware census rack");
+  await page.locator("#demoMidiBtn").click();
+  await page.waitForFunction(() => Number(document.querySelector("#eventCount")?.textContent) >= 4);
+  assert((await page.locator("#midiEventLog .midi-event").count()) >= 4, "MIDI demo should emit normalized observations");
+  await page.locator("#learnBtn").click();
+  await page.locator("#demoMidiBtn").click();
+  await page.waitForFunction(() => document.querySelector("#mappingCount")?.textContent === "1 map");
+  assert((await page.locator("#learnBtn").getAttribute("aria-pressed")) === "false", "MIDI Learn should disarm after saving");
+  assert(await page.evaluate(() => JSON.parse(localStorage.getItem("setscope-midi-mappings-v1") || "[]").length === 1), "MIDI Learn should persist its mapping");
+  await auditPage(page, "midi-playground-desktop");
+}
+
 async function verifyJournal(page) {
   await goto(page, "/journal.html");
   await expectVisible(page, "#page", "Journal page");
-  await expectCount(page, "[data-tool-rack] .tool-rack-item", 5, "Journal shared tool navigation");
+  await expectCount(page, "[data-tool-rack] .tool-rack-item", 6, "Journal shared tool navigation");
   await page.locator("[data-paper=\"graph\"]").click();
   const paper = await page.locator("body").getAttribute("data-paper");
   assert(paper === "graph", "Journal should switch to graph paper");

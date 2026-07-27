@@ -1,0 +1,143 @@
+:root { --room-accent: #60c7ff; }
+
+.midi-layout {
+  min-height: calc(100vh - 66px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(290px, 0.7fr);
+  gap: 14px;
+  padding: 14px;
+}
+
+.midi-rig,
+.midi-side { min-width: 0; display: grid; gap: 12px; align-content: start; }
+.midi-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.midi-metrics .metric-cell {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+}
+.midi-metrics .metric-cell span { color: var(--muted); font-size: 10px; text-transform: uppercase; }
+.midi-metrics .metric-cell strong { min-width: 0; overflow: hidden; font: 800 14px var(--font-data); text-overflow: ellipsis; white-space: nowrap; }
+
+.midi-screen {
+  position: relative;
+  min-height: 330px;
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(190px, 0.65fr);
+  gap: 24px;
+  align-items: center;
+  padding: 26px;
+  overflow: hidden;
+  background: #070d10;
+}
+
+.bench-scan {
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent 0 23px, rgba(96,199,255,.055) 24px);
+  pointer-events: none;
+}
+
+.pad-field {
+  position: relative; display: grid; grid-template-columns: repeat(4, minmax(42px, 1fr)); gap: 9px;
+}
+.pad-field i {
+  aspect-ratio: 1; border: 1px solid #28414a; border-radius: 6px;
+  background: #101b20; box-shadow: inset 0 -5px 0 rgba(0,0,0,.28);
+  transition: 100ms ease;
+}
+.pad-field i.active {
+  background: var(--cyan); box-shadow: 0 0 24px rgba(96,199,255,.5), inset 0 -3px 0 rgba(0,0,0,.18);
+  transform: translateY(2px);
+}
+.gesture-readout { position: relative; min-width: 0; display: grid; gap: 8px; }
+.gesture-readout span { color: var(--cyan); font: 800 10px var(--font-data); }
+.gesture-readout strong { min-width: 0; overflow-wrap: anywhere; font: 800 20px var(--font-data); }
+.gesture-meter { height: 9px; border: 1px solid #28414a; background: #0c1518; }
+.gesture-meter i { display: block; width: 0; height: 100%; background: var(--cyan); transition: width 100ms linear; }
+
+.hardware-transport.midi-transport { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.midi-transport button { min-width: 0; padding-inline: 8px; }
+
+.hardware-bench,
+.midi-panel {
+  min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface);
+}
+.bench-head,
+.panel-kicker { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.bench-head span,
+.panel-kicker span { color: var(--cyan); font-size: 9px; font-weight: 850; text-transform: uppercase; }
+.bench-head h2 { margin: 2px 0 0; font-size: 16px; }
+.bench-head b,
+.panel-kicker b { color: var(--muted); font: 750 10px var(--font-data); text-transform: uppercase; }
+.device-slots { margin-top: 10px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; }
+.device-slots > div {
+  min-width: 0; min-height: 82px; display: grid; align-content: center; justify-items: center; gap: 4px;
+  padding: 8px 5px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-2); text-align: center;
+}
+.device-slots i { width: 9px; aspect-ratio: 1; border-radius: 50%; background: var(--muted); }
+.device-slots strong { width: 100%; overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.device-slots span { color: var(--muted); font-size: 8px; text-transform: uppercase; }
+.device-slots [data-state="found"] { border-color: rgba(111,221,177,.52); }
+.device-slots [data-state="found"] i { background: var(--mint); box-shadow: 0 0 12px rgba(111,221,177,.7); }
+
+.midi-panel { display: grid; gap: 10px; }
+.port-list,
+.midi-event-log,
+.mapping-list { display: grid; gap: 6px; max-height: 250px; overflow: auto; }
+.port-list p,
+.mapping-list p,
+.midi-event-log p { margin: 0; color: var(--muted); font-size: 12px; }
+.port-item,
+.midi-event,
+.mapping-list > div { min-width: 0; padding: 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-2); }
+.port-item { display: grid; grid-template-columns: 10px minmax(0, 1fr); align-items: center; gap: 8px; }
+.port-item i { width: 8px; aspect-ratio: 1; border-radius: 50%; background: var(--mint); }
+.port-item span,
+.midi-event { min-width: 0; display: grid; gap: 2px; }
+.port-item strong,
+.port-item small,
+.midi-event span,
+.midi-event small,
+.mapping-list strong,
+.mapping-list span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.port-item strong,
+.midi-event b,
+.mapping-list strong { font-size: 11px; }
+.port-item small,
+.midi-event small,
+.mapping-list span { color: var(--muted); font-size: 8px; }
+.midi-event { grid-template-columns: auto minmax(0, 1fr); }
+.midi-event b { grid-row: 1 / 3; color: var(--cyan); }
+.midi-event span { font-size: 10px; }
+
+.mapping-panel label { display: grid; gap: 4px; color: var(--muted); font-size: 9px; font-weight: 800; text-transform: uppercase; }
+.mapping-panel select,
+.learn-btn {
+  width: 100%; min-height: 42px; padding: 0 10px; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--surface-2); color: var(--text);
+}
+.learn-btn[aria-pressed="true"] { border-color: var(--amber); color: var(--amber); }
+.mapping-list > div { display: grid; gap: 3px; }
+
+@media (max-width: 900px) {
+  .midi-layout { grid-template-columns: 1fr; }
+  .midi-side { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .event-panel { grid-column: 1 / -1; }
+}
+
+@media (max-width: 620px) {
+  .midi-layout { padding: 10px; }
+  .midi-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .midi-screen { min-height: 300px; grid-template-columns: 1fr; gap: 14px; padding: 18px; }
+  .pad-field { width: min(100%, 250px); justify-self: center; }
+  .gesture-readout strong { font-size: 15px; }
+  .hardware-transport.midi-transport { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .midi-transport .start-btn { grid-column: 1 / -1; grid-row: 1; }
+  .device-slots { display: flex; overflow-x: auto; padding-bottom: 3px; }
+  .device-slots > div { min-width: 112px; }
+  .midi-side { grid-template-columns: 1fr; }
+  .event-panel { grid-column: auto; }
+}

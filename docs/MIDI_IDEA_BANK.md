@@ -540,15 +540,16 @@ Consumers receive normalized observations:
 
 ### Now
 
-- Build the normalized MIDI observation contract.
-- Add a deterministic demo adapter and parser tests.
-- Build Connect, Monitor, and MIDI Learn.
+- Validate the Hardware Census against the physical controller bench.
 - Add keyboard input to Pitch Gates.
 - Add pad input to Rhythm Roulette.
 - Add a set-marker mapping.
+- Measure input-to-audio latency before timing-based scoring.
 
 ### Next
 
+- Build the first four-pad hip-hop Beat School lesson described in
+  `docs/BEAT_SCHOOL_ROADMAP.md`.
 - Clock-aware timeline coordinates.
 - Velocity and aftertouch learning.
 - Latency calibration.
@@ -576,3 +577,15 @@ Before building any MIDI idea, ask:
 5. Does it preserve human choice and provenance?
 6. Can the same contract survive web, desktop, and iOS?
 7. Is the scientific framing accurate?
+
+## Implemented Foundation
+
+- Versioned normalized MIDI observation contract
+- MIDI 1 parser and deterministic contract tests
+- Ordinary Web MIDI connection without SysEx
+- Explicit Gamepad and WebHID probes for unusual controllers
+- Deterministic demo source for no-hardware onboarding and CI
+- Bounded live observation monitor and 4x4 pad visualization
+- Local MIDI Learn mappings
+- Named census slots for the Sensel Morph, nanoKEY, Maschine Studio, Maschine
+  Jam, and DJ Hero deck

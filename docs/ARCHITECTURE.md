@@ -118,28 +118,35 @@
 
 ## Recommended Next Refactor
 
-1. Build the MIDI Playground Hardware Census and normalized MIDI observation contract, then connect the nanoKEY, Sensel Morph, Maschine Studio, and Maschine Jam through deterministic adapters.
+1. Validate the completed MIDI Playground Hardware Census against the physical
+   nanoKEY, Sensel Morph, Maschine Studio, Maschine Jam, and DJ Hero bench. Record
+   aliases, capabilities, and latency without leaking device identity outside the
+   local profile.
 
-2. Add a unified session-history view that reads the mission and skill ledgers alongside recognition receipts and performance evidence.
+2. Build the first four-pad hip-hop Beat School lesson on the normalized MIDI
+   contract, deterministic challenge/reducer/replay pattern, and calibrated
+   session clock. See `docs/BEAT_SCHOOL_ROADMAP.md`.
 
-3. Add a dedicated archive study view with sorting, faceted filters, set comparison, and track-level jump targets on top of the completed full-text index.
+3. Add a unified session-history view that reads the mission and skill ledgers alongside recognition receipts and performance evidence.
 
-4. Extend the now-visible recognition provenance badges across mentor interpretation, generated signals, scientific models, and saved performance evidence.
+4. Add a dedicated archive study view with sorting, faceted filters, set comparison, and track-level jump targets on top of the completed full-text index.
 
-5. Extract the implemented phase behavior into a shared controller and apply it to the Journal and cockpit Next Move surface.
+5. Extend the now-visible recognition provenance badges across mentor interpretation, generated signals, scientific models, and saved performance evidence.
 
-6. Add screenshot comparison baselines for the common app header, responsive cockpit workspaces, and instrument primitives now that their composition is stable.
+6. Extract the implemented phase behavior into a shared controller and apply it to the Journal and cockpit Next Move surface.
 
-7. Keep the provider layer native-app ready.
+7. Add screenshot comparison baselines for the common app header, responsive cockpit workspaces, and instrument primitives now that their composition is stable.
+
+8. Keep the provider layer native-app ready.
    - Web can use AudD or future AcoustID/ACRCloud adapters behind `/api/recognize`.
    - iOS can use ShazamKit behind the same normalized match contract.
    - Keep API keys and vendor details outside the UI and archive schema.
 
-8. Expand schema validation to tracks, practice missions, and audio events before archive migration.
+9. Expand schema validation to tracks, practice missions, and audio events before archive migration.
 
-9. Promote the reusable Audio Lab controls into smaller component modules as Beat Loom and the next musician helpers arrive.
+10. Promote the reusable Audio Lab controls into smaller component modules as Beat School and the next musician helpers arrive.
 
-10. Preserve portable schemas and challenge definitions for a native SwiftUI/ShazamKit iOS application and a Tauri-first desktop capture spike; see `docs/PLATFORM_STRATEGY.md`.
+11. Preserve portable schemas and challenge definitions for a native SwiftUI/ShazamKit iOS application and a Tauri-first desktop capture spike; see `docs/PLATFORM_STRATEGY.md`.
 
 ## Recognition Adapter Contract
 

@@ -32,6 +32,14 @@ export const tools = [
     status: "Playable",
   },
   {
+    id: "midi-playground",
+    label: "MIDI Playground",
+    shortLabel: "MIDI",
+    href: "./midi-playground.html",
+    category: "Hardware",
+    status: "Live",
+  },
+  {
     id: "journal",
     label: "Dev Journal",
     shortLabel: "Journal",

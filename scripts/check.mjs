@@ -2,6 +2,10 @@ import { readFile } from "node:fs/promises";
 
 const html = await readFile("index.html", "utf8");
 const audioLabHtml = await readFile("audio-lab.html", "utf8");
+const midiPlaygroundHtml = await readFile("midi-playground.html", "utf8");
+const midiPlaygroundJs = await readFile("src/midi-playground.js", "utf8");
+const midiPlaygroundCss = await readFile("src/midi-playground.css", "utf8");
+const midiObservation = await readFile("src/contracts/midi-observation.js", "utf8");
 const js = await readFile("src/app.js", "utf8");
 const css = await readFile("src/styles.css", "utf8");
 const api = await readFile("src/api.js", "utf8");
@@ -68,7 +72,7 @@ const serverJson = await readFile("server/json.mjs", "utf8");
 const audioLabDoc = await readFile("docs/AUDIO_LAB.md", "utf8");
 
 assert(html.includes("./src/styles.css"), "index.html should load src/styles.css");
-assert([html, pitchGatesHtml, audioLabHtml, rhythmRouletteHtml, journalHtml].every((source) => source.includes("src/design-tokens.css")), "every surface should load the shared token foundation");
+assert([html, pitchGatesHtml, audioLabHtml, rhythmRouletteHtml, midiPlaygroundHtml, journalHtml].every((source) => source.includes("src/design-tokens.css")), "every surface should load the shared token foundation");
 assert(designTokensCss.includes("--surface-app") && designTokensCss.includes("--touch-target") && designTokensCss.includes("--room-accent"), "design tokens should define foundation, semantic, and room-level hooks");
 assert(arcadeShellCss.includes(".segment-control"), "the shared arcade shell should own segmented controls");
 assert(html.includes("./src/app.js"), "index.html should load src/app.js");
@@ -108,6 +112,7 @@ assert(html.includes("data-quick-tag=\"heater\""), "index.html should include qu
 assert(html.includes("id=\"mergeDuplicateBtn\""), "index.html should include duplicate merge action");
 assert(toolRegistry.includes("./pitch-gates.html"), "the tool registry should link to Pitch Gates");
 assert(toolRegistry.includes("./audio-lab.html"), "the tool registry should link to Audio Lab");
+assert(toolRegistry.includes("./midi-playground.html"), "the tool registry should link to MIDI Playground");
 assert(html.includes("data-tool-rack"), "index.html should include the shared tool rack");
 assert(html.includes("src/tool-registry.js"), "index.html should load the tool registry");
 assert(html.includes("data-theme-toggle"), "index.html should include the illustrated theme toggle");
@@ -158,6 +163,7 @@ assert(runtimeSmoke.includes("verifyLiveListening"), "runtime-smoke.mjs should t
 assert(runtimeSmoke.includes("verifyRhythmRoulette"), "runtime-smoke.mjs should test Rhythm Roulette");
 assert(runtimeSmoke.includes("verifyPitchGates"), "runtime-smoke.mjs should test Pitch Gates");
 assert(runtimeSmoke.includes("verifyAudioLab"), "runtime-smoke.mjs should test Audio Lab");
+assert(runtimeSmoke.includes("verifyMidiPlayground"), "runtime-smoke.mjs should test MIDI Playground");
 assert(runtimeSmoke.includes("verifyJournal"), "runtime-smoke.mjs should test the Dev Journal");
 assert(runtimeSmoke.includes("page.screenshot"), "runtime-smoke.mjs should capture screenshots");
 assert(runtimeSmoke.includes("overflowX"), "runtime-smoke.mjs should check horizontal overflow");
@@ -175,6 +181,16 @@ assert(journalJs.includes("saveJournal"), "journal.js should save markdown sourc
 assert(journalCss.includes("body[data-paper=\"graph\"]"), "journal.css should include graph paper skin");
 assert(journalHtml.includes("data-theme-toggle"), "journal.html should include the illustrated theme toggle");
 assert(journalHtml.includes("src/theme.js"), "journal.html should load shared theme behavior");
+assert(midiPlaygroundHtml.includes("<h1>MIDI Playground</h1>"), "MIDI Playground should expose a semantic page heading");
+assert(midiPlaygroundHtml.includes("id=\"connectMidiBtn\""), "MIDI Playground should expose ordinary MIDI connection");
+assert(midiPlaygroundHtml.includes("id=\"demoMidiBtn\""), "MIDI Playground should provide a deterministic demo source");
+assert(midiPlaygroundHtml.includes("id=\"connectHidBtn\"") && midiPlaygroundHtml.includes("id=\"scanGamepadBtn\""), "MIDI Playground should probe unusual controllers through explicit adapters");
+assert(midiPlaygroundHtml.includes("id=\"learnBtn\""), "MIDI Playground should include MIDI Learn");
+assert(midiPlaygroundHtml.includes("data-current-tool=\"midi-playground\""), "MIDI Playground should identify itself in shared navigation");
+assert(midiPlaygroundJs.includes("requestMIDIAccess({ sysex: false })"), "MIDI Playground should not request SysEx");
+assert(midiPlaygroundJs.includes("createControlObservation") && midiPlaygroundJs.includes("parseMidiMessage"), "MIDI Playground adapters should emit normalized observations");
+assert(midiPlaygroundCss.includes(".device-slots") && midiPlaygroundCss.includes("@media"), "MIDI Playground should style a responsive hardware census");
+assert(midiObservation.includes("MIDI_OBSERVATION_SCHEMA") && midiObservation.includes("validateMidiObservation"), "MIDI observations should use a versioned, validated contract");
 assert(audioLabHtml.includes("src/audio-lab.js"), "audio-lab.html should load audio-lab.js");
 assert(audioLabHtml.includes("<h1>Audio Lab</h1>"), "audio-lab.html should expose a semantic page heading");
 assert(audioLabHtml.includes("id=\"scopeCanvas\""), "audio-lab.html should include oscilloscope canvas");

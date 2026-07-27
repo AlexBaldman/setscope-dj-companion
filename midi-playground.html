@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MIDI Playground - SetScope</title>
+    <link rel="stylesheet" href="./src/design-tokens.css" />
+    <link rel="stylesheet" href="./src/arcade-shell.css" />
+    <link rel="stylesheet" href="./src/midi-playground.css" />
+    <link rel="stylesheet" href="./src/theme.css" />
+  </head>
+  <body>
+    <div class="game-app midi-app">
+      <header class="game-topbar app-header">
+        <a class="back-link" href="./index.html"><span class="mini-disc"></span>SetScope</a>
+        <div class="game-title"><h1>MIDI Playground</h1><span>Hardware Census</span></div>
+        <div class="game-tools">
+          <nav class="tool-rack compact" data-tool-rack data-current-tool="midi-playground" aria-label="SetScope tools"></nav>
+          <div class="lcd-pill" id="midiStatus">BENCH READY</div>
+          <button class="theme-toggle" data-theme-toggle aria-label="Switch to light mode" title="Switch to light mode">
+            <img src="./assets/theme/lightning-bulb-toggle-ui.png" alt="" />
+          </button>
+        </div>
+      </header>
+
+      <main class="midi-layout">
+        <section class="midi-rig">
+          <div class="metric-rack midi-metrics">
+            <div class="metric-cell" data-accent="signal"><span>Inputs</span><strong id="inputCount">0</strong></div>
+            <div class="metric-cell" data-accent="score"><span>Events</span><strong id="eventCount">0</strong></div>
+            <div class="metric-cell" data-accent="target"><span>Last</span><strong id="lastEvent">--</strong></div>
+            <div class="metric-cell" data-accent="success"><span>Learn</span><strong id="learnStatus">OFF</strong></div>
+          </div>
+
+          <div class="midi-screen instrument-screen">
+            <div class="bench-scan" aria-hidden="true"></div>
+            <div class="pad-field" id="padField">
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+            <div class="gesture-readout">
+              <span id="gestureType">WAITING</span>
+              <strong id="gestureValue">Connect or run demo</strong>
+              <div class="gesture-meter"><i id="gestureMeter"></i></div>
+            </div>
+          </div>
+
+          <div class="hardware-transport midi-transport">
+            <button class="source-btn demo" id="demoMidiBtn">Demo source</button>
+            <button class="start-btn" id="connectMidiBtn">Connect MIDI</button>
+            <button class="source-btn" id="scanGamepadBtn">Scan gamepads</button>
+            <button class="source-btn" id="connectHidBtn">Probe HID</button>
+            <button class="source-btn stop" id="stopMidiBtn">Stop</button>
+          </div>
+
+          <section class="hardware-bench" aria-labelledby="benchTitle">
+            <div class="bench-head"><div><span>Your test bench</span><h2 id="benchTitle">Controller Rack</h2></div><b id="benchFound">0 found</b></div>
+            <div class="device-slots" id="deviceSlots">
+              <div data-device-family="morph"><i></i><strong>Sensel Morph</strong><span>Waiting</span></div>
+              <div data-device-family="nanokey"><i></i><strong>Korg nanoKEY</strong><span>Waiting</span></div>
+              <div data-device-family="studio"><i></i><strong>Maschine Studio</strong><span>Waiting</span></div>
+              <div data-device-family="jam"><i></i><strong>Maschine Jam</strong><span>Waiting</span></div>
+              <div data-device-family="djhero"><i></i><strong>DJ Hero deck</strong><span>Probe</span></div>
+            </div>
+          </section>
+        </section>
+
+        <aside class="midi-side">
+          <section class="midi-panel">
+            <div class="panel-kicker"><span>Connected</span><b id="portStatus">No ports</b></div>
+            <div class="port-list" id="portList"><p>No hardware seen yet.</p></div>
+          </section>
+          <section class="midi-panel mapping-panel">
+            <div class="panel-kicker"><span>MIDI Learn</span><b id="mappingCount">0 maps</b></div>
+            <label>Action
+              <select id="mappingAction">
+                <option value="next-move">Next Move</option>
+                <option value="set-marker">Set marker</option>
+                <option value="play-pause">Play / pause</option>
+                <option value="rhythm-pad">Rhythm pad</option>
+              </select>
+            </label>
+            <button class="learn-btn" id="learnBtn" aria-pressed="false">Arm next gesture</button>
+            <div class="mapping-list" id="mappingList"></div>
+          </section>
+          <section class="midi-panel event-panel">
+            <div class="panel-kicker"><span>Normalized observations</span><b id="protocolStatus">DEMO</b></div>
+            <div class="midi-event-log" id="midiEventLog" aria-live="polite"><p>Event monitor standing by.</p></div>
+          </section>
+        </aside>
+      </main>
+    </div>
+    <script type="module" src="./src/theme.js"></script>
+    <script type="module" src="./src/tool-registry.js"></script>
+    <script type="module" src="./src/midi-playground.js"></script>
+  </body>
+</html>
