@@ -79,6 +79,9 @@ const rouletteEvent = createRhythmRouletteCompletionEvent({
   replayHash: "a1b2c3d4",
   replayActionCount: 7,
   endReason: "saved",
+  assisted: true,
+  playerEdits: 4,
+  scoreBreakdown: { constraint: 320, pocket: 500, originality: 620 },
 });
 assert.equal(rouletteEvent.modeId, "rhythm-roulette");
 assert.equal(rouletteEvent.details.game, "Rhythm Roulette");
@@ -90,6 +93,9 @@ assert.equal(rouletteEvent.details.mission, "Flip the transition");
 assert.equal(rouletteEvent.details.challengeId, "rhythm-roulette-v1-808");
 assert.equal(rouletteEvent.details.seed, 808);
 assert.equal(rouletteEvent.details.replayHash, "a1b2c3d4");
+assert.equal(rouletteEvent.details.playerEdits, 4);
+assert.equal(rouletteEvent.assistance.level, "guided");
+assert.equal(rouletteEvent.assistance.eligibleForMastery, false);
 assert.equal(rouletteEvent.details.replayActionCount, 7);
 assert.equal(rouletteEvent.details.endReason, "saved");
 

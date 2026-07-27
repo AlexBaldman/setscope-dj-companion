@@ -102,7 +102,8 @@ assert.equal(boundaryRun.gateResults[0].outcome, "hit", "the tolerance boundary 
 assert.equal(hashPitchGatesRun(advancePitchGatesTo(boundaryRun, boundaryGate.evaluateAtMs - 500)), hashPitchGatesRun(boundaryRun));
 
 const lostInputRun = advancePitchGatesTo(createPitchGatesRun(oneGate), boundaryGate.evaluateAtMs);
-assert.equal(lostInputRun.gateResults[0].outcome, "miss", "missing input should resolve as a miss without throwing");
+assert.equal(lostInputRun.gateResults[0].outcome, "unvoiced", "missing input should be coached separately from a wrong note");
+assert.equal(lostInputRun.lives, lostInputRun.initialLives, "untrustworthy signal must not cost a life");
 assert.equal(diagnosePitchGateResults([lostInputRun.gateResults[0]]).code, "silent");
 
 let nearRun = createPitchGatesRun(oneGate);

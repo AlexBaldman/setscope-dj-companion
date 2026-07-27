@@ -20,7 +20,9 @@ import {
   applyPitchInput,
   createPitchGatesRun,
   getNextPitchGate,
+  pausePitchGatesRun,
   projectPitchGate,
+  resumePitchGatesRun,
 } from "./pitch-gates/reducer.js";
 import { createPitchGatesReplay } from "./pitch-gates/replay.js";
 import { diagnosePitchGateResults } from "./pitch-gates/diagnosis.js";
@@ -39,6 +41,7 @@ const els = {
   hudInterval: document.querySelector("#hudInterval"),
   hudLiveNote: document.querySelector("#hudLiveNote"),
   hudProgress: document.querySelector("#hudProgress"),
+  hudSignal: document.querySelector("#hudSignal"),
   hudTargetNote: document.querySelector("#hudTargetNote"),
   intervalHistory: document.querySelector("#intervalHistory"),
   intervalMastery: document.querySelector("#intervalMastery"),
@@ -55,6 +58,7 @@ const els = {
   outcomeFlash: document.querySelector("#outcomeFlash"),
   pitchCanvasStatus: document.querySelector("#pitchCanvasStatus"),
   pitchGuide: document.querySelector("#pitchGuide"),
+  pauseRoundBtn: document.querySelector("#pauseRoundBtn"),
   profileDetail: document.querySelector("#profileDetail"),
   profileBounds: document.querySelector("#profileBounds"),
   profileRange: document.querySelector("#profileRange"),
@@ -66,6 +70,7 @@ const els = {
   resultGrade: document.querySelector("#resultGrade"),
   resultNext: document.querySelector("#resultNext"),
   resultRecap: document.querySelector("#resultRecap"),
+  restartRoundBtn: document.querySelector("#restartRoundBtn"),
   score: document.querySelector("#score"),
   streak: document.querySelector("#streak"),
   stabilityValue: document.querySelector("#stabilityValue"),
@@ -112,6 +117,8 @@ let lastInputHadPitch = false;
 let pitchTrail = [];
 let lastAccessibleStatus = "";
 let feedbackPulse = null;
+let preRollActive = false;
+let countdownTimers = [];
 
 document.body.dataset.phase = "idle";
 
@@ -128,9 +135,11 @@ document.querySelector("#fileBtn").addEventListener("click", () => document.quer
 document.querySelector("#audioFileInput").addEventListener("change", (event) => useAudioFile(event.target.files[0]));
 document.querySelector("#stopAudioBtn").addEventListener("click", () => stopAudio());
 document.querySelector("#startRoundBtn").addEventListener("click", startRound);
+els.pauseRoundBtn.addEventListener("click", toggleRoundPause);
+els.restartRoundBtn.addEventListener("click", startRound);
 document.querySelectorAll("[data-register]").forEach((button) => {
   button.addEventListener("click", () => {
-    if (game.status === "running") return;
+    if (isRoundInProgress()) return;
     register = button.dataset.register;
     setActive(document.querySelectorAll("[data-register]"), button);
     persistPitchProfile();
@@ -141,7 +150,7 @@ document.querySelectorAll("[data-register]").forEach((button) => {
 });
 document.querySelectorAll("[data-speed]").forEach((button) => {
   button.addEventListener("click", () => {
-    if (game.status === "running") return;
+    if (isRoundInProgress()) return;
     speed = button.dataset.speed;
     setActive(document.querySelectorAll("[data-speed]"), button);
     persistPitchProfile();
@@ -149,7 +158,7 @@ document.querySelectorAll("[data-speed]").forEach((button) => {
 });
 document.querySelectorAll("[data-assist]").forEach((button) => {
   button.addEventListener("click", () => {
-    if (game.status === "running") return;
+    if (isRoundInProgress()) return;
     assist = button.dataset.assist;
     pitchStabilizer.setAssist(assist);
     setActive(document.querySelectorAll("[data-assist]"), button);
@@ -158,7 +167,7 @@ document.querySelectorAll("[data-assist]").forEach((button) => {
 });
 document.querySelectorAll("[data-drill]").forEach((button) => {
   button.addEventListener("click", () => {
-    if (game.status === "running") return;
+    if (isRoundInProgress()) return;
     drill = button.dataset.drill;
     setActive(document.querySelectorAll("[data-drill]"), button);
     persistPitchProfile();
@@ -233,6 +242,8 @@ async function useDemoTone() {
 }
 
 function stopAudio() {
+  if (game.status === "running" && !preRollActive) pauseRound();
+  clearPreRoll();
   audioSession.stop();
   currentFrame = null;
   pitchTrail = [];
@@ -242,27 +253,55 @@ function stopAudio() {
 
 function startRound() {
   if (!audioSession.isActive()) return;
+  clearPreRoll();
   const challenge = createChallenge(Date.now());
   game = createPitchGatesRun(challenge);
-  roundClock = createRoundClock();
+  roundClock = null;
   consumedEventCount = 0;
   roundSaved = false;
   lastInputSampleAt = -Infinity;
   lastInputHadPitch = false;
   pitchTrail = [];
   feedbackPulse = null;
+  preRollActive = true;
   orbY = canvas.clientHeight / 2;
   els.resultRecap.hidden = true;
-  els.overlayTitle.textContent = "PITCH GATES";
-  els.readyOverlay.classList.add("hidden");
-  document.body.dataset.phase = "active";
+  els.overlayTitle.textContent = "3";
+  els.overlayStatus.textContent = "BREATHE IN / FIND THE CENTER";
+  els.readyOverlay.classList.remove("hidden");
+  document.body.dataset.phase = "countdown";
   els.startRoundBtn.disabled = true;
-  els.startRoundBtn.textContent = "Round active";
+  els.startRoundBtn.textContent = "Get ready";
+  els.pauseRoundBtn.hidden = false;
+  els.pauseRoundBtn.disabled = true;
+  els.pauseRoundBtn.textContent = "Pause";
+  els.restartRoundBtn.hidden = false;
+  els.restartRoundBtn.disabled = false;
   const mission = createIntervalMission(musicianProfile, { drill });
-  appendLog("ROUND", `${mission.shortLabel} / ${getRangeLabel()} / ${assist}`);
+  appendLog("READY", `${mission.shortLabel} / ${getRangeLabel()} / ${assist}`);
   syncDemoToneToTarget();
   renderGame();
   startAnimation();
+  countdownTimers = [
+    window.setTimeout(() => { els.overlayTitle.textContent = "2"; }, 700),
+    window.setTimeout(() => {
+      els.overlayTitle.textContent = "1";
+      els.overlayStatus.textContent = "HEAR IT BEFORE YOU SING IT";
+    }, 1400),
+    window.setTimeout(beginRound, 2100),
+  ];
+}
+
+function beginRound() {
+  if (!preRollActive || game.status !== "running") return;
+  countdownTimers = [];
+  preRollActive = false;
+  roundClock = createRoundClock(game.elapsedMs);
+  els.readyOverlay.classList.add("hidden");
+  document.body.dataset.phase = "active";
+  els.startRoundBtn.textContent = "Round active";
+  els.pauseRoundBtn.disabled = false;
+  appendLog("ROUND", `${getRangeLabel()} / ${speed} / ${assist}`);
 }
 
 function startAnimation() {
@@ -273,7 +312,7 @@ function startAnimation() {
 function update(now) {
   animationId = null;
   readPitch();
-  if (game.status === "running") {
+  if (game.status === "running" && !preRollActive) {
     const elapsedMs = readRoundClock(now);
     const hasPitch = Boolean(currentFrame);
     if (elapsedMs - lastInputSampleAt >= 50 || hasPitch !== lastInputHadPitch) {
@@ -316,14 +355,18 @@ function endRound() {
   document.body.dataset.phase = "result";
   els.startRoundBtn.disabled = false;
   els.startRoundBtn.textContent = "Play again";
+  els.pauseRoundBtn.hidden = true;
+  els.restartRoundBtn.hidden = true;
   const replay = createPitchGatesReplay(game);
   const resolvedResults = game.gateResults.filter((result) => result.outcome !== "pending");
-  const hits = resolvedResults.filter((result) => result.outcome === "hit").length;
-  const near = resolvedResults.filter((result) => result.outcome === "near").length;
-  const accuracy = Math.round(((hits + near * 0.5) / Math.max(1, resolvedResults.length)) * 100);
+  const scoredResults = resolvedResults.filter((result) => ["hit", "near", "miss"].includes(result.outcome));
+  const hits = scoredResults.filter((result) => result.outcome === "hit").length;
+  const near = scoredResults.filter((result) => result.outcome === "near").length;
+  const accuracy = Math.round(((hits + near * 0.5) / Math.max(1, scoredResults.length)) * 100);
   const diagnosis = diagnosePitchGateResults(game.gateResults);
   const sourceLabel = audioSession.getSourceLabel();
-  const eligibleForMastery = sourceLabel === "MIC" && assist !== "gentle";
+  const enoughSignal = scoredResults.length >= Math.max(4, Math.ceil(resolvedResults.length * 0.6));
+  const eligibleForMastery = sourceLabel === "MIC" && assist !== "gentle" && enoughSignal;
   musicianProfile = saveMusicianProfile(recordPracticeResult(musicianProfile, {
     accuracy,
     centerMidi: game.challenge.config.centerMidi,
@@ -340,7 +383,9 @@ function endRound() {
   els.resultFocus.textContent = intervalShortLabel(focusGate?.intervalSemitones || 0);
   els.resultNext.textContent = eligibleForMastery
     ? prescription.detail
-    : "Guided result only. Use Mic with Balanced or Exact assist to add mastery evidence.";
+    : !enoughSignal
+      ? "Signal was too sparse for mastery. Check input, sustain the note, and try again."
+      : "Guided result only. Use Mic with Balanced or Exact assist to add mastery evidence.";
   els.resultRecap.hidden = false;
   const performanceEvent = createPitchGatesCompletionEvent({
     sourceLabel,
@@ -384,9 +429,23 @@ function drawFrame() {
   context.clearRect(0, 0, width, height);
   drawGrid(width, height);
   drawTargetCorridor(width, height);
+  if (preRollActive) drawPreviewGate(width, height);
   drawGates(height);
   drawPitchTrail(height);
   drawOrb(height);
+}
+
+function drawPreviewGate(width, height) {
+  const gate = getNextPitchGate(game);
+  if (!gate) return;
+  const targetY = midiToY(gate.targetMidi, height);
+  const x = width * 0.72;
+  const gapHeight = assist === "gentle" ? 82 : assist === "exact" ? 48 : 64;
+  context.globalAlpha = 0.58;
+  context.fillStyle = "#f0ad4e";
+  context.fillRect(x, 0, 24, Math.max(0, targetY - gapHeight / 2));
+  context.fillRect(x, targetY + gapHeight / 2, 24, height - targetY);
+  context.globalAlpha = 1;
 }
 
 function drawTargetCorridor(width, height) {
@@ -450,7 +509,13 @@ function drawGates(height) {
     const result = game.gateResults[gate.index];
     const targetY = midiToY(gate.targetMidi, height);
     const gapHeight = assist === "gentle" ? 82 : assist === "exact" ? 48 : 64;
-    context.fillStyle = result.outcome === "hit" ? "#75d7b6" : result.outcome !== "pending" ? "#ec6f7e" : "#f0ad4e";
+    context.fillStyle = result.outcome === "hit"
+      ? "#75d7b6"
+      : result.outcome === "unvoiced"
+        ? "#60c7ff"
+        : result.outcome !== "pending"
+          ? "#ec6f7e"
+          : "#f0ad4e";
     context.fillRect(x, 0, 27, Math.max(0, targetY - gapHeight / 2));
     context.fillRect(x, targetY + gapHeight / 2, 27, height - targetY);
     context.fillStyle = "rgba(15,14,12,0.9)";
@@ -507,8 +572,10 @@ function updatePitchReadout() {
     els.pitchGuide.textContent = "LISTEN";
     els.pitchGuide.className = "pitch-guide";
     els.hudLiveNote.textContent = "--";
+    els.hudSignal.textContent = audioSession.isActive() ? "No lock" : "Input off";
     els.hudDirection.textContent = "LISTEN";
     els.hudDirection.dataset.state = "listen";
+    syncLaunchSteps(audioSession.isActive());
     renderAccessiblePitchStatus();
     return;
   }
@@ -516,11 +583,14 @@ function updatePitchReadout() {
   const cents = (currentFrame.midi - roundedMidi) * 100;
   els.liveNote.textContent = midiToNote(roundedMidi);
   els.hudLiveNote.textContent = els.liveNote.textContent;
+  const octaveCorrected = Number.isFinite(currentFrame.rawMidi) && Math.abs(currentFrame.rawMidi - currentFrame.midi) >= 7;
+  els.hudSignal.textContent = octaveCorrected ? "Octave check" : "Signal locked";
   els.liveHz.textContent = currentFrame.frequency.toFixed(1);
   els.liveCents.textContent = `${cents > 0 ? "+" : ""}${Math.round(cents)}¢`;
   els.liveClarity.textContent = `${Math.round(currentFrame.clarity * 100)}%`;
   els.tuningMeter.style.setProperty("--needle", `${Math.max(4, Math.min(96, 50 + cents / 2))}%`);
   updatePitchGuide();
+  syncLaunchSteps(true);
   renderAccessiblePitchStatus();
 }
 
@@ -585,9 +655,13 @@ function consumeDomainEvents() {
       appendLog("MISS", midiToNote(event.targetMidi));
       showOutcome("MISS", "#ec6f7e");
     }
+    if (event.type === "unvoiced") {
+      appendLog("SIGNAL", "No stable note / life protected");
+      showOutcome("NO LOCK", "#60c7ff");
+    }
     if (event.type === "recovery") appendLog("RECOVER", midiToNote(event.targetMidi));
   });
-  if (events.some((event) => ["hit", "near", "miss"].includes(event.type))) syncDemoToneToTarget();
+  if (events.some((event) => ["hit", "near", "miss", "unvoiced"].includes(event.type))) syncDemoToneToTarget();
   renderGame();
 }
 
@@ -599,12 +673,12 @@ function showOutcome(label, color) {
   requestAnimationFrame(() => els.outcomeFlash.classList.add("show"));
 }
 
-function createRoundClock() {
+function createRoundClock(elapsedMs = 0) {
   const audioContext = audioSession.getAudioContext();
   if (audioContext && audioSession.isActive()) {
-    return { type: "audio", context: audioContext, originMs: audioContext.currentTime * 1000 };
+    return { type: "audio", context: audioContext, originMs: audioContext.currentTime * 1000 - elapsedMs };
   }
-  return { type: "performance", originMs: performance.now() };
+  return { type: "performance", originMs: performance.now() - elapsedMs };
 }
 
 function readRoundClock(fallbackNow = performance.now()) {
@@ -627,6 +701,57 @@ function setAudioStatus(text, active) {
   if (game.status === "idle" && !els.readyOverlay.classList.contains("hidden")) {
     els.overlayStatus.textContent = active ? `${text} / START ROUND` : text === "INPUT OFF" ? "CHOOSE AN INPUT" : text;
   }
+  syncLaunchSteps(active);
+}
+
+function toggleRoundPause() {
+  if (game.status === "paused") {
+    game = resumePitchGatesRun(game);
+    roundClock = createRoundClock(game.elapsedMs);
+    els.pauseRoundBtn.textContent = "Pause";
+    els.readyOverlay.classList.add("hidden");
+    document.body.dataset.phase = "active";
+    appendLog("RESUME", `Gate ${game.resolved + 1}`);
+    startAnimation();
+    return;
+  }
+  pauseRound();
+}
+
+function pauseRound() {
+  if (game.status !== "running" || preRollActive) return;
+  game = advancePitchGatesTo(game, readRoundClock());
+  consumeDomainEvents();
+  if (game.status !== "running") {
+    endRound();
+    return;
+  }
+  game = pausePitchGatesRun(game, game.elapsedMs);
+  els.pauseRoundBtn.textContent = "Resume";
+  els.overlayTitle.textContent = "PAUSED";
+  els.overlayStatus.textContent = "YOUR PLACE IS SAVED";
+  els.resultRecap.hidden = true;
+  els.readyOverlay.classList.remove("hidden");
+  document.body.dataset.phase = "paused";
+  appendLog("PAUSE", `Gate ${game.resolved + 1}`);
+}
+
+function clearPreRoll() {
+  countdownTimers.forEach((timer) => window.clearTimeout(timer));
+  countdownTimers = [];
+  preRollActive = false;
+}
+
+function syncLaunchSteps(inputReady) {
+  document.querySelectorAll("[data-launch-step]").forEach((step) => {
+    const key = step.dataset.launchStep;
+    const complete = key === "input"
+      ? inputReady
+      : key === "center"
+        ? Boolean(currentFrame)
+        : game.status === "running" && !preRollActive;
+    step.classList.toggle("complete", complete);
+  });
 }
 
 function renderAccessiblePitchStatus() {
@@ -680,7 +805,7 @@ function getDisplayRange() {
 }
 
 function captureComfortNote() {
-  if (game.status === "running") return;
+  if (isRoundInProgress()) return;
   if (!currentFrame) {
     appendLog("VOICE", "Hold a comfortable note first");
     return;
@@ -697,6 +822,10 @@ function captureComfortNote() {
   appendLog("PROFILE", `${midiToNote(personalCenter)} center / safe span saved`);
   syncDemoToneToTarget();
   drawFrame();
+}
+
+function isRoundInProgress() {
+  return preRollActive || game.status === "running" || game.status === "paused";
 }
 
 function syncSettingsUI() {

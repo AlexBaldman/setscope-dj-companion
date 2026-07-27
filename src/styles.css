@@ -2481,6 +2481,11 @@ svg {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
   }
+
+  .inspector .artwork {
+    width: min(100%, 400px);
+    justify-self: center;
+  }
 }
 
 @media (max-width: 760px) {
@@ -2570,5 +2575,12 @@ svg {
   .inspector .artwork {
     width: min(100%, 280px);
     justify-self: center;
+  }
+}
+
+@media (pointer: coarse) {
+  .signal-filter-rack button,
+  .event-label-rack button {
+    min-height: var(--touch-target);
   }
 }

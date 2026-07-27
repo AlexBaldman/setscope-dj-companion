@@ -11,9 +11,9 @@ export function createRhythmRouletteRun(challenge) {
     schema: "setscope.rhythm-roulette.run",
     schemaVersion: RHYTHM_RUN_VERSION,
     challenge: structuredClone(challenge),
-    pattern: createStarterPattern(challenge),
+    pattern: createEmptyPattern(),
     selectedSampleId,
-    assisted: true,
+    assisted: false,
     playerEdits: 0,
     status: "editing",
     actions: [],
@@ -31,9 +31,12 @@ export function reduceRhythmRoulette(run, action) {
   } else if (action.type === "auto-flip") {
     next.pattern = createStarterPattern(next.challenge, { loose: true });
     next.assisted = true;
+    next.playerEdits = 0;
     next.status = "editing";
   } else if (action.type === "clear") {
     next.pattern = createEmptyPattern();
+    next.assisted = false;
+    next.playerEdits = 0;
     next.status = "editing";
   } else if (action.type === "save") {
     next.status = "saved";
@@ -92,11 +95,40 @@ export function rhythmRecordVariety(run) {
 
 export function rhythmChallengeBonus(run) {
   const id = run.challenge.rule.id;
-  if (id === "dusty-pocket") return rhythmPatternDensity(run.pattern) <= 18 ? 320 : 0;
-  if (id === "backbeat-tax") return run.pattern.snare[4] && run.pattern.snare[12] ? 360 : 0;
-  if (id === "three-record-rule") return rhythmRecordVariety(run) >= 3 ? 420 : 0;
-  if (id === "late-swing") return [3, 7, 11, 15].filter((step) => run.pattern.kick[step] || run.pattern.chop[step]).length >= 2 ? 380 : 0;
+  if (!rhythmChallengeStatus(run).passed) return 0;
+  if (id === "dusty-pocket") return 320;
+  if (id === "backbeat-tax") return 360;
+  if (id === "three-record-rule") return 420;
+  if (id === "late-swing") return 380;
   return 0;
+}
+
+export function rhythmChallengeStatus(run) {
+  const id = run.challenge.rule.id;
+  const density = rhythmPatternDensity(run.pattern);
+  if (id === "dusty-pocket") {
+    const passed = density >= 8 && density <= 18;
+    return {
+      passed,
+      current: density,
+      target: 8,
+      progress: density > 18 ? 100 : Math.min(100, Math.round(density / 8 * 100)),
+      detail: density > 18 ? `${density} hits / trim to 18` : `${density} hits / build 8-18`,
+    };
+  }
+  if (id === "backbeat-tax") {
+    const current = [4, 12].filter((step) => run.pattern.snare[step]).length;
+    return { passed: current === 2, current, target: 2, progress: current * 50, detail: `${current}/2 backbeats` };
+  }
+  if (id === "three-record-rule") {
+    const current = rhythmRecordVariety(run);
+    return { passed: current >= 3, current, target: 3, progress: Math.round(current / 3 * 100), detail: `${current}/3 records used` };
+  }
+  if (id === "late-swing") {
+    const current = [3, 7, 11, 15].filter((step) => run.pattern.kick[step] || run.pattern.chop[step]).length;
+    return { passed: current >= 2, current, target: 2, progress: Math.min(100, current * 50), detail: `${current}/2 late hits` };
+  }
+  return { passed: false, current: 0, target: 1, progress: 0, detail: "Mission unavailable" };
 }
 
 export function hashRhythmRouletteRun(run) {

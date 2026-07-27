@@ -1168,3 +1168,33 @@ The app now starts to feel like one attentive teacher. It tells the player what
 relationship they are practicing, keeps the important coaching beside the moving
 orb, treats close attempts as useful progress, and distinguishes fun assistance
 from evidence strong enough to shape the next lesson.
+
+## 2026-07-26 - Gameplay Feel and Mobile Flow
+
+We tightened the two minigames around player agency, readable feedback, and a
+faster path from setup to play.
+
+What changed:
+
+- Added a three-step Pitch Gates setup sequence, stationary preview gate, and
+  3-2-1 pre-roll.
+- Added pause, resume, and restart controls while preserving replay timing.
+- Separated untrustworthy signal from a wrong note. No-lock gates now protect
+  lives, avoid mastery evidence, and remain useful diagnosis data.
+- Added visible signal-lock and octave-correction state inside the playfield.
+- Made Rhythm Roulette open on a blank grid, keeping Auto Flip as an assisted
+  creative jump-start.
+- Added live challenge progress, clear/build state, and meaningful player-edit
+  requirements before saving.
+- Reworked the mobile sample bank into a compact two-row scrolling pad tray.
+- Reworked mobile Journal entries into a recent-entry swipe rail.
+- Capped tablet Track Intel artwork and normalized coarse-pointer filter targets.
+- Expanded runtime coverage for pre-roll, pause/resume, assisted edit gating, and
+  the new responsive layouts.
+
+Why this matters:
+
+The games now give the player a beat to understand the assignment, protect them
+from detector uncertainty, and make authored choices more important than
+machine-generated activity. On phones, the playable instrument and result state
+also arrive substantially sooner.

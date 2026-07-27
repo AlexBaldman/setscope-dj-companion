@@ -52,7 +52,7 @@
           <div class="roulette-score-rack metric-rack">
             <div class="metric-cell" data-accent="tempo"><span>BPM</span><strong id="rouletteBpm">--</strong></div>
             <div class="metric-cell" data-accent="score"><span>Pulls</span><strong id="pullCount">0/3</strong></div>
-            <div class="metric-cell" data-accent="success"><span>Mission</span><strong id="grooveScore">00</strong></div>
+            <div class="metric-cell" data-accent="success"><span>Pocket</span><strong id="grooveScore">00</strong></div>
             <div class="metric-cell" data-accent="danger"><span>Best</span><strong id="bestRouletteScore">0000</strong></div>
           </div>
 
@@ -99,6 +99,8 @@
             <div class="roulette-mission">
               <strong id="missionTitle">No peeking</strong>
               <span id="missionDetail">Pull records first, then make the best one-bar loop from the surprise stack.</span>
+              <div class="mission-meter" aria-hidden="true"><i id="missionMeterFill"></i></div>
+              <small id="missionProgress">Pull three records to reveal the constraint.</small>
             </div>
           </div>
 

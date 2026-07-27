@@ -407,7 +407,18 @@ body[data-paper="sketch"] .page {
   }
 
   .entry-list {
-    max-height: 260px;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(196px, 72vw);
+    grid-template-rows: 1fr;
+    max-height: none;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+  }
+
+  .entry-card {
+    min-height: 76px;
+    scroll-snap-align: start;
   }
 
   .book-stage {

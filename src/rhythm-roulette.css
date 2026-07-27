@@ -415,6 +415,33 @@
   line-height: 1.45;
 }
 
+.roulette-mission small {
+  color: var(--text);
+  font: 800 10px ui-monospace, SFMono-Regular, Menlo, monospace;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.mission-meter {
+  height: 7px;
+  overflow: hidden;
+  border: 1px solid var(--roulette-line);
+  background: #111216;
+}
+
+.mission-meter i {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--amber);
+  transition: width 180ms ease, background 180ms ease;
+}
+
+.mission-meter i[data-complete="true"] {
+  background: var(--mint);
+  box-shadow: 0 0 12px rgba(111, 221, 177, 0.35);
+}
+
 .crate-receipt {
   display: grid;
   gap: 6px;
@@ -525,7 +552,30 @@
   }
 
   .sample-bank {
-    grid-template-columns: 1fr;
+    grid-template-columns: none;
+    grid-template-rows: repeat(2, 74px);
+    grid-auto-columns: minmax(154px, 44vw);
+    grid-auto-flow: column;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 1px 16px 8px 1px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+  }
+
+  .sample-pad {
+    min-height: 74px;
+    scroll-snap-align: start;
+  }
+
+  .sample-pad.empty {
+    grid-row: 1 / -1;
+    min-width: min(100%, 300px);
+  }
+
+  .sample-bank:has(.sample-pad.empty) {
+    grid-template-rows: 74px;
+    grid-auto-columns: 100%;
   }
 
   .sequencer {

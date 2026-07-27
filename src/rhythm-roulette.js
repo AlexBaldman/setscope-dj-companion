@@ -8,6 +8,7 @@ import {
   hashRhythmRouletteRun,
   reduceRhythmRoulette,
   rhythmChallengeBonus,
+  rhythmChallengeStatus,
   rhythmPatternDensity,
   rhythmRecordVariety,
   scoreRhythmBreakdown,
@@ -31,6 +32,8 @@ const els = {
   digOverlay: document.querySelector("#digOverlay"),
   grooveScore: document.querySelector("#grooveScore"),
   missionDetail: document.querySelector("#missionDetail"),
+  missionMeterFill: document.querySelector("#missionMeterFill"),
+  missionProgress: document.querySelector("#missionProgress"),
   missionTitle: document.querySelector("#missionTitle"),
   playBeatBtn: document.querySelector("#playBeatBtn"),
   pullCount: document.querySelector("#pullCount"),
@@ -80,8 +83,8 @@ function blindDig() {
   els.rouletteStatus.textContent = "RECORDS PULLED";
   els.rouletteStatus.classList.add("active");
   document.body.dataset.phase = "ready";
-  els.missionTitle.textContent = "Flip the surprise stack";
-  els.missionDetail.textContent = `${run.challenge.rule.detail} Pulls: ${run.challenge.records.map((record) => record.title).join(", ")}.`;
+  els.missionTitle.textContent = "Build from zero";
+  els.missionDetail.textContent = `${run.challenge.rule.detail} The grid starts blank; every hit is yours.`;
   renderAll();
   drawScene();
   return run;
@@ -144,6 +147,11 @@ function tick() {
 
 function saveRun() {
   ensureRun();
+  if (!canSaveRun()) {
+    els.rouletteStatus.textContent = "ADD YOUR TOUCH";
+    renderMission();
+    return;
+  }
   run = reduceRhythmRoulette(run, { type: "save" });
   const score = scoreRhythmRoulette(run);
   const groove = scoreRhythmGroove(run.pattern);
@@ -176,6 +184,9 @@ function saveRun() {
       replayHash,
       replayActionCount: replay.actions.length,
       endReason: "run-saved",
+      assisted: run.assisted,
+      playerEdits: run.playerEdits,
+      scoreBreakdown: breakdown,
     }),
   );
   practiceContext.markComplete(savedEvent);
@@ -196,13 +207,31 @@ function renderAll() {
   els.surpriseBeatBtn.disabled = !run;
   els.playBeatBtn.disabled = !run;
   els.clearBeatBtn.disabled = !run;
-  els.saveRouletteBtn.disabled = !run;
+  els.saveRouletteBtn.disabled = !canSaveRun();
   renderRecords();
   renderCurrentSample();
   renderCrateReceipt();
   renderSampleBank();
   renderSequencer();
+  renderMission();
   renderAccessibleStatus();
+}
+
+function renderMission() {
+  if (!run) {
+    els.missionMeterFill.style.width = "0%";
+    els.missionProgress.textContent = "Pull three records to reveal the constraint.";
+    return;
+  }
+  const status = rhythmChallengeStatus(run);
+  const editsRemaining = Math.max(0, 4 - Number(run.playerEdits || 0));
+  els.missionTitle.textContent = status.passed ? `${run.challenge.rule.title} cleared` : run.challenge.rule.title;
+  els.missionDetail.textContent = run.challenge.rule.detail;
+  els.missionMeterFill.style.width = `${status.progress}%`;
+  els.missionMeterFill.dataset.complete = String(status.passed);
+  els.missionProgress.textContent = `${status.passed ? "CLEAR" : "BUILD"} / ${status.detail} / ${
+    editsRemaining ? `${editsRemaining} player choices to save` : "save unlocked"
+  }`;
 }
 
 function renderRecords() {
@@ -294,16 +323,21 @@ function renderAccessibleStatus() {
   }
   const hits = rhythmPatternDensity(run.pattern);
   const playback = playTimer ? `Playing step ${currentStep + 1} of ${RHYTHM_STEPS}.` : "Playback stopped.";
-  els.rouletteA11yStatus.textContent = `${run.challenge.records.length} records pulled. ${hits} active steps. Mission score ${scoreRhythmGroove(run.pattern)}. ${playback}`;
+  const mission = rhythmChallengeStatus(run);
+  els.rouletteA11yStatus.textContent = `${run.challenge.records.length} records pulled. ${hits} active steps. ${mission.passed ? "Mission cleared" : mission.detail}. Pocket ${scoreRhythmGroove(run.pattern)}. ${playback}`;
 }
 
 function toggleStep(laneId, step) {
   ensureRun();
   run = reduceRhythmRoulette(run, { type: "toggle-step", laneId, step });
-  els.missionTitle.textContent = "Grid cooking";
-  els.missionDetail.textContent = "Every lit square is a chop from the blind pull. Keep it sparse enough to swing.";
   renderAll();
   drawScene();
+}
+
+function canSaveRun() {
+  return Boolean(run)
+    && rhythmPatternDensity(run.pattern) > 0
+    && Number(run.playerEdits || 0) >= 4;
 }
 
 function ensureRun() {

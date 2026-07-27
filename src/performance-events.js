@@ -109,6 +109,9 @@ export function createRhythmRouletteCompletionEvent({
   replayHash = "",
   replayActionCount = 0,
   endReason = "",
+  assisted = false,
+  playerEdits = 0,
+  scoreBreakdown = {},
 } = {}) {
   const recordLine = records.map((record) => record.title).filter(Boolean).join(" + ");
   return createPerformanceEvent({
@@ -139,9 +142,17 @@ export function createRhythmRouletteCompletionEvent({
       replayHash,
       replayActionCount,
       endReason,
+      assisted,
+      playerEdits,
+      scoreBreakdown,
     },
     evidence: {
       summary: `${recordLine || "No records"} / ${bpm || "--"} BPM / ${score || 0} pts`,
+    },
+    assistance: {
+      level: assisted ? "guided" : "none",
+      eligibleForMastery: !assisted,
+      values: { playerEdits },
     },
   });
 }

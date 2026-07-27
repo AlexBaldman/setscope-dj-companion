@@ -259,6 +259,7 @@ async function verifyContextualPracticeLoop(page) {
   await expectText(page, "[data-context-track]", trackTitle, "practice assignment track");
   await page.locator("#blindDigBtn").click();
   await page.locator("#surpriseBeatBtn").click();
+  for (const index of [3, 5, 7, 9]) await page.locator(".step-cell").nth(index).click();
   await page.locator("#saveRouletteBtn").click();
   await expectText(page, "[data-context-status]", "Run attached", "attached practice status");
 
@@ -289,6 +290,9 @@ async function verifyRhythmRoulette(page) {
   assert(await focusedStep.evaluate((node) => document.activeElement === node), "Rhythm Roulette playback should preserve sequencer keyboard focus");
   await page.locator("#playBeatBtn").click();
   await page.locator("#surpriseBeatBtn").click();
+  assert(await page.locator("#saveRouletteBtn").isDisabled(), "Rhythm Roulette should require player choices after Auto flip");
+  for (const index of [3, 5, 7, 9]) await page.locator(".step-cell").nth(index).click();
+  assert(!(await page.locator("#saveRouletteBtn").isDisabled()), "Rhythm Roulette should unlock save after four player choices");
   await page.locator("#saveRouletteBtn").click();
   await expectText(page, "#rouletteStatus", "RUN SAVED", "Rhythm Roulette save status");
   const savedEvent = await page.evaluate(() =>
@@ -312,8 +316,14 @@ async function verifyPitchGates(page) {
   await expectText(page, "#profileStage", "CALIBRATE", "Pitch Gates should request confirmed comfort bounds");
   assert(!(await page.locator("#profileRange").textContent()).includes("Not calibrated"), "Pitch Gates should save a safe calibrated span");
   await page.locator("#startRoundBtn").click();
+  await expectText(page, "#overlayTitle", "3", "Pitch Gates pre-roll");
+  await page.waitForFunction(() => document.querySelector("#readyOverlay")?.classList.contains("hidden"));
   const overlayHidden = await page.locator("#readyOverlay").evaluate((node) => node.classList.contains("hidden"));
   assert(overlayHidden, "Pitch Gates should hide ready overlay after starting a round");
+  await page.locator("#pauseRoundBtn").click();
+  await expectText(page, "#overlayTitle", "PAUSED", "Pitch Gates pause receipt");
+  await page.locator("#pauseRoundBtn").click();
+  assert(await page.locator("#readyOverlay").evaluate((node) => node.classList.contains("hidden")), "Pitch Gates should resume in place");
   await auditPage(page, "pitch-gates-desktop");
 }
 

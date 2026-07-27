@@ -140,7 +140,13 @@ function evaluateGate(run, gate) {
   const input = representativeInputAt(run.inputs, gate.evaluateAtMs);
   const signedDistance = Number.isFinite(input?.midi) ? input.midi - gate.targetMidi : null;
   const distance = Number.isFinite(signedDistance) ? Math.abs(signedDistance) : Infinity;
-  const outcome = distance <= gate.tolerance ? "hit" : distance <= gate.tolerance * 1.75 ? "near" : "miss";
+  const outcome = !Number.isFinite(input?.midi)
+    ? "unvoiced"
+    : distance <= gate.tolerance
+      ? "hit"
+      : distance <= gate.tolerance * 1.75
+        ? "near"
+        : "miss";
   let next = copyRun(run);
   next.resolved += 1;
   next.gateResults[gate.index] = {
@@ -172,6 +178,15 @@ function evaluateGate(run, gate) {
       distance,
       signedDistance,
       points,
+    });
+  } else if (outcome === "unvoiced") {
+    next.streak = 0;
+    next = appendEvent(next, "unvoiced", {
+      atMs: gate.evaluateAtMs,
+      gateId: gate.id,
+      targetMidi: gate.targetMidi,
+      distance: null,
+      signedDistance: null,
     });
   } else {
     next.streak = 0;

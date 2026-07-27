@@ -297,7 +297,7 @@ function migrateLegacyPitchProfile(storage) {
 function recordIntervalHistory(history, results, centerMidi, now) {
   const next = structuredClone(history || {});
   for (const result of Array.isArray(results) ? results : []) {
-    if (!result || result.outcome === "pending" || !Number.isFinite(result.targetMidi)) continue;
+    if (!result || !["hit", "near", "miss"].includes(result.outcome) || !Number.isFinite(result.targetMidi)) continue;
     const measuredInterval = Number.isFinite(result.intervalSemitones)
       ? result.intervalSemitones
       : result.targetMidi - centerMidi;

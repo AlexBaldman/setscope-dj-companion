@@ -47,16 +47,34 @@ The target loop for every learning mode is:
   near-credit behavior, repeated calibration, assisted evidence, and transparent
   Roulette scoring.
 
+## Gameplay Follow-Up
+
+- Added a three-step Pitch Gates launch sequence with input readiness, stable-note
+  lock, a stationary preview gate, and a short 3-2-1 pre-roll.
+- Added pause, resume, and restart controls that preserve deterministic round
+  timing and replay.
+- Split untrustworthy signal from musical misses. `NO LOCK` now protects lives,
+  stays out of mastery calculations, and feeds signal diagnosis instead.
+- Added octave-correction feedback to the in-screen signal readout.
+- Made Rhythm Roulette begin on an empty grid so the first beat belongs to the
+  player; Auto Flip remains an explicitly assisted option.
+- Added live challenge progress and a visible mission-clear state.
+- Required four player choices before an assisted or blank-grid loop can be
+  saved.
+- Converted the twelve-pad mobile sample bank into a two-row horizontal hardware
+  tray so the sequencer appears much earlier.
+- Converted the mobile Journal entry list into a horizontal recent-entry rail.
+- Capped tablet Track Intel artwork and raised coarse-pointer filter controls to
+  the shared touch target.
+
 ## Immediate Production Priorities
 
 ### Pitch Gates
 
-- Add a three-step launch sequence: choose input, find a comfortable note, play.
-- Add a short 3-2-1 pre-roll with a stationary example gate.
-- Distinguish silence, unstable input, wrong octave, near pitch, and true miss.
-- Add pause and restart controls without weakening deterministic replay.
 - Add a previous-run ghost trail and a personal-best comparison.
 - Require interval success across multiple sessions before promoting mastery.
+- Add a short consonant success tick with a user-facing sound-effects level.
+- Let a player explicitly label a calibration note easy, uncertain, or strained.
 
 ### SetScope Cockpit
 
@@ -76,8 +94,6 @@ The target loop for every learning mode is:
 
 ### Rhythm Roulette
 
-- Let users begin from an empty grid or a labeled assisted starter.
-- Add live mission pass/fail feedback while editing.
 - Score timing feel from performed input when recording becomes available;
   grid placement alone can only estimate pocket.
 - Add keyboard pad controls, undo/redo, and per-lane mute/solo.

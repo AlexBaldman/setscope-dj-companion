@@ -6,6 +6,7 @@ import {
   hashRhythmRouletteRun,
   reduceRhythmRoulette,
   rhythmChallengeBonus,
+  rhythmChallengeStatus,
   rhythmPatternDensity,
   rhythmRecordVariety,
   scoreRhythmBreakdown,
@@ -25,9 +26,10 @@ for (let seed = 1; seed <= 256; seed += 1) {
 }
 
 const initial = createRhythmRouletteRun(challenge);
-assert.equal(rhythmPatternDensity(initial.pattern), 10);
-assert.equal(rhythmRecordVariety(initial), 3);
-assert.equal(scoreRhythmGroove(initial.pattern), 74);
+assert.equal(rhythmPatternDensity(initial.pattern), 0);
+assert.equal(rhythmRecordVariety(initial), 0);
+assert.equal(scoreRhythmGroove(initial.pattern), 0);
+assert.equal(initial.assisted, false);
 
 const selectedId = createSampleId(challenge.records[2].id, "kick");
 const selected = reduceRhythmRoulette(initial, { type: "select-sample", sampleId: selectedId });
@@ -47,14 +49,22 @@ assert.equal(invalid, toggled, "invalid actions should be identity-preserving no
 
 const loose = reduceRhythmRoulette(toggled, { type: "auto-flip" });
 assert.equal(rhythmPatternDensity(loose.pattern), 16);
+assert.equal(loose.assisted, true);
+assert.equal(loose.playerEdits, 0, "Auto flip should require fresh player choices before saving");
 const cleared = reduceRhythmRoulette(loose, { type: "clear" });
 assert.equal(rhythmPatternDensity(cleared.pattern), 0);
+assert.equal(cleared.assisted, false);
+assert.equal(cleared.playerEdits, 0);
 
 const bonuses = Object.fromEntries(["dusty-pocket", "backbeat-tax", "three-record-rule", "late-swing"].map((id) => {
-  const run = createRhythmRouletteRun({ ...challenge, rule: { ...challenge.rule, id } });
+  const run = reduceRhythmRoulette(
+    createRhythmRouletteRun({ ...challenge, rule: { ...challenge.rule, id } }),
+    { type: "auto-flip" },
+  );
   return [id, rhythmChallengeBonus(run)];
 }));
-assert.deepEqual(bonuses, { "dusty-pocket": 320, "backbeat-tax": 360, "three-record-rule": 420, "late-swing": 0 });
+assert.deepEqual(bonuses, { "dusty-pocket": 320, "backbeat-tax": 360, "three-record-rule": 420, "late-swing": 380 });
+assert.equal(rhythmChallengeStatus(loose).detail.length > 0, true);
 
 const saved = reduceRhythmRoulette(toggled, { type: "save" });
 const replay = createRhythmRouletteReplay(saved);

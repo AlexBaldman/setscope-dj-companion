@@ -55,7 +55,7 @@
             <p class="sr-only" id="pitchCanvasStatus" role="status" aria-live="polite">Choose an input, then start a round.</p>
             <div class="play-hud" aria-hidden="true">
               <div class="hud-reading">
-                <span>Live</span>
+                <span id="hudSignal">No lock</span>
                 <strong id="hudLiveNote">--</strong>
               </div>
               <div class="hud-target">
@@ -69,6 +69,11 @@
             <div class="ready-overlay" id="readyOverlay">
               <strong id="overlayTitle">PITCH GATES</strong>
               <span id="overlayStatus">CHOOSE AN INPUT</span>
+              <ol class="launch-steps" id="launchSteps" aria-label="Round setup">
+                <li data-launch-step="input"><b>1</b> Input</li>
+                <li data-launch-step="center"><b>2</b> Easy note</li>
+                <li data-launch-step="play"><b>3</b> Play</li>
+              </ol>
               <div class="result-recap" id="resultRecap" hidden>
                 <div><span>Grade</span><strong id="resultGrade">--</strong></div>
                 <div><span>Accuracy</span><strong id="resultAccuracy">--</strong></div>
@@ -88,6 +93,10 @@
               <button class="source-btn stop" id="stopAudioBtn" title="Stop audio input">Stop</button>
             </div>
             <button class="start-btn" id="startRoundBtn" disabled>Choose input</button>
+            <div class="round-controls" aria-label="Round controls">
+              <button class="source-btn" id="pauseRoundBtn" hidden disabled>Pause</button>
+              <button class="source-btn stop" id="restartRoundBtn" hidden disabled>Restart</button>
+            </div>
           </div>
         </section>
 
