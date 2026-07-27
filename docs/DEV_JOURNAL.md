@@ -1357,3 +1357,33 @@ Why this matters:
 The repository is not carrying alternate histories or mystery work. New source
 files now enter verification automatically, and future idea documents can remain
 rich without each becoming a contradictory backlog.
+
+## 2026-07-27 - Timing and Semantic Input Spine V1
+
+We gave every future musical controller a shared answer to what happened and when
+it happened.
+
+What changed:
+
+- Added versioned contracts for input mappings, latency profiles, and musical
+  action receipts.
+- Added stable gesture signatures that keep identity fields such as note,
+  controller, channel, Gamepad control, or HID report while ignoring changing
+  velocity/value data.
+- Migrated existing MIDI Learn records into the new contract automatically.
+- Added a deterministic tempo-aware clock with bar, beat, subdivision, tick,
+  phase, and absolute-beat coordinates.
+- Added latency compensation with separate input and audio offsets, explicit
+  method, jitter, sample count, and confidence.
+- Added a semantic input spine that resolves normalized observations into actions
+  such as kick, snare, closed hat, transport, set marker, or crossfader.
+- Added a live Timing Spine panel to MIDI Playground with tempo, manual offsets,
+  clock restart, fired action, intensity, and musical position.
+- Added pure clock/mapping/action tests plus browser coverage for migration,
+  persistence, compensation controls, and firing a learned action.
+
+Why this matters:
+
+Beat School, Rhythm Roulette, DJ Hero, Loop Studio, and native input no longer
+need to invent their own controller matching or timing math. The next four-pad
+lesson can consume musical action receipts and concentrate on teaching pocket.

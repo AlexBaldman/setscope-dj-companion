@@ -392,7 +392,17 @@ async function verifyMidiPlayground(page) {
   await page.locator("#demoMidiBtn").click();
   await page.waitForFunction(() => document.querySelector("#mappingCount")?.textContent === "1 map");
   assert((await page.locator("#learnBtn").getAttribute("aria-pressed")) === "false", "MIDI Learn should disarm after saving");
-  assert(await page.evaluate(() => JSON.parse(localStorage.getItem("setscope-midi-mappings-v1") || "[]").length === 1), "MIDI Learn should persist its mapping");
+  assert(await page.evaluate(() => JSON.parse(localStorage.getItem("setscope-input-mappings-v1") || "[]").length === 1), "MIDI Learn should persist its semantic mapping");
+  await page.locator("#inputLatencyControl").fill("12");
+  await page.locator("#outputLatencyControl").fill("8");
+  await expectText(page, "#timingConfidence", "manual 25%", "manual timing confidence");
+  assert(await page.evaluate(() => {
+    const profile = JSON.parse(localStorage.getItem("setscope-latency-profile-v1") || "{}");
+    return profile.inputLatencyMs === 12 && profile.outputLatencyMs === 8;
+  }), "MIDI Playground should persist latency offsets");
+  await page.locator("#demoMidiBtn").click();
+  await page.waitForFunction(() => document.querySelector("#semanticAction")?.textContent.includes("KICK"));
+  await expectText(page, "#clockPosition", "BAR", "semantic action musical position");
   await auditPage(page, "midi-playground-desktop");
 }
 

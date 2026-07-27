@@ -70,14 +70,36 @@
             <div class="panel-kicker"><span>Connected</span><b id="portStatus">No ports</b></div>
             <div class="port-list" id="portList"><p>No hardware seen yet.</p></div>
           </section>
+          <section class="midi-panel timing-panel">
+            <div class="panel-kicker"><span>Timing spine</span><b id="timingConfidence">UNCALIBRATED</b></div>
+            <div class="clock-face">
+              <span id="semanticAction">NO ACTION</span>
+              <strong id="clockPosition">BAR 1 / BEAT 1 / STEP 1</strong>
+            </div>
+            <div class="timing-controls">
+              <label>Tempo
+                <input id="tempoControl" type="number" min="30" max="300" step="1" value="94" inputmode="numeric" />
+              </label>
+              <label>Input offset <output id="inputLatencyValue">0 ms</output>
+                <input id="inputLatencyControl" type="range" min="0" max="150" step="1" value="0" />
+              </label>
+              <label>Audio offset <output id="outputLatencyValue">0 ms</output>
+                <input id="outputLatencyControl" type="range" min="0" max="250" step="1" value="0" />
+              </label>
+            </div>
+            <button class="clock-reset-btn" id="resetClockBtn">Restart bar</button>
+          </section>
           <section class="midi-panel mapping-panel">
             <div class="panel-kicker"><span>MIDI Learn</span><b id="mappingCount">0 maps</b></div>
             <label>Action
               <select id="mappingAction">
+                <option value="kick">Kick</option>
+                <option value="snare">Snare</option>
+                <option value="closed-hat">Closed hat</option>
                 <option value="next-move">Next Move</option>
                 <option value="set-marker">Set marker</option>
-                <option value="play-pause">Play / pause</option>
-                <option value="rhythm-pad">Rhythm pad</option>
+                <option value="transport-toggle">Play / pause</option>
+                <option value="crossfader">Crossfader</option>
               </select>
             </label>
             <button class="learn-btn" id="learnBtn" aria-pressed="false">Arm next gesture</button>

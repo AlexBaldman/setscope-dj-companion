@@ -98,6 +98,10 @@
 - DJ Mentor practice launches now carry the selected track into Pitch Gates, Rhythm Roulette, and Audio Lab; completed runs auto-attach, receive practice labels, and return to the cockpit with the saved event open.
 - The Session Spine now persists track-specific practice missions inside the SetDraft envelope, recommends the next useful tool, resumes unfinished assignments, and closes missions against exact performance-event evidence.
 - Completed tool runs now also write deduplicated cross-session skill receipts. The Skill Constellation keeps level separate from evidence confidence, excludes guided/demo work from promotion, and can steer Next Move toward calibration or a weak trusted skill.
+- The Timing and Semantic Input Spine now maps stable controller gestures into
+  versioned musical-action receipts with intensity, latency provenance, and
+  deterministic bar/beat/step coordinates. MIDI Learn migrates from legacy raw
+  message storage without losing mappings.
 - The main deck now runs a continuous listening transport with explicit start/stop ownership, configurable cadence, abortable capture/API work, session metrics, and bounded retry behavior.
 - SetScope now projects the same cockpit into three explicit responsive workspaces. Workspace selection and disclosure preferences are isolated from SetDraft, selected-track actions reveal the relevant narrow-screen workspace, and Listen remains available across every mode.
 - Recognition windows now carry persistent session identity, set-relative timing, request and observation IDs, explicit outcomes, provider deadlines, cancellation, and visible provenance. Bounded binary audio stays ephemeral, committed observations replay from SQLite after restart without invoking the provider again, and provider errors cannot create fake timeline tracks.
@@ -121,8 +125,8 @@
 The canonical sequencing now lives in `docs/NEXT_DOMINOS.md`. The architecture
 order below records dependency direction rather than a competing product backlog.
 
-1. Build the timing and semantic-input spine, then validate the completed MIDI
-   Playground Hardware Census against the physical
+1. Validate the completed Timing and Semantic Input Spine and MIDI Playground
+   Hardware Census against the physical
    nanoKEY, Sensel Morph, Maschine Studio, Maschine Jam, and DJ Hero bench. Record
    aliases, capabilities, and latency without leaking device identity outside the
    local profile.

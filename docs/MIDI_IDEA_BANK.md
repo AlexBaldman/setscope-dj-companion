@@ -587,5 +587,9 @@ Before building any MIDI idea, ask:
 - Deterministic demo source for no-hardware onboarding and CI
 - Bounded live observation monitor and 4x4 pad visualization
 - Local MIDI Learn mappings
+- Versioned semantic gesture mappings with legacy migration
+- Tempo-aware bar, beat, step, phase, and tick coordinates
+- Versioned musical-action receipts with intensity and timing provenance
+- Manual input/audio latency offsets with explicit confidence
 - Named census slots for the Sensel Morph, nanoKEY, Maschine Studio, Maschine
   Jam, and DJ Hero deck

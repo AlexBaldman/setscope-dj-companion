@@ -24,6 +24,8 @@ SetScope is a local-first DJ set companion and musician toolbelt. It turns a lis
 - shared musician calibration and adaptive practice guidance across Pitch Gates and Audio Lab
 - Rhythm Roulette, a deterministic blind-crate sequencer with portable run replays
 - MIDI Playground, a controller census, event monitor, and MIDI Learn workbench
+- a portable timing and semantic-input spine with musical action receipts,
+  latency provenance, and bar/beat/step coordinates
 - responsive Signal, Timeline, and Intel workspaces for phone, tablet, and desktop
 
 Run it locally:
@@ -181,6 +183,6 @@ See [docs/NEXT_DOMINOS.md](docs/NEXT_DOMINOS.md) for the canonical, currently ra
 ## Product Priorities
 
 SetScope's production loop is now Listen, Understand, Practice, Create, and
-Remember. The next lead domino is the shared timing and semantic-input spine that
-lets MIDI, touch, keyboard, Gamepad, and future native events drive Beat School,
-Rhythm Roulette, Loop Studio, and the DJ toolbelt on one calibrated musical clock.
+Remember. The shared timing and semantic-input spine now lets normalized device
+events drive one calibrated musical clock. The next lead domino is the first
+four-pad Beat School vertical slice.

@@ -120,6 +120,10 @@ Pitch Gates and Rhythm Roulette:
 - latency profile separate from musician skill
 - one structured performance event at completion
 
+The completed Timing and Semantic Input Spine supplies normalized actions,
+latency compensation, and musical coordinates. Beat School should consume those
+receipts rather than reading browser MIDI, touch, or keyboard events directly.
+
 The first implementation brick is a four-pad kick/snare lesson with demo input,
 touch/keyboard fallback, mapped MIDI input, signed timing feedback, and a
 deterministic replay. It should be useful before sounds, lessons, or device

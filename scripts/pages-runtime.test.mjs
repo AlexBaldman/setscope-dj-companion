@@ -44,6 +44,7 @@ try {
   await page.waitForFunction(() => Number(document.querySelector("#eventCount")?.textContent) >= 4);
   assert.equal(await page.locator("#padField > i").count(), 16);
   assert((await page.locator("#midiEventLog .midi-event").count()) >= 4);
+  assert.equal(await page.locator("#clockPosition").count(), 1);
   assert.deepEqual(problems, []);
   console.log("GitHub Pages browser checks passed");
 } finally {

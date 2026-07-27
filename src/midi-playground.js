@@ -1,14 +1,27 @@
 import { createControlObservation, parseMidiMessage } from "./contracts/midi-observation.js";
+import {
+  createInputMapping,
+  createLatencyProfile,
+  normalizeInputMappings,
+} from "./contracts/input-timing.js";
+import { createMusicalClock, createSemanticInputSpine } from "./input-spine.js";
 
-const MAPPING_KEY = "setscope-midi-mappings-v1";
+const MAPPING_KEY = "setscope-input-mappings-v1";
+const LEGACY_MAPPING_KEY = "setscope-midi-mappings-v1";
+const LATENCY_KEY = "setscope-latency-profile-v1";
 const sessionId = `midi_${Date.now().toString(36)}`;
 const els = Object.fromEntries([
+  "clockPosition",
   "connectHidBtn", "connectMidiBtn", "demoMidiBtn", "deviceSlots", "eventCount", "gestureMeter",
+  "inputLatencyControl", "inputLatencyValue",
   "gestureType", "gestureValue", "inputCount", "lastEvent", "learnBtn", "learnStatus",
   "mappingAction", "mappingCount", "mappingList", "midiEventLog", "midiStatus", "padField",
-  "portList", "portStatus", "protocolStatus", "scanGamepadBtn", "stopMidiBtn", "benchFound",
+  "outputLatencyControl", "outputLatencyValue",
+  "portList", "portStatus", "protocolStatus", "resetClockBtn", "scanGamepadBtn", "semanticAction",
+  "stopMidiBtn", "benchFound", "tempoControl", "timingConfidence",
 ].map((id) => [id, document.querySelector(`#${id}`)]));
 
+const clock = createMusicalClock({ bpm: 94, originTimeMs: performance.now() });
 let eventCount = 0;
 let observationCursor = 0;
 let midiAccess = null;
@@ -16,6 +29,13 @@ let demoTimers = [];
 let gamepadTimer = null;
 let learnArmed = false;
 let mappings = readMappings();
+let latencyProfile = readLatencyProfile();
+const inputSpine = createSemanticInputSpine({
+  sessionId,
+  clock,
+  mappings,
+  latencyProfiles: [latencyProfile],
+});
 const ports = new Map();
 const observations = [];
 const seenGamepadValues = new Map();
@@ -26,8 +46,14 @@ els.scanGamepadBtn.addEventListener("click", scanGamepads);
 els.connectHidBtn.addEventListener("click", connectHid);
 els.stopMidiBtn.addEventListener("click", stopAll);
 els.learnBtn.addEventListener("click", toggleLearn);
+els.tempoControl.addEventListener("change", updateTempo);
+els.inputLatencyControl.addEventListener("input", updateLatencyProfile);
+els.outputLatencyControl.addEventListener("input", updateLatencyProfile);
+els.resetClockBtn.addEventListener("click", restartClock);
 renderMappings();
 renderCapabilities();
+renderTimingControls();
+renderClockPosition(clock.positionAt(performance.now()));
 
 async function connectMidi() {
   if (!navigator.requestMIDIAccess) {
@@ -63,6 +89,7 @@ function bindMidiPorts() {
 
 function runDemo() {
   stopDemo();
+  clock.restart(performance.now());
   const sequence = [
     [0x90, 60, 42], [0x90, 64, 96], [0xb0, 1, 78], [0xe0, 0, 80],
     [0x80, 60, 0], [0x99, 36, 118], [0x99, 38, 92], [0xfa],
@@ -154,11 +181,15 @@ async function connectHid() {
 
 function receiveObservation(observation, sourceName) {
   eventCount += 1;
-  observations.unshift({ ...observation, sourceName });
+  let actionReceipt = null;
+  if (learnArmed) saveMapping(observation);
+  else actionReceipt = inputSpine.receive(observation, { receivedAtMs: performance.now() });
+  observations.unshift({ ...observation, sourceName, actionReceipt });
   observations.splice(24);
   renderObservation(observation);
+  if (actionReceipt) renderSemanticAction(actionReceipt);
+  else renderClockPosition(clock.positionAt(observation.timestampMs));
   renderEventLog();
-  if (learnArmed) saveMapping(observation);
 }
 
 function renderObservation(observation) {
@@ -182,6 +213,7 @@ function renderEventLog() {
       <b>${escapeHtml(shortType(item.message.type))}</b>
       <span>${escapeHtml(describeMessage(item.message))}</span>
       <small>${escapeHtml(item.sourceName)} / ${escapeHtml(item.protocol)}</small>
+      ${item.actionReceipt ? `<em>${escapeHtml(item.actionReceipt.action)} / ${escapeHtml(formatPosition(item.actionReceipt.position))}</em>` : ""}
     </div>
   `).join("");
 }
@@ -224,13 +256,20 @@ function toggleLearn() {
 
 function saveMapping(observation) {
   learnArmed = false;
-  mappings.unshift({
+  const mapping = createInputMapping({
+    mappingId: `${sessionId}_mapping_${Date.now().toString(36)}`,
     action: els.mappingAction.value,
-    sourceId: observation.sourceId,
-    message: observation.message,
+    observation,
   });
+  mappings = mappings.filter((candidate) => !(
+    candidate.action === mapping.action
+    && candidate.sourceId === mapping.sourceId
+    && JSON.stringify(candidate.gesture) === JSON.stringify(mapping.gesture)
+  ));
+  mappings.unshift(mapping);
   mappings = mappings.slice(0, 24);
   localStorage.setItem(MAPPING_KEY, JSON.stringify(mappings));
+  inputSpine.setMappings(mappings);
   renderMappings();
   els.learnBtn.setAttribute("aria-pressed", "false");
   els.learnBtn.textContent = "Arm next gesture";
@@ -240,8 +279,53 @@ function saveMapping(observation) {
 function renderMappings() {
   els.mappingCount.textContent = `${mappings.length} map${mappings.length === 1 ? "" : "s"}`;
   els.mappingList.innerHTML = mappings.length ? mappings.map((mapping) => `
-    <div><strong>${escapeHtml(mapping.action.replaceAll("-", " "))}</strong><span>${escapeHtml(shortType(mapping.message.type))} / ${escapeHtml(mapping.sourceId)}</span></div>
+    <div><strong>${escapeHtml(mapping.action.replaceAll("-", " "))}</strong><span>${escapeHtml(describeGesture(mapping.gesture))} / ${escapeHtml(mapping.sourceId)}</span></div>
   `).join("") : "<p>No mappings saved.</p>";
+}
+
+function updateTempo() {
+  const bpm = Math.max(30, Math.min(300, Number(els.tempoControl.value) || 94));
+  els.tempoControl.value = bpm;
+  clock.setTempo(bpm, performance.now());
+  renderClockPosition(clock.positionAt(performance.now()));
+}
+
+function updateLatencyProfile() {
+  latencyProfile = createLatencyProfile({
+    profileId: "latency_manual_default",
+    sourceId: "*",
+    inputLatencyMs: Number(els.inputLatencyControl.value),
+    outputLatencyMs: Number(els.outputLatencyControl.value),
+    confidence: 0.25,
+    method: "manual",
+  });
+  localStorage.setItem(LATENCY_KEY, JSON.stringify(latencyProfile));
+  inputSpine.setLatencyProfiles([latencyProfile]);
+  renderTimingControls();
+}
+
+function restartClock() {
+  clock.restart(performance.now());
+  els.semanticAction.textContent = "CLOCK RESTARTED";
+  renderClockPosition(clock.positionAt(performance.now()));
+}
+
+function renderTimingControls() {
+  els.inputLatencyControl.value = latencyProfile.inputLatencyMs;
+  els.outputLatencyControl.value = latencyProfile.outputLatencyMs;
+  els.inputLatencyValue.textContent = `${latencyProfile.inputLatencyMs} ms`;
+  els.outputLatencyValue.textContent = `${latencyProfile.outputLatencyMs} ms`;
+  els.timingConfidence.textContent = latencyProfile.confidence ? `${latencyProfile.method} ${Math.round(latencyProfile.confidence * 100)}%` : "UNCALIBRATED";
+}
+
+function renderSemanticAction(receipt) {
+  els.semanticAction.textContent = `${receipt.action.replaceAll("-", " ").toUpperCase()} / ${Math.round(receipt.intensity * 100)}%`;
+  renderClockPosition(receipt.position);
+  els.learnStatus.textContent = "FIRED";
+}
+
+function renderClockPosition(position) {
+  els.clockPosition.textContent = formatPosition(position);
 }
 
 function renderCapabilities() {
@@ -295,11 +379,34 @@ function shortType(type) {
 
 function readMappings() {
   try {
-    const value = JSON.parse(localStorage.getItem(MAPPING_KEY) || "[]");
-    return Array.isArray(value) ? value : [];
+    const current = localStorage.getItem(MAPPING_KEY);
+    const legacy = localStorage.getItem(LEGACY_MAPPING_KEY);
+    const value = normalizeInputMappings(JSON.parse(current || legacy || "[]"));
+    if (!current && value.length) localStorage.setItem(MAPPING_KEY, JSON.stringify(value));
+    return value;
   } catch {
     return [];
   }
+}
+
+function readLatencyProfile() {
+  try {
+    return createLatencyProfile(JSON.parse(localStorage.getItem(LATENCY_KEY) || "{}"));
+  } catch {
+    return createLatencyProfile({ profileId: "latency_default", sourceId: "*", confidence: 0 });
+  }
+}
+
+function describeGesture(gesture = {}) {
+  if (gesture.note !== undefined) return `${shortType(gesture.type)} ${gesture.note}`;
+  if (gesture.controller !== undefined) return `CC ${gesture.controller}`;
+  if (gesture.control) return gesture.control;
+  if (gesture.reportId !== undefined) return `HID ${gesture.reportId}`;
+  return shortType(gesture.type);
+}
+
+function formatPosition(position = {}) {
+  return `BAR ${position.bar || 1} / BEAT ${position.beat || 1} / STEP ${position.step || 1}`;
 }
 
 function escapeHtml(value) {

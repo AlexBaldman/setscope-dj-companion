@@ -6,27 +6,32 @@ Beat School planning, and the cymatics module boundary.
 This is the canonical priority list. Domain roadmaps hold depth and inspiration;
 this file decides sequencing.
 
-## 1. Timing and Semantic Input Spine
+## 1. Timing and Semantic Input Spine V1 - Completed
 
-Build one portable service that converts MIDI, touch, keyboard, Gamepad, and
-future native events into musical actions on a calibrated clock.
+The portable service now converts normalized device observations into musical
+actions on a tempo-aware clock.
 
-Deliverables:
+Implemented:
 
 - semantic actions such as `kick`, `snare`, `hat`, `transport-toggle`,
   `set-marker`, and `crossfader`
-- input timestamp, source timestamp, audio-clock coordinate, and compensated
-  musical position
-- local input/output latency profile with measured confidence
-- per-device aliases and mappings over normalized observations
-- deterministic action recording and replay
-- touch and computer-keyboard parity for every required action
+- receive timestamp, source timestamp, optional audio-clock coordinate, and
+  compensated musical position
+- versioned local input/output latency profiles with explicit method and confidence
+- per-source mappings over normalized observations
+- deterministic action receipts ready for recording and replay
+- legacy MIDI Learn migration into stable gesture signatures
+- live bar, beat, step, intensity, and semantic-action monitoring
 
 Why first: Beat School scoring, Rhythm Roulette MIDI control, DJ Hero gestures,
 Loop Studio overdubs, and native iOS input all need the same answer to “what was
 played, and when?”
 
-## 2. Beat School Vertical Slice
+Manual latency offsets are working now. Tap and loopback measurement, device
+aliases, and non-MIDI fallback adapters close during the physical census and Beat
+School slice, where real timing evidence can validate them.
+
+## 2. Beat School Vertical Slice - Next
 
 Ship one excellent four-pad hip-hop lesson before expanding curriculum.
 
