@@ -1330,3 +1330,30 @@ tool while becoming a first-class instrument inside SetScope. Real camera
 captures can challenge simulations, MIDI can explore safe parameter spaces, and
 measured resonances can become original sounds in Loop Studio without blurring
 science and spectacle.
+
+## 2026-07-27 - Repository Archaeology and Priority Reset
+
+We refreshed every Git reference and audited branches, reflogs, tags, source
+ownership, generated files, test ergonomics, and competing roadmap claims.
+
+What changed:
+
+- Confirmed the repository has exactly one local branch and one remote branch:
+  `main`. There were no stray branch commits, tags, or notes to rescue or delete.
+- Confirmed the complete development history is linear and preserved in Git plus
+  the Dev Journal.
+- Replaced the giant hand-maintained syntax command with automatic discovery of
+  every JavaScript module under `src`, `server`, and `scripts`.
+- Added automatic fast-test discovery while keeping browser/server smoke tests in
+  their explicit suites.
+- Updated stale MVP and design-system status notes.
+- Created `docs/NEXT_DOMINOS.md` as the single canonical sequencing document.
+- Selected the timing and semantic-input spine as the next architecture domino
+  because it unlocks Beat School, MIDI control, DJ Hero, Loop Studio, and native
+  input without duplicating clocks or mappings.
+
+Why this matters:
+
+The repository is not carrying alternate histories or mystery work. New source
+files now enter verification automatically, and future idea documents can remain
+rich without each becoming a contradictory backlog.

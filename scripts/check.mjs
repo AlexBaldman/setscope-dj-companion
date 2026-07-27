@@ -438,7 +438,6 @@ assert(serverJson.includes("payload_too_large") && serverJson.includes("invalid_
 
 assert(pitchGatesFilter.includes("createPitchStabilizer"), "Pitch Gates should expose a reusable pitch stabilizer");
 assert(pitchGatesFilter.includes("dropoutGraceMs"), "Pitch Gates should retain brief vocal dropouts");
-await import("./pitch-filter.test.mjs");
 
 console.log("SetScope checks passed");
 

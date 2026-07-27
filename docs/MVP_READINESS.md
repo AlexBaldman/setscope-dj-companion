@@ -15,6 +15,7 @@ The current MVP supports the essential loop:
 9. Play Pitch Gates with generated, microphone, shared, or uploaded audio and log a practice event.
 10. Play Rhythm Roulette by pulling mystery records, building a generated beat-grid loop, and logging the run.
 11. Start continuous listening, choose a recognition cadence, watch session progress, and stop capture explicitly.
+12. Inspect MIDI, Gamepad, HID, or demo events in MIDI Playground and save a local semantic mapping.
 
 ## Working Features
 
@@ -43,6 +44,10 @@ The current MVP supports the essential loop:
 - Rhythm Roulette minigame with pixel-art blind crate digging, mystery record pulls, producer constraints, generated sample pads, sequencer grid, crate receipt, and learning-event logging.
 - Runtime QA harness for cockpit, Pitch Gates, Audio Lab, Journal, and Rhythm Roulette with screenshots, console checks, duplicate-id checks, broken-image checks, and overflow checks.
 - Browser QA now covers page overflow, semantic headings, unlabeled controls, missing assets, duplicate IDs, and core cockpit event flows.
+- MIDI Playground provides a normalized controller monitor, hardware census,
+  deterministic demo, and local MIDI Learn.
+- Cross-session Skill Constellation and resumable Practice Missions connect set
+  moments to trusted learning evidence.
 
 ## MVP Gaps
 
@@ -58,14 +63,15 @@ The current MVP supports the essential loop:
 
 ## Launch-Quality Checklist
 
-- Authenticate GitHub CLI and push the repo.
+- Keep `main` and GitHub Pages green through the complete verification suite.
 - Add a real AudD token and run the Test provider workflow.
 - Keep new toolbelt modules writing to the shared audio event timeline.
-- Extract shared real-time audio input plumbing before adding tuner and visualizer modules.
+- Build the shared timing and semantic-input spine before Beat School or Loop
+  Studio multiply input-specific code.
 - Add a dedicated archive study view with facets, sorting, comparison, and direct track-level navigation.
 - Add an explicit sync/export boundary before introducing accounts or cloud storage.
 - Add a real transition-analysis pass.
-- Add basic accessibility checks for keyboard focus and reduced motion.
+- Extend accessibility checks as each new playable input and result state lands.
 - Keep the no-horizontal-overflow and labeled-control browser audit green across every top-level surface.
 - Run `npm run test:runtime` before major UI commits.
 - Decide public/private repo status and license.
@@ -73,10 +79,8 @@ The current MVP supports the essential loop:
 ## Verification Commands
 
 ```bash
-node --check server.mjs
-node scripts/check.mjs
-node scripts/provider-contract.test.mjs
-node scripts/smoke-api.mjs
+npm run check
+npm run smoke
 npm run test:runtime
 ```
 

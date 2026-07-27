@@ -85,13 +85,19 @@ The SetScope cockpit now uses one explicit workspace model instead of compressin
 - Session utilities move into a compact menu while Listen remains a first-class command.
 - Runtime checks cover all three workspaces at phone and tablet widths, selected-track continuity, listening continuity, disclosure behavior, draft isolation, and automatic viewport reveal.
 
-## Next Lead Domino
+## Current Foundation
 
-The multidisciplinary council selected a durable recognition transaction as the next production domino. Signal Receipt V1 now establishes its first production and design contracts:
+The multidisciplinary council selected a durable recognition transaction as an
+earlier production domino. Signal Receipt V1 established its production and
+design contracts:
 
 - Recognition results display visible inferred or demo-story provenance.
 - Pitch Gates, Audio Lab, and Rhythm Roulette expose truthful idle, ready, active, result, and saved behavior with contextual actions and textual Canvas equivalents.
 - Phone and tablet layouts keep the current instrument and primary action in the first viewport; browser QA enforces that geometry.
 - Roulette's heuristic is labeled Mission rather than presenting itself as an objective measure of groove.
 
-Signal Receipt V1 now includes binary audio transport, SQLite replay persistence, deep observation validation, and visible terminal outcomes. The next teaching slice builds an adaptive practice spine shared by Pitch Gates and Audio Lab. Beat Loom remains the preferred first frequency-geometry experiment once that learning contract is complete.
+Signal Receipt V1 now includes binary audio transport, SQLite replay persistence,
+deep observation validation, and visible terminal outcomes. The adaptive practice
+spine, responsive cockpit, Skill Constellation, and MIDI Playground now build on
+that foundation. Current sequencing lives in `docs/NEXT_DOMINOS.md` so this design
+reference does not become a competing roadmap.

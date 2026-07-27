@@ -118,7 +118,11 @@
 
 ## Recommended Next Refactor
 
-1. Validate the completed MIDI Playground Hardware Census against the physical
+The canonical sequencing now lives in `docs/NEXT_DOMINOS.md`. The architecture
+order below records dependency direction rather than a competing product backlog.
+
+1. Build the timing and semantic-input spine, then validate the completed MIDI
+   Playground Hardware Census against the physical
    nanoKEY, Sensel Morph, Maschine Studio, Maschine Jam, and DJ Hero bench. Record
    aliases, capabilities, and latency without leaking device identity outside the
    local profile.
