@@ -27,6 +27,8 @@ try {
   await runResponsiveOverflowPass("compact", compactViewport);
   await runResponsiveOverflowPass("tablet", tabletViewport);
   await runMobileOverflowPass();
+  await runLightThemePass();
+  await runReducedMotionPass();
 } finally {
   await browser.close();
   managedServer?.process.kill();
@@ -54,6 +56,7 @@ async function runDesktopFlow() {
   await verifyMidiPlayground(page);
   await verifyBeatSchool(page);
   await verifyJournal(page);
+  await verifyStyleLab(page);
   collectRuntimeProblems(logs);
   await context.close();
 }
@@ -98,7 +101,7 @@ async function runMobileOverflowPass() {
 }
 
 async function runResponsiveOverflowPass(viewName, viewport) {
-  const context = await browser.newContext({ viewport });
+  const context = await browser.newContext({ viewport, hasTouch: viewport.width <= 768 });
   await installFakeMicrophone(context);
   const page = await context.newPage();
   const logs = captureRuntimeProblems(page, viewName);
@@ -110,6 +113,7 @@ async function runResponsiveOverflowPass(viewName, viewport) {
     [`midi-${viewName}`, "/midi-playground.html"],
     [`beat-school-${viewName}`, "/beat-school.html"],
     [`journal-${viewName}`, "/journal.html"],
+    [`style-lab-${viewName}`, "/design-system.html"],
   ];
   for (const [label, path] of routes) {
     await goto(page, path);
@@ -121,6 +125,37 @@ async function runResponsiveOverflowPass(viewName, viewport) {
     if (viewport.width <= 768) await verifyFirstViewportAction(page, path, viewName);
   }
   collectRuntimeProblems(logs);
+  await context.close();
+}
+
+async function runLightThemePass() {
+  const context = await browser.newContext({ viewport: compactViewport });
+  await context.addInitScript(() => localStorage.setItem("setscope-theme", "light"));
+  const page = await context.newPage();
+  const logs = captureRuntimeProblems(page, "light-theme");
+  for (const path of ["/", "/pitch-gates.html", "/audio-lab.html", "/beat-school.html", "/rhythm-roulette.html", "/midi-playground.html", "/journal.html", "/design-system.html"]) {
+    await goto(page, path);
+    assert(await page.evaluate(() => document.documentElement.dataset.theme === "light"), `${path} should restore light mode`);
+    await auditPage(page, `${path === "/" ? "setscope" : path.slice(1, -5)}-light`);
+  }
+  collectRuntimeProblems(logs);
+  await context.close();
+}
+
+async function runReducedMotionPass() {
+  const context = await browser.newContext({
+    viewport: mobileViewport,
+    hasTouch: true,
+    reducedMotion: "reduce",
+  });
+  const page = await context.newPage();
+  await goto(page, "/beat-school.html");
+  const motion = await page.locator("#lessonAction").evaluate((node) => ({
+    media: matchMedia("(prefers-reduced-motion: reduce)").matches,
+    transition: getComputedStyle(node).transitionDuration,
+  }));
+  assert(motion.media, "reduced-motion context should reach the application");
+  assert(parseFloat(motion.transition) <= 0.001, "room actions should collapse motion when reduced motion is requested");
   await context.close();
 }
 
@@ -433,11 +468,23 @@ async function verifyBeatSchool(page) {
 async function verifyJournal(page) {
   await goto(page, "/journal.html");
   await expectVisible(page, "#page", "Journal page");
-  await expectCount(page, "[data-tool-rack] .tool-rack-item", 7, "Journal shared tool navigation");
+  await expectCount(page, "[data-tool-rack] .tool-rack-item", 8, "Journal shared tool navigation");
   await page.locator("[data-paper=\"graph\"]").click();
   const paper = await page.locator("body").getAttribute("data-paper");
   assert(paper === "graph", "Journal should switch to graph paper");
   await auditPage(page, "journal-desktop");
+}
+
+async function verifyStyleLab(page) {
+  await goto(page, "/design-system.html");
+  await expectVisible(page, "#roomSwitcher", "Style Lab room switcher");
+  await expectCount(page, "[data-room-choice]", 7, "Style Lab room identities");
+  await expectCount(page, ".asset-grid img", 4, "Style Lab environment library");
+  await page.locator('[data-room-choice="pitch"]').click();
+  assert((await page.locator("[data-room]").getAttribute("data-room")) === "pitch", "Style Lab should switch room identity");
+  assert((await page.locator("[data-room]").getAttribute("data-material")) === "painted-cabinet", "Style Lab should apply room material");
+  await expectText(page, "#styleStatus", "VOCAL ARCADE", "Style Lab room status");
+  await auditPage(page, "style-lab-desktop");
 }
 
 async function goto(page, path) {
@@ -445,7 +492,12 @@ async function goto(page, path) {
 }
 
 async function auditPage(page, label) {
-  await page.screenshot({ fullPage: true, path: join(artifactDir, `${label}.png`) });
+  await page.screenshot({
+    animations: "disabled",
+    fullPage: true,
+    path: join(artifactDir, `${label}.png`),
+    timeout: 60000,
+  });
   const result = await page.evaluate(() => {
     const ids = [...document.querySelectorAll("[id]")].map((node) => node.id);
     const duplicateIds = ids.filter((id, index) => ids.indexOf(id) !== index);
@@ -469,13 +521,20 @@ async function auditPage(page, label) {
         .filter((node) => node.scrollWidth > node.clientWidth + 1)
         .map((node) => node.id || "entry-title"),
       title: document.title,
-      undersizedPriorityTargets: [...document.querySelectorAll(".tool-rack-item, .segment-control button, .entry-move button, .step-cell")]
+      transparentSharedSurfaces: [...document.querySelectorAll('[data-ui="chassis"], [data-ui="panel"]')]
+        .filter((node) => getComputedStyle(node).backgroundColor === "rgba(0, 0, 0, 0)")
+        .map((node) => node.id || node.className || node.dataset.ui),
+      undersizedPriorityTargets: [...document.querySelectorAll(".tool-rack-item, .segment-control button, .entry-move button, .step-cell, [data-room] button, [data-room] summary, [data-room] select")]
         .filter((node) => {
           const rect = node.getBoundingClientRect();
           const style = getComputedStyle(node);
           return style.display !== "none" && (rect.width < 43 || rect.height < 43);
         })
-        .map((node) => node.id || node.getAttribute("aria-label") || node.className),
+        .map((node) => {
+          const rect = node.getBoundingClientRect();
+          const label = node.id || node.getAttribute("aria-label") || node.className;
+          return `${label}:${Math.round(rect.width * 10) / 10}x${Math.round(rect.height * 10) / 10}`;
+        }),
     };
   });
   assert(!result.overflowX, `${label} should not have horizontal overflow`);
@@ -483,6 +542,7 @@ async function auditPage(page, label) {
   assert(result.clippedTitleInputs.length === 0, `${label} should fit journal titles: ${result.clippedTitleInputs.join(", ")}`);
   assert(result.duplicateIds.length === 0, `${label} should not have duplicate ids: ${result.duplicateIds.join(", ")}`);
   assert(result.brokenImages.length === 0, `${label} should not have broken images: ${result.brokenImages.join(", ")}`);
+  assert(result.transparentSharedSurfaces.length === 0, `${label} should give shared hardware surfaces a material background: ${result.transparentSharedSurfaces.join(", ")}`);
   if (label.endsWith("-mobile")) assert(result.undersizedPriorityTargets.length === 0, `${label} should keep priority touch targets at 44px: ${result.undersizedPriorityTargets.join(", ")}`);
 }
 

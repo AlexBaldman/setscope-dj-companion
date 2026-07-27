@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Style Lab - SetScope</title>
+    <link rel="stylesheet" href="./src/design-tokens.css" />
+    <link rel="stylesheet" href="./src/arcade-shell.css" />
+    <link rel="stylesheet" href="./src/design-system-lab.css" />
+    <link rel="stylesheet" href="./src/ui-system.css" />
+    <link rel="stylesheet" href="./src/theme.css" />
+  </head>
+  <body>
+    <div class="game-app style-lab-app" data-room="set">
+      <header class="game-topbar app-header">
+        <a class="back-link" href="./index.html"><span class="mini-disc"></span>SetScope</a>
+        <div class="game-title"><h1>Style Lab</h1><span>Living System</span></div>
+        <div class="game-tools">
+          <nav class="tool-rack compact" data-tool-rack data-current-tool="style-lab" aria-label="SetScope tools"></nav>
+          <div class="lcd-pill" id="styleStatus">SYSTEM READY</div>
+          <button class="theme-toggle" data-theme-toggle aria-label="Switch to light mode" title="Switch to light mode">
+            <img src="./assets/theme/lightning-bulb-toggle-ui.png" alt="" />
+          </button>
+        </div>
+      </header>
+
+      <main class="style-lab-layout">
+        <section class="style-intro" data-ui="chassis">
+          <div>
+            <span class="style-kicker">SetScope room system / V1</span>
+            <h2 id="roomTitle">Listening Station</h2>
+            <p>One music clubhouse. Seven rooms. Shared hardware grammar, semantic lights, tactile behavior, and responsive safety.</p>
+          </div>
+          <nav class="room-switcher" id="roomSwitcher" data-scroll-region aria-label="Preview room"></nav>
+        </section>
+
+        <section class="style-section">
+          <div class="style-heading"><span>01</span><div><h2>Environment Library</h2><p>Original pixel-art environments preserve a dark UI safe area and meaningful crops.</p></div></div>
+          <div class="asset-grid">
+            <figure><img src="./assets/world/music-block.png" alt="Pixel-art music block studio mural" /><figcaption>Music Block <span>Set / Beat / Dig / Journal</span></figcaption></figure>
+            <figure><img src="./assets/world/vocal-arcade.png" alt="Pixel-art rooftop vocal arcade environment" /><figcaption>Vocal Arcade <span>Pitch Gates</span></figcaption></figure>
+            <figure><img src="./assets/world/signal-workshop.png" alt="Pixel-art electronics and signal workshop" /><figcaption>Signal Workshop <span>Audio / MIDI</span></figcaption></figure>
+            <figure><img src="./assets/beat-school/beat-lab.png" alt="Pixel-art basement beat laboratory" /><figcaption>Beat Basement <span>Lesson stage</span></figcaption></figure>
+          </div>
+        </section>
+
+        <section class="style-section">
+          <div class="style-heading"><span>02</span><div><h2>Semantic Lights</h2><p>Room color creates identity. Signal color always preserves meaning.</p></div></div>
+          <div class="swatch-rack">
+            <div style="--swatch:var(--accent-action)"><i></i><strong>Action</strong><span>Amber</span></div>
+            <div style="--swatch:var(--accent-data)"><i></i><strong>Data</strong><span>Cyan</span></div>
+            <div style="--swatch:var(--status-success)"><i></i><strong>Success</strong><span>Mint</span></div>
+            <div style="--swatch:var(--status-danger)"><i></i><strong>Danger</strong><span>Coral</span></div>
+            <div style="--swatch:var(--playhead)"><i></i><strong>Playhead</strong><span>Yellow</span></div>
+          </div>
+        </section>
+
+        <section class="style-section">
+          <div class="style-heading"><span>03</span><div><h2>Instrument Grammar</h2><p>Illustrated room, tactile instrument, quiet evidence.</p></div></div>
+          <div class="primitive-stage">
+            <section class="primitive-chassis" data-ui="chassis">
+              <div class="metric-rack primitive-metrics">
+                <div class="metric-cell" data-ui="metric" data-accent="score"><span>Signal</span><strong>LOCKED</strong></div>
+                <div class="metric-cell" data-ui="metric" data-accent="success"><span>Pocket</span><strong>94</strong></div>
+                <div class="metric-cell" data-ui="metric" data-accent="warning"><span>Tempo</span><strong>96</strong></div>
+              </div>
+              <div class="primitive-screen" data-ui="screen">
+                <span>Instrument screen</span>
+                <div class="primitive-wave" aria-hidden="true"></div>
+                <strong>Current state stays legible</strong>
+              </div>
+              <div class="primitive-actions">
+                <button class="source-btn">Utility</button>
+                <button class="start-btn" data-ui="action" id="motionDemo">Fire motion cue</button>
+              </div>
+            </section>
+            <aside class="primitive-panel" data-ui="panel" data-accent="info">
+              <span class="block-title">Evidence Panel</span>
+              <strong>One useful correction</strong>
+              <p>Supporting information stays quieter than the playable instrument and primary action.</p>
+              <div class="material-readout"><span>Material</span><b id="materialValue">black-lacquer</b></div>
+              <div class="material-readout"><span>Motion</span><b id="motionValue">meter-lock</b></div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="style-section">
+          <div class="style-heading"><span>04</span><div><h2>Production Rules</h2><p>Every new skin and asset enters through the same quality gate.</p></div></div>
+          <div class="rule-grid">
+            <div><strong>Across the room</strong><span>Primary action and silhouette are unmistakable.</span></div>
+            <div><strong>At arm's length</strong><span>Live state, controls, and consequence remain readable.</span></div>
+            <div><strong>Up close</strong><span>Stickers, jokes, serials, scuffs, and discoveries reward attention.</span></div>
+            <div><strong>Under a thumb</strong><span>Every priority target is at least 44px with no hover dependency.</span></div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script type="module" src="./src/theme.js"></script>
+    <script type="module" src="./src/tool-registry.js"></script>
+    <script type="module" src="./src/design-system-lab.js"></script>
+  </body>
+</html>

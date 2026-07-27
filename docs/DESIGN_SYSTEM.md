@@ -12,6 +12,23 @@ SetScope should feel like one authored family of music instruments assembled acr
 
 Room color is identity. Status color is meaning. Mint means healthy or recognized, amber means active or awaiting attention, coral means risk or failure, cyan means measured data, and yellow marks the playhead or keyboard focus.
 
+## Room System V1
+
+The visual system is now executable rather than only descriptive:
+
+- `src/room-system.js` is the versioned manifest for each room's label, material,
+  accent, motion language, and environment.
+- `src/ui-system.css` supplies shared chassis, panel, screen, metric, action,
+  material, touch, and reduced-motion behavior.
+- `design-system.html` is a living Style Lab for previewing all room identities,
+  original environment art, semantic lights, and instrument primitives.
+- `docs/DESIGN_ASSET_PIPELINE.md` defines the asset roles, crop rules, motion
+  budget, music-tool ergonomics, and production quality gate.
+
+The shared composition rule is **place + instrument + game**. Beat School is the
+current north star: authored surroundings create desire, the central instrument
+stays immediately playable, and feedback turns performance into useful evidence.
+
 ## Token Layers
 
 `src/design-tokens.css` is the shared foundation:
@@ -73,6 +90,12 @@ Four independent reviews covered 1440, 1024, 768, and 390 pixel views.
 - Made Roulette's mobile sequencer use 44-pixel cells, horizontal scrolling, sticky lane labels, and a shape-changing playhead state.
 - Converted Journal source editing into a disclosure, collapsed it by default on phones, improved reorder controls, and tightened reading hierarchy.
 - Extended browser QA to distinguish bounded editors from page overflow and enforce priority mobile target sizes.
+- Added seven manifest-driven room identities and shared tactile hardware
+  primitives across every current product surface.
+- Added three original responsive pixel-art environments plus the Beat School
+  lesson stage to a living environment library.
+- Added state-based room motion cues and a guaranteed 44-pixel touch contract at
+  tablet and phone widths.
 
 ## Responsive Cockpit Workspaces
 

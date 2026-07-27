@@ -1418,3 +1418,39 @@ hear a hip-hop backbeat, embody it, receive one understandable correction, make
 their own variation, and save credible evidence. The same lesson works with no
 hardware, while remaining ready for the actual Sensel, Korg, Maschine, and DJ
 Hero controller census.
+
+## 2026-07-27 - Room System and Living Style Lab
+
+We turned the strongest parts of Beat School's authored look into a shared,
+versioned visual system without flattening the personality of the other tools.
+UI, game-design, music-production, and responsive-layout audits converged on one
+model: one music clubhouse, seven rooms, with each room combining a place, a
+playable instrument, and a clear game or purpose.
+
+What changed:
+
+- Added `src/room-system.js` as the source of truth for room identity, material,
+  accent, motion language, and environment art.
+- Added shared chassis, panel, screen, metric, action, material, touch, light,
+  and reduced-motion behavior in `src/ui-system.css`.
+- Migrated SetScope, Pitch Gates, Audio Lab, Beat School, Rhythm Roulette, MIDI
+  Playground, and the Dev Journal onto the shared room and hardware grammar.
+- Created original Music Block, Vocal Arcade, and Signal Workshop pixel-art
+  environments with responsive safe areas, joining the existing Beat Basement.
+- Built `/design-system.html` as a living Style Lab for switching rooms,
+  inspecting environments, checking semantic lights, and exercising instrument
+  primitives.
+- Added a documented asset pipeline with crop requirements, motion rules,
+  original-art safeguards, three-distance hierarchy, and music-tool UX rules.
+- Expanded source and browser verification to cover the room manifest, Style
+  Lab interaction, all eight routes, dark and light themes, touch targets, and
+  reduced motion.
+- Found and repaired several inherited 36-42 pixel controls so priority touch
+  targets now meet the 44-pixel contract on phone and tablet layouts.
+
+Why this matters:
+
+Future samplers, car stereos, synth skins, cymatics modules, games, and learning
+tools can now feel wildly distinctive while remaining recognizably SetScope.
+Visual invention has a manifest, reusable primitives, a living reference page,
+and an automated quality gate instead of relying on memory or page-by-page CSS.

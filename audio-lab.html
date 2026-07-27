@@ -7,10 +7,11 @@
     <link rel="stylesheet" href="./src/design-tokens.css" />
     <link rel="stylesheet" href="./src/arcade-shell.css" />
     <link rel="stylesheet" href="./src/audio-lab.css" />
+    <link rel="stylesheet" href="./src/ui-system.css" />
     <link rel="stylesheet" href="./src/theme.css" />
   </head>
   <body>
-    <div class="game-app audio-lab-app">
+    <div class="game-app audio-lab-app" data-room="scope">
       <header class="game-topbar app-header">
         <a class="back-link" data-set-return href="./index.html">
           <span class="mini-disc"></span>
@@ -42,7 +43,7 @@
             <a data-set-return data-context-return href="./index.html">View in set</a>
           </div>
         </section>
-        <section class="scope-rig">
+        <section class="scope-rig" data-ui="chassis">
           <div class="scope-header metric-rack">
             <div class="metric-cell" data-accent="signal">
               <span>Signal</span>
@@ -70,7 +71,7 @@
             </div>
           </div>
 
-          <div class="scope-screen instrument-screen">
+          <div class="scope-screen instrument-screen" data-ui="screen">
             <canvas id="scopeCanvas" aria-label="Oscilloscope display"></canvas>
             <div class="scope-grid" aria-hidden="true"></div>
             <span class="scope-display-label" id="scopeDisplayLabel">Idle display</span>
@@ -89,12 +90,12 @@
             <div class="lab-actions">
               <button class="source-btn" id="freezeScopeBtn" aria-pressed="false">Freeze</button>
               <button class="source-btn" id="triggerScopeBtn" aria-pressed="false">Trigger</button>
-              <button class="start-btn" id="logSnapshotBtn" disabled>Choose input</button>
+              <button class="start-btn" id="logSnapshotBtn" data-ui="action" disabled>Choose input</button>
             </div>
           </div>
         </section>
 
-        <aside class="lab-panel audio-readout-panel">
+        <aside class="lab-panel audio-readout-panel" data-ui="panel">
           <div class="lab-block note-card" data-accent="pitch">
             <div class="block-title">Live Note</div>
             <strong class="note-display" id="liveNote">--</strong>

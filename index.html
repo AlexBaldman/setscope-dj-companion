@@ -6,10 +6,11 @@
     <title>SetScope DJ Companion</title>
     <link rel="stylesheet" href="./src/design-tokens.css" />
     <link rel="stylesheet" href="./src/styles.css" />
+    <link rel="stylesheet" href="./src/ui-system.css" />
     <link rel="stylesheet" href="./src/theme.css" />
   </head>
   <body>
-    <div class="app">
+    <div class="app" data-room="set">
       <header class="topbar app-header">
         <div class="brand">
           <div class="mark" aria-hidden="true"></div>
@@ -58,7 +59,7 @@
           </button>
             </div>
           </details>
-          <button class="primary-btn" id="listenBtn" title="Start listening" aria-pressed="false">
+          <button class="primary-btn" id="listenBtn" data-ui="action" title="Start listening" aria-pressed="false">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 3a6 6 0 0 0-6 6v4a6 6 0 0 0 12 0V9a6 6 0 0 0-6-6Z" />
               <path d="M19 11v2a7 7 0 0 1-14 0v-2" />
@@ -90,7 +91,7 @@
       </nav>
 
       <main class="layout">
-        <section class="panel" id="signalWorkspace" role="tabpanel" aria-labelledby="workspaceSignalTab" data-workspace-panel="signal">
+        <section class="panel" id="signalWorkspace" data-ui="chassis" role="tabpanel" aria-labelledby="workspaceSignalTab" data-workspace-panel="signal">
           <div class="panel-header">
             <div class="panel-title">Signal</div>
             <div class="status-group">
@@ -380,7 +381,7 @@
           </div>
         </section>
 
-        <section class="panel timeline-panel" id="timelineWorkspace" role="tabpanel" aria-labelledby="workspaceTimelineTab" data-workspace-panel="timeline">
+        <section class="panel timeline-panel" id="timelineWorkspace" data-ui="chassis" role="tabpanel" aria-labelledby="workspaceTimelineTab" data-workspace-panel="timeline">
           <div class="panel-header">
             <div class="panel-title">Set Timeline</div>
             <div class="timeline-controls">
@@ -441,7 +442,7 @@
           </div>
         </section>
 
-        <aside class="panel inspector" id="intelWorkspace" role="tabpanel" aria-labelledby="workspaceIntelTab" data-workspace-panel="intel">
+        <aside class="panel inspector" id="intelWorkspace" data-ui="chassis" role="tabpanel" aria-labelledby="workspaceIntelTab" data-workspace-panel="intel">
           <div class="panel-header">
             <div class="panel-title">Track Intel</div>
             <button class="icon-btn" id="saveTrackBtn" title="Save changes">

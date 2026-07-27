@@ -29,6 +29,8 @@ SetScope is a local-first DJ set companion and musician toolbelt. It turns a lis
 - a portable timing and semantic-input spine with musical action receipts,
   latency provenance, and bar/beat/step coordinates
 - responsive Signal, Timeline, and Intel workspaces for phone, tablet, and desktop
+- a living Style Lab with seven room identities, tactile hardware primitives,
+  semantic signal lights, and original responsive pixel-art environments
 
 Run it locally:
 
@@ -38,7 +40,7 @@ npm run dev
 
 Then open `http://127.0.0.1:5173`.
 
-The shared tool rack opens Pitch Gates, Audio Lab, Beat School, Rhythm Roulette, MIDI Playground, and the Dev Journal. Microphone, an audio file, an internal demo source, explicitly shared browser/system audio, touch, keyboard, or mapped MIDI can drive supported tools.
+The shared tool rack opens Pitch Gates, Audio Lab, Beat School, Rhythm Roulette, MIDI Playground, the Dev Journal, and the Style Lab. Microphone, an audio file, an internal demo source, explicitly shared browser/system audio, touch, keyboard, or mapped MIDI can drive supported tools.
 
 The app can still be opened directly from `index.html`, but the recognition demo uses the local API server.
 
@@ -178,6 +180,7 @@ See [docs/ARCADE_LAB_ROADMAP.md](docs/ARCADE_LAB_ROADMAP.md) for the multi-minig
 See [docs/PLATFORM_STRATEGY.md](docs/PLATFORM_STRATEGY.md) for the native iOS and desktop packaging recommendation.
 See [docs/MIDI_IDEA_BANK.md](docs/MIDI_IDEA_BANK.md) for the device-first MIDI Playground, Alex's hardware compatibility matrix, and the long-range music/game/geometry inspiration bank.
 See [docs/BEAT_SCHOOL_ROADMAP.md](docs/BEAT_SCHOOL_ROADMAP.md) for the hip-hop-first pad curriculum, educational scoring model, keyboard expansion, and original loop studio.
+See [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) and [docs/DESIGN_ASSET_PIPELINE.md](docs/DESIGN_ASSET_PIPELINE.md) for the living room system, art direction, responsive asset rules, and motion quality gate.
 See [docs/MUSIC_GAME_REMIX_ATLAS.md](docs/MUSIC_GAME_REMIX_ATLAS.md) for original game-mode families inspired by the full history of rhythm, puzzle, arcade, instrument, and science-exhibit interaction.
 See [docs/CYMATICS_MODULE_INTEGRATION.md](docs/CYMATICS_MODULE_INTEGRATION.md) for the portable solid-plate, granular, fluid-surface, simulation, camera-capture, and physical-rig bridge.
 See [docs/NEXT_DOMINOS.md](docs/NEXT_DOMINOS.md) for the canonical, currently ranked implementation sequence.

@@ -6,10 +6,11 @@
     <title>SetScope Dev Journal</title>
     <link rel="stylesheet" href="./src/design-tokens.css" />
     <link rel="stylesheet" href="./src/journal.css" />
+    <link rel="stylesheet" href="./src/ui-system.css" />
     <link rel="stylesheet" href="./src/theme.css" />
   </head>
   <body data-paper="notebook">
-    <div class="journal-app">
+    <div class="journal-app" data-room="journal">
       <header class="journal-topbar app-header">
         <a class="back-link" href="./index.html">SetScope</a>
         <div>
@@ -23,12 +24,12 @@
           </button>
           <button id="prevBtn" title="Previous page">Prev</button>
           <button id="nextBtn" title="Next page">Next</button>
-          <button id="saveBtn" title="Save markdown">Save</button>
+          <button id="saveBtn" data-ui="action" title="Save markdown">Save</button>
         </div>
       </header>
 
       <main class="journal-layout">
-        <aside class="journal-sidebar">
+        <aside class="journal-sidebar" data-ui="panel">
           <div class="sidebar-head">
             <span>Entries</span>
             <button id="refreshBtn" title="Reload journal">Reload</button>
@@ -43,7 +44,7 @@
             <button class="paper-chip" data-paper="sketch">Sketch</button>
           </div>
 
-          <article class="book" id="book">
+          <article class="book" id="book" data-ui="chassis">
             <div class="page-shadow"></div>
             <section class="page" id="page">
               <div class="page-header">
@@ -58,7 +59,7 @@
             </section>
           </article>
 
-          <details class="source-panel" id="sourcePanel" open>
+          <details class="source-panel" id="sourcePanel" data-ui="panel" open>
             <summary class="sidebar-head">
               <span>Markdown Source</span>
               <span id="saveStatus">Loaded</span>

@@ -7,10 +7,11 @@
     <link rel="stylesheet" href="./src/design-tokens.css" />
     <link rel="stylesheet" href="./src/arcade-shell.css" />
     <link rel="stylesheet" href="./src/pitch-gates.css" />
+    <link rel="stylesheet" href="./src/ui-system.css" />
     <link rel="stylesheet" href="./src/theme.css" />
   </head>
   <body>
-    <div class="game-app">
+    <div class="game-app" data-room="pitch">
       <header class="game-topbar app-header">
         <a class="back-link" data-set-return href="./index.html">
           <span class="mini-disc"></span>
@@ -42,7 +43,7 @@
             <a data-set-return data-context-return href="./index.html">View in set</a>
           </div>
         </section>
-        <section class="cabinet">
+        <section class="cabinet" data-ui="chassis">
           <div class="score-rack metric-rack">
             <div class="metric-cell" data-accent="score"><span>Score</span><strong id="score">0000</strong></div>
             <div class="metric-cell" data-accent="streak"><span>Streak</span><strong id="streak">00</strong></div>
@@ -50,7 +51,7 @@
             <div class="metric-cell" data-accent="warning"><span>Best</span><strong id="bestScore">0000</strong></div>
           </div>
 
-          <div class="screen-shell instrument-screen">
+          <div class="screen-shell instrument-screen" data-ui="screen">
             <canvas id="pitchGameCanvas" aria-label="Pitch Gates game board"></canvas>
             <p class="sr-only" id="pitchCanvasStatus" role="status" aria-live="polite">Choose an input, then start a round.</p>
             <div class="play-hud" aria-hidden="true">
@@ -92,7 +93,7 @@
               <input id="audioFileInput" class="file-input" type="file" accept="audio/*" aria-label="Choose audio file" />
               <button class="source-btn stop" id="stopAudioBtn" title="Stop audio input">Stop</button>
             </div>
-            <button class="start-btn" id="startRoundBtn" disabled>Choose input</button>
+            <button class="start-btn" id="startRoundBtn" data-ui="action" disabled>Choose input</button>
             <div class="round-controls" aria-label="Round controls">
               <button class="source-btn" id="pauseRoundBtn" hidden disabled>Pause</button>
               <button class="source-btn stop" id="restartRoundBtn" hidden disabled>Restart</button>
@@ -100,7 +101,7 @@
           </div>
         </section>
 
-        <aside class="lab-panel">
+        <aside class="lab-panel" data-ui="panel">
           <div class="lab-block live-readout" data-accent="pitch">
             <div class="block-title">Live Note</div>
             <strong class="note-display" id="liveNote">--</strong>

@@ -7,10 +7,11 @@
     <link rel="stylesheet" href="./src/design-tokens.css" />
     <link rel="stylesheet" href="./src/arcade-shell.css" />
     <link rel="stylesheet" href="./src/beat-school.css" />
+    <link rel="stylesheet" href="./src/ui-system.css" />
     <link rel="stylesheet" href="./src/theme.css" />
   </head>
   <body>
-    <div class="game-app beat-school-app">
+    <div class="game-app beat-school-app" data-room="beat">
       <header class="game-topbar app-header">
         <a class="back-link" data-set-return href="./index.html"><span class="mini-disc"></span>SetScope</a>
         <div class="game-title"><h1>Beat School</h1><span>Pad Lab 01</span></div>
@@ -48,8 +49,8 @@
         </nav>
 
         <section class="beat-workbench">
-          <div class="beat-stage">
-            <div class="beat-scene">
+          <div class="beat-stage" data-ui="chassis">
+            <div class="beat-scene" data-ui="screen">
               <img src="./assets/beat-school/beat-lab.png" alt="Pixel-art basement beat laboratory with records, speakers, and drum machines" />
               <div class="scene-caption">
                 <span id="phaseEyebrow">HEAR / REFERENCE</span>
@@ -76,13 +77,13 @@
             </div>
 
             <div class="beat-transport">
-              <button class="primary-action" id="lessonAction">Hear groove</button>
+              <button class="primary-action" id="lessonAction" data-ui="action">Hear groove</button>
               <button class="utility-action" id="midiConnect">Connect MIDI</button>
               <button class="utility-action" id="demoRun">Demo lesson</button>
             </div>
           </div>
 
-          <aside class="beat-coach">
+          <aside class="beat-coach" data-ui="panel">
             <div class="metric-rack beat-metrics">
               <div class="metric-cell" data-accent="tempo"><span>BPM</span><strong id="bpmValue">--</strong></div>
               <div class="metric-cell" data-accent="score"><span>Score</span><strong id="scoreValue">--</strong></div>

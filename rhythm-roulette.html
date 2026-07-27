@@ -7,10 +7,11 @@
     <link rel="stylesheet" href="./src/design-tokens.css" />
     <link rel="stylesheet" href="./src/arcade-shell.css" />
     <link rel="stylesheet" href="./src/rhythm-roulette.css" />
+    <link rel="stylesheet" href="./src/ui-system.css" />
     <link rel="stylesheet" href="./src/theme.css" />
   </head>
   <body>
-    <div class="game-app roulette-app">
+    <div class="game-app roulette-app" data-room="dig">
       <header class="game-topbar app-header">
         <a class="back-link" data-set-return href="./index.html">
           <span class="mini-disc"></span>
@@ -42,7 +43,7 @@
             <a data-set-return data-context-return href="./index.html">View in set</a>
           </div>
         </section>
-        <section class="roulette-stage">
+        <section class="roulette-stage" data-ui="chassis">
           <div class="roulette-marquee">
             <span>Mask on</span>
             <strong>Three records. One loop. No swaps.</strong>
@@ -56,7 +57,7 @@
             <div class="metric-cell" data-accent="danger"><span>Best</span><strong id="bestRouletteScore">0000</strong></div>
           </div>
 
-          <div class="record-shop-screen instrument-screen">
+          <div class="record-shop-screen instrument-screen" data-ui="screen">
             <canvas id="rouletteSceneCanvas" aria-label="Pixel art blindfold record shop scene"></canvas>
             <p class="sr-only" id="rouletteA11yStatus" role="status" aria-live="polite">Mask on. Pull three records to begin.</p>
             <div class="dig-overlay" id="digOverlay">
@@ -66,15 +67,15 @@
           </div>
 
           <div class="roulette-transport hardware-transport">
-            <button class="dig-btn" id="blindDigBtn">Blind dig</button>
+            <button class="dig-btn" id="blindDigBtn" data-ui="action">Blind dig</button>
             <button class="source-btn" id="surpriseBeatBtn">Auto flip</button>
             <button class="source-btn" id="playBeatBtn">Play</button>
             <button class="source-btn stop" id="clearBeatBtn">Clear</button>
-            <button class="start-btn" id="saveRouletteBtn">Save run</button>
+            <button class="start-btn" id="saveRouletteBtn" data-ui="action">Save run</button>
           </div>
         </section>
 
-        <aside class="roulette-panel">
+        <aside class="roulette-panel" data-ui="panel">
           <div class="lab-block" data-accent="score">
             <div class="block-title">Mystery Pulls</div>
             <div class="record-pulls" id="recordPulls"></div>

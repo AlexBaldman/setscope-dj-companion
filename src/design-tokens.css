@@ -42,4 +42,29 @@
   --motion-page: 220ms;
   --font-ui: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-data: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-mono: var(--font-data);
+  --font-display: var(--font-ui);
+
+  /* Shared hardware materials */
+  --chassis-black: #0a0b0d;
+  --chassis-metal: #242622;
+  --chassis-edge: #53564f;
+  --screen-glass: #071014;
+  --hardware-shadow: 0 18px 48px rgba(0, 0, 0, 0.34);
+  --hardware-inset: inset 0 1px rgba(255, 255, 255, 0.06), inset 0 -2px rgba(0, 0, 0, 0.42);
+  --room-accent-secondary: var(--accent-data);
+
+  /* Compatibility aliases while page styles migrate to canonical tokens. */
+  --bg: var(--surface-app);
+  --panel: var(--surface-panel);
+  --panel-2: var(--surface-raised);
+  --surface: var(--surface-panel);
+  --surface-2: var(--surface-raised);
+  --line: var(--border-subtle);
+  --text: var(--text-primary);
+  --muted: var(--text-secondary);
+  --amber: var(--accent-action);
+  --cyan: var(--accent-data);
+  --mint: var(--status-success);
+  --pink: var(--status-danger);
 }

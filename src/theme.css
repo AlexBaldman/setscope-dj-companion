@@ -432,7 +432,7 @@
   }
 }
 
-@media (min-width: 561px) and (max-width: 900px) {
+@media (min-width: 561px) and (max-width: 1180px) {
   .game-topbar {
     height: auto;
     min-height: 116px;

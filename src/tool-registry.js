@@ -55,6 +55,14 @@ export const tools = [
     category: "Docs",
     status: "Editable",
   },
+  {
+    id: "style-lab",
+    label: "Style Lab",
+    shortLabel: "Style",
+    href: "./design-system.html",
+    category: "System",
+    status: "Living",
+  },
 ];
 
 export function renderToolRack(container = document.querySelector("[data-tool-rack]"), currentId = container?.dataset.currentTool) {

@@ -1,8 +1,15 @@
+import { applyRoomSystem, cueRoomMotion } from "./room-system.js";
+
 const STORAGE_KEY = "setscope-theme";
 const root = document.documentElement;
 const buttons = document.querySelectorAll("[data-theme-toggle]");
 
 applyTheme(localStorage.getItem(STORAGE_KEY) || "dark");
+applyRoomSystem();
+
+document.querySelectorAll('[data-ui="action"]').forEach((button) => {
+  button.addEventListener("pointerdown", () => cueRoomMotion("impact"));
+});
 
 buttons.forEach((button) => {
   button.addEventListener("click", () => {

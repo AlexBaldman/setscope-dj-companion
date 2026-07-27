@@ -12,6 +12,7 @@ const publicFiles = [
   "rhythm-roulette.html",
   "midi-playground.html",
   "journal.html",
+  "design-system.html",
 ];
 const publicDirectories = ["src", "assets"];
 

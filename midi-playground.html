@@ -7,10 +7,11 @@
     <link rel="stylesheet" href="./src/design-tokens.css" />
     <link rel="stylesheet" href="./src/arcade-shell.css" />
     <link rel="stylesheet" href="./src/midi-playground.css" />
+    <link rel="stylesheet" href="./src/ui-system.css" />
     <link rel="stylesheet" href="./src/theme.css" />
   </head>
   <body>
-    <div class="game-app midi-app">
+    <div class="game-app midi-app" data-room="midi">
       <header class="game-topbar app-header">
         <a class="back-link" href="./index.html"><span class="mini-disc"></span>SetScope</a>
         <div class="game-title"><h1>MIDI Playground</h1><span>Hardware Census</span></div>
@@ -24,7 +25,7 @@
       </header>
 
       <main class="midi-layout">
-        <section class="midi-rig">
+        <section class="midi-rig" data-ui="chassis">
           <div class="metric-rack midi-metrics">
             <div class="metric-cell" data-accent="signal"><span>Inputs</span><strong id="inputCount">0</strong></div>
             <div class="metric-cell" data-accent="score"><span>Events</span><strong id="eventCount">0</strong></div>
@@ -32,7 +33,7 @@
             <div class="metric-cell" data-accent="success"><span>Learn</span><strong id="learnStatus">OFF</strong></div>
           </div>
 
-          <div class="midi-screen instrument-screen">
+          <div class="midi-screen instrument-screen" data-ui="screen">
             <div class="bench-scan" aria-hidden="true"></div>
             <div class="pad-field" id="padField">
               <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
@@ -47,7 +48,7 @@
 
           <div class="hardware-transport midi-transport">
             <button class="source-btn demo" id="demoMidiBtn">Demo source</button>
-            <button class="start-btn" id="connectMidiBtn">Connect MIDI</button>
+            <button class="start-btn" id="connectMidiBtn" data-ui="action">Connect MIDI</button>
             <button class="source-btn" id="scanGamepadBtn">Scan gamepads</button>
             <button class="source-btn" id="connectHidBtn">Probe HID</button>
             <button class="source-btn stop" id="stopMidiBtn">Stop</button>
@@ -65,7 +66,7 @@
           </section>
         </section>
 
-        <aside class="midi-side">
+        <aside class="midi-side" data-ui="panel">
           <section class="midi-panel">
             <div class="panel-kicker"><span>Connected</span><b id="portStatus">No ports</b></div>
             <div class="port-list" id="portList"><p>No hardware seen yet.</p></div>
