@@ -4,6 +4,7 @@ import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium } from "playwright";
+import { getProductSurface, productSurfaces } from "../src/product-manifest.js";
 
 const managedServer = process.env.BASE_URL ? null : await startRuntimeServer();
 const baseUrl = (process.env.BASE_URL || managedServer.baseUrl).replace(/\/$/, "");
@@ -105,16 +106,7 @@ async function runResponsiveOverflowPass(viewName, viewport) {
   await installFakeMicrophone(context);
   const page = await context.newPage();
   const logs = captureRuntimeProblems(page, viewName);
-  const routes = [
-    [`setscope-${viewName}`, "/"],
-    [`roulette-${viewName}`, "/rhythm-roulette.html"],
-    [`pitch-gates-${viewName}`, "/pitch-gates.html"],
-    [`audio-lab-${viewName}`, "/audio-lab.html"],
-    [`midi-${viewName}`, "/midi-playground.html"],
-    [`beat-school-${viewName}`, "/beat-school.html"],
-    [`journal-${viewName}`, "/journal.html"],
-    [`style-lab-${viewName}`, "/design-system.html"],
-  ];
+  const routes = productSurfaces.map((surface) => [`${surface.id}-${viewName}`, surface.route]);
   for (const [label, path] of routes) {
     await goto(page, path);
     if (path === "/" && viewport.width <= 959) {
@@ -133,10 +125,10 @@ async function runLightThemePass() {
   await context.addInitScript(() => localStorage.setItem("setscope-theme", "light"));
   const page = await context.newPage();
   const logs = captureRuntimeProblems(page, "light-theme");
-  for (const path of ["/", "/pitch-gates.html", "/audio-lab.html", "/beat-school.html", "/rhythm-roulette.html", "/midi-playground.html", "/journal.html", "/design-system.html"]) {
+  for (const { id, route: path } of productSurfaces) {
     await goto(page, path);
     assert(await page.evaluate(() => document.documentElement.dataset.theme === "light"), `${path} should restore light mode`);
-    await auditPage(page, `${path === "/" ? "setscope" : path.slice(1, -5)}-light`);
+    await auditPage(page, `${id}-light`);
   }
   collectRuntimeProblems(logs);
   await context.close();
@@ -149,7 +141,7 @@ async function runReducedMotionPass() {
     reducedMotion: "reduce",
   });
   const page = await context.newPage();
-  await goto(page, "/beat-school.html");
+  await goto(page, routeFor("beat-school"));
   const motion = await page.locator("#lessonAction").evaluate((node) => ({
     media: matchMedia("(prefers-reduced-motion: reduce)").matches,
     transition: getComputedStyle(node).transitionDuration,
@@ -160,13 +152,7 @@ async function runReducedMotionPass() {
 }
 
 async function verifyFirstViewportAction(page, path, viewName) {
-  const selector = {
-    "/pitch-gates.html": "#startRoundBtn",
-    "/audio-lab.html": "#logSnapshotBtn",
-    "/rhythm-roulette.html": "#blindDigBtn",
-    "/midi-playground.html": "#connectMidiBtn",
-    "/beat-school.html": "#lessonAction",
-  }[path];
+  const selector = productSurfaces.find((surface) => surface.route === path)?.primaryAction;
   if (!selector) return;
   const geometry = await page.locator(selector).evaluate((element) => ({
     bottom: element.getBoundingClientRect().bottom,
@@ -339,7 +325,7 @@ async function verifyContextualPracticeLoop(page) {
 }
 
 async function verifyRhythmRoulette(page) {
-  await goto(page, "/rhythm-roulette.html");
+  await goto(page, routeFor("rhythm-roulette"));
   await expectVisible(page, "#rouletteSceneCanvas", "Rhythm Roulette scene canvas");
   await page.locator("#blindDigBtn").click();
   await expectCount(page, ".record-card", 3, "Rhythm Roulette mystery pulls");
@@ -365,7 +351,7 @@ async function verifyRhythmRoulette(page) {
 }
 
 async function verifyPitchGates(page) {
-  await goto(page, "/pitch-gates.html");
+  await goto(page, routeFor("pitch-gates"));
   await expectVisible(page, "#pitchGameCanvas", "Pitch Gates canvas");
   await expectText(page, "#overlayStatus", "CHOOSE AN INPUT", "Pitch Gates idle guidance");
   await expectVisible(page, "#captureComfortBtn", "Pitch Gates comfort-note control");
@@ -390,7 +376,7 @@ async function verifyPitchGates(page) {
 }
 
 async function verifyAudioLab(page) {
-  await goto(page, "/audio-lab.html");
+  await goto(page, routeFor("audio-lab"));
   await expectVisible(page, "#scopeCanvas", "Audio Lab scope canvas");
   assert(await page.locator("#logSnapshotBtn").isDisabled(), "Audio Lab should require a signal before logging a snapshot");
   await expectText(page, "#scopeDisplayLabel", "Idle display", "Audio Lab truthful idle display");
@@ -423,7 +409,7 @@ async function verifyAudioLab(page) {
 }
 
 async function verifyMidiPlayground(page) {
-  await goto(page, "/midi-playground.html");
+  await goto(page, routeFor("midi-playground"));
   await expectVisible(page, "#padField", "MIDI Playground pad monitor");
   await expectCount(page, "#padField > i", 16, "MIDI Playground pad matrix");
   await expectCount(page, "#deviceSlots [data-device-family]", 5, "MIDI hardware census rack");
@@ -449,7 +435,7 @@ async function verifyMidiPlayground(page) {
 }
 
 async function verifyBeatSchool(page) {
-  await goto(page, "/beat-school.html?seed=27");
+  await goto(page, routeFor("beat-school", "seed=27"));
   await expectVisible(page, "#padBank", "Beat School drum pads");
   await expectCount(page, "#padBank .beat-pad", 4, "Beat School four-pad bank");
   await expectCount(page, "#stepTrack .beat-step", 16, "Beat School step timeline");
@@ -466,7 +452,7 @@ async function verifyBeatSchool(page) {
 }
 
 async function verifyJournal(page) {
-  await goto(page, "/journal.html");
+  await goto(page, routeFor("journal"));
   await expectVisible(page, "#page", "Journal page");
   await expectCount(page, "[data-tool-rack] .tool-rack-item", 8, "Journal shared tool navigation");
   await page.locator("[data-paper=\"graph\"]").click();
@@ -476,7 +462,7 @@ async function verifyJournal(page) {
 }
 
 async function verifyStyleLab(page) {
-  await goto(page, "/design-system.html");
+  await goto(page, routeFor("style-lab"));
   await expectVisible(page, "#roomSwitcher", "Style Lab room switcher");
   await expectCount(page, "[data-room-choice]", 7, "Style Lab room identities");
   await expectCount(page, ".asset-grid img", 4, "Style Lab environment library");
@@ -489,6 +475,12 @@ async function verifyStyleLab(page) {
 
 async function goto(page, path) {
   await page.goto(`${baseUrl}${path}`, { waitUntil: "domcontentloaded" });
+}
+
+function routeFor(id, query = "") {
+  const route = getProductSurface(id)?.route;
+  if (!route) throw new Error(`unknown_product_surface:${id}`);
+  return `${route}${query ? `?${query}` : ""}`;
 }
 
 async function auditPage(page, label) {

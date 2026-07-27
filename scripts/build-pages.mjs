@@ -1,25 +1,16 @@
 import { cp, mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { publicPageFiles } from "../src/product-manifest.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const output = join(root, "dist");
-const publicFiles = [
-  "index.html",
-  "pitch-gates.html",
-  "audio-lab.html",
-  "beat-school.html",
-  "rhythm-roulette.html",
-  "midi-playground.html",
-  "journal.html",
-  "design-system.html",
-];
 const publicDirectories = ["src", "assets"];
 
 await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
 
-for (const file of publicFiles) {
+for (const file of publicPageFiles) {
   await cp(join(root, file), join(output, file));
 }
 for (const directory of publicDirectories) {

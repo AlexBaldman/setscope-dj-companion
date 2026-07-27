@@ -114,14 +114,28 @@ Actuator control waits behind the separately tested local safety bridge.
 
 These are important but should support, not interrupt, the vertical slices:
 
-1. Introduce a browser storage port before adding sync or native persistence.
-2. Split `src/styles.css` by cockpit room after visual regression baselines exist.
-3. Extract the phase controller shared by playable tools.
-4. Break `src/pitch-gates.js` into input, session, rendering, and UI-controller
+1. Finish the browser storage port started by the shared input-profile store
+   before adding sync or native persistence.
+2. Make performance-event, mission, and skill-evidence completion one
+   application-level commit with explicit retry and partial-failure behavior.
+3. Add nested SetDraft item validation for tracks, missions, captures, and
+   performance evidence before native or cloud writes.
+4. Split `src/styles.css` by cockpit room after visual regression baselines exist.
+5. Extract the phase controller shared by playable tools.
+6. Break `src/pitch-gates.js` into input, session, rendering, and UI-controller
    ownership once Beat School confirms the shared engine boundary.
-5. Replace static-string structure checks incrementally with contract and browser
+7. Replace static-string structure checks incrementally with contract and browser
    behavior tests.
-6. Add an archive study view after the first creation loop writes richer evidence.
+8. Add an archive study view after the first creation loop writes richer evidence.
+
+Completed architecture hardening:
+
+- one browser-neutral product manifest now drives navigation, build output,
+  route QA, room identity, and practice capability
+- Pages deployment is blocked by full browser and built-artifact verification
+- all eight static surfaces receive route, shared-navigation, image, and console checks
+- MIDI Learn mappings and latency profiles now flow into Beat School through a
+  shared profile boundary
 
 ## Decision Rule
 

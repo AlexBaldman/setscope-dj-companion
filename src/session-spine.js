@@ -1,11 +1,11 @@
+import { practiceSurfaces } from "./product-manifest.js";
+
 export const PRACTICE_MISSION_SCHEMA = "setscope.practice-mission";
 export const PRACTICE_MISSION_VERSION = 1;
 
-const MODE_LABELS = {
-  "audio-lab": "Audio Lab",
-  "pitch-gates": "Pitch Gates",
-  "rhythm-roulette": "Rhythm Roulette",
-};
+const MODE_LABELS = Object.freeze(Object.fromEntries(
+  practiceSurfaces.map(({ id, label }) => [id, label]),
+));
 
 export function createPracticeMission({
   id,

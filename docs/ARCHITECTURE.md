@@ -41,6 +41,12 @@
 - `src/theme.js` and `src/theme.css`: persisted cross-surface theme control and light-mode treatment.
 - `src/design-tokens.css`: shared foundation, semantic signal colors, room identity hook, control sizing, typography, and motion tokens.
 - `src/tool-registry.js`: shared SetScope tool rack and registered tool metadata.
+- `src/product-manifest.js`: browser-neutral source of truth for product surfaces,
+  public routes, room identities, primary actions, and practice capability.
+- `src/input-profile-store.js`: storage boundary for normalized controller
+  mappings and latency profiles, including legacy migration.
+- `src/beat-school/input-mappings.js`: pure adapter from learned semantic actions
+  into Beat School drum lanes, with built-in fallbacks.
 - `docs/DESIGN_SYSTEM.md`: screenshot-led design principles, audit findings, implemented decisions, and responsive backlog.
 - `docs/MIDI_IDEA_BANK.md`: researched MIDI capability boundaries, device-first hardware plan, feature catalog, and portable adapter direction.
 - `assets/theme/lightning-bulb-toggle-ui.png`: original inked lightning-filament theme-toggle illustration.
@@ -108,6 +114,12 @@
 - Pitch Gates, Audio Lab, and Rhythm Roulette now expose truthful idle/ready/active/result states, contextual disabled actions, and screen-readable Canvas summaries. Roulette playback updates cells in place so keyboard focus survives every tick.
 - Pitch Gates and Audio Lab now share Musician Profile V2. Stable-center calibration begins with an estimated safe span; separately captured low/high notes confirm its boundaries. Signed gate distances produce centered/high/low/mixed/silent diagnosis, and profile revision, diagnosis, targets, and deterministic seven-stage prescriptions travel across both tools and into saved evidence.
 - API and runtime suites start the current checkout on ephemeral ports, and GitHub Actions runs the same contract, HTTP, and responsive browser checks.
+- Navigation, Pages output, responsive/light-mode route coverage, room identity,
+  and practice-mode validation now derive from one product manifest.
+- Beat School is accepted by the Session Spine and consumes MIDI Learn mappings
+  from the same input-profile store as MIDI Playground.
+- Pages deployment now runs the complete browser suite before artifact upload,
+  and the built artifact is checked across all eight surfaces.
 
 ## Main Risks
 
@@ -119,6 +131,37 @@
 - Domain commands still mutate the in-memory draft object for compatibility. The persistence boundary is explicit now, but a future reducer/store can make command transitions immutable without changing the serialized contract.
 - Web audio-source capture is permission-scoped: arbitrary computer playback cannot be silently sampled, and shared system-audio choices vary by browser/OS.
 - Continuous listening is deliberately sequential so slow recognition responses cannot overlap capture windows or reorder timeline writes.
+- Performance completion still spans separate SetDraft and Skill Ledger writes.
+  A future application-level commit operation should define retry and partial
+  failure behavior before cloud sync is introduced.
+- Browser storage remains directly accessed by several older modules. The new
+  input-profile store is the first adapter boundary; drafts, scores, theme,
+  journal, and static archives should move behind the same port incrementally.
+- SetDraft validates top-level containers but not every nested track, mission,
+  capture, and performance-event item. Native clients need stricter item schemas
+  before bidirectional sync.
+- `scripts/check.mjs` still contains many source-text assertions. New behavior
+  should prefer contract or browser tests, and old assertions should be retired
+  as equivalent behavior coverage lands.
+
+## 2026-07-27 Architecture Hardening
+
+This pass closed three integration gaps found by parallel frontend and delivery
+audits:
+
+1. A tool could be present in navigation, routing, build output, and practice
+   flows through separate registries. The product manifest now owns that catalog.
+2. Beat School appeared practice-capable but was rejected by the Session Spine.
+   Practice capability and labels now derive from the manifest and are contract
+   tested for every eligible tool.
+3. GitHub Pages could deploy while browser CI failed. Deployment now installs
+   Chromium and requires the complete runtime and built-artifact suites before
+   upload.
+
+The same audit found that MIDI Learn did not reach Beat School. Controller
+mappings and latency now cross a shared input-profile boundary, and a pure
+adapter accepts learned kick, snare, hat, and clap gestures while excluding
+unrelated transport or mixer commands.
 
 ## Recommended Next Refactor
 

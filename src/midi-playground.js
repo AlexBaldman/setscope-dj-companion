@@ -2,13 +2,15 @@ import { createControlObservation, parseMidiMessage } from "./contracts/midi-obs
 import {
   createInputMapping,
   createLatencyProfile,
-  normalizeInputMappings,
 } from "./contracts/input-timing.js";
 import { createMusicalClock, createSemanticInputSpine } from "./input-spine.js";
+import {
+  loadInputMappings,
+  loadLatencyProfile,
+  saveInputMappings,
+  saveLatencyProfile,
+} from "./input-profile-store.js";
 
-const MAPPING_KEY = "setscope-input-mappings-v1";
-const LEGACY_MAPPING_KEY = "setscope-midi-mappings-v1";
-const LATENCY_KEY = "setscope-latency-profile-v1";
 const sessionId = `midi_${Date.now().toString(36)}`;
 const els = Object.fromEntries([
   "clockPosition",
@@ -28,8 +30,8 @@ let midiAccess = null;
 let demoTimers = [];
 let gamepadTimer = null;
 let learnArmed = false;
-let mappings = readMappings();
-let latencyProfile = readLatencyProfile();
+let mappings = loadInputMappings();
+let latencyProfile = loadLatencyProfile();
 const inputSpine = createSemanticInputSpine({
   sessionId,
   clock,
@@ -268,7 +270,7 @@ function saveMapping(observation) {
   ));
   mappings.unshift(mapping);
   mappings = mappings.slice(0, 24);
-  localStorage.setItem(MAPPING_KEY, JSON.stringify(mappings));
+  mappings = saveInputMappings(mappings);
   inputSpine.setMappings(mappings);
   renderMappings();
   els.learnBtn.setAttribute("aria-pressed", "false");
@@ -299,7 +301,7 @@ function updateLatencyProfile() {
     confidence: 0.25,
     method: "manual",
   });
-  localStorage.setItem(LATENCY_KEY, JSON.stringify(latencyProfile));
+  latencyProfile = saveLatencyProfile(latencyProfile);
   inputSpine.setLatencyProfiles([latencyProfile]);
   renderTimingControls();
 }
@@ -375,26 +377,6 @@ function describeMessage(message) {
 
 function shortType(type) {
   return String(type || "event").replace("control-change", "CC").replace("transport-", "").toUpperCase();
-}
-
-function readMappings() {
-  try {
-    const current = localStorage.getItem(MAPPING_KEY);
-    const legacy = localStorage.getItem(LEGACY_MAPPING_KEY);
-    const value = normalizeInputMappings(JSON.parse(current || legacy || "[]"));
-    if (!current && value.length) localStorage.setItem(MAPPING_KEY, JSON.stringify(value));
-    return value;
-  } catch {
-    return [];
-  }
-}
-
-function readLatencyProfile() {
-  try {
-    return createLatencyProfile(JSON.parse(localStorage.getItem(LATENCY_KEY) || "{}"));
-  } catch {
-    return createLatencyProfile({ profileId: "latency_default", sourceId: "*", confidence: 0 });
-  }
 }
 
 function describeGesture(gesture = {}) {

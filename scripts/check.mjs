@@ -1,10 +1,17 @@
 import { readFile } from "node:fs/promises";
+import { productSurfaces as surfaceManifest } from "../src/product-manifest.js";
 
-const html = await readFile("index.html", "utf8");
-const audioLabHtml = await readFile("audio-lab.html", "utf8");
-const midiPlaygroundHtml = await readFile("midi-playground.html", "utf8");
-const beatSchoolHtml = await readFile("beat-school.html", "utf8");
-const designSystemHtml = await readFile("design-system.html", "utf8");
+const surfaceHtmlById = Object.fromEntries(await Promise.all(
+  surfaceManifest.map(async ({ id, file }) => [id, await readFile(file, "utf8")]),
+));
+const html = surfaceHtmlById.setscope;
+const audioLabHtml = surfaceHtmlById["audio-lab"];
+const midiPlaygroundHtml = surfaceHtmlById["midi-playground"];
+const beatSchoolHtml = surfaceHtmlById["beat-school"];
+const designSystemHtml = surfaceHtmlById["style-lab"];
+const journalHtml = surfaceHtmlById.journal;
+const pitchGatesHtml = surfaceHtmlById["pitch-gates"];
+const rhythmRouletteHtml = surfaceHtmlById["rhythm-roulette"];
 const designSystemLab = await readFile("src/design-system-lab.js", "utf8");
 const designSystemLabCss = await readFile("src/design-system-lab.css", "utf8");
 const beatSchoolJs = await readFile("src/beat-school.js", "utf8");
@@ -45,10 +52,8 @@ const toolRegistry = await readFile("src/tool-registry.js", "utf8");
 const smokeApi = await readFile("scripts/smoke-api.mjs", "utf8");
 const runtimeSmoke = await readFile("scripts/runtime-smoke.mjs", "utf8");
 const audioToolbeltTest = await readFile("scripts/audio-toolbelt.test.mjs", "utf8");
-const journalHtml = await readFile("journal.html", "utf8");
 const journalJs = await readFile("src/journal.js", "utf8");
 const journalCss = await readFile("src/journal.css", "utf8");
-const pitchGatesHtml = await readFile("pitch-gates.html", "utf8");
 const pitchGatesJs = await readFile("src/pitch-gates.js", "utf8");
 const pitchGatesChallenge = await readFile("src/pitch-gates/challenge.js", "utf8");
 const pitchGatesReducer = await readFile("src/pitch-gates/reducer.js", "utf8");
@@ -56,7 +61,6 @@ const pitchGatesReplay = await readFile("src/pitch-gates/replay.js", "utf8");
 const pitchGatesFilter = await readFile("src/pitch-gates/pitch-filter.js", "utf8");
 const pitchGatesDiagnosis = await readFile("src/pitch-gates/diagnosis.js", "utf8");
 const pitchGatesCss = await readFile("src/pitch-gates.css", "utf8");
-const rhythmRouletteHtml = await readFile("rhythm-roulette.html", "utf8");
 const rhythmRouletteJs = await readFile("src/rhythm-roulette.js", "utf8");
 const rhythmRouletteCss = await readFile("src/rhythm-roulette.css", "utf8");
 const rhythmRouletteChallenge = await readFile("src/rhythm-roulette/challenge.js", "utf8");
@@ -83,13 +87,15 @@ const serverJson = await readFile("server/json.mjs", "utf8");
 const audioLabDoc = await readFile("docs/AUDIO_LAB.md", "utf8");
 
 assert(html.includes("./src/styles.css"), "index.html should load src/styles.css");
-const productSurfaces = [html, pitchGatesHtml, audioLabHtml, rhythmRouletteHtml, midiPlaygroundHtml, beatSchoolHtml, journalHtml, designSystemHtml];
+const productSurfaceHtml = Object.values(surfaceHtmlById);
 
-assert(productSurfaces.every((source) => source.includes("src/design-tokens.css")), "every surface should load the shared token foundation");
+assert(productSurfaceHtml.every((source) => source.includes("src/design-tokens.css")), "every surface should load the shared token foundation");
 assert(designTokensCss.includes("--surface-app") && designTokensCss.includes("--touch-target") && designTokensCss.includes("--room-accent"), "design tokens should define foundation, semantic, and room-level hooks");
 assert(designTokensCss.includes("--chassis-metal") && designTokensCss.includes("--hardware-shadow"), "design tokens should define shared hardware materials");
-assert(productSurfaces.every((source) => source.includes("src/ui-system.css")), "every surface should load the shared room system");
-assert(productSurfaces.every((source) => source.includes("data-room=")), "every surface should declare a room identity");
+assert(productSurfaceHtml.every((source) => source.includes("src/ui-system.css")), "every surface should load the shared room system");
+assert(surfaceManifest.every(({ id, room }) => surfaceHtmlById[id].includes(`data-room="${room}"`)), "every surface should declare its manifest room identity");
+assert(surfaceManifest.every(({ id }) => surfaceHtmlById[id].includes(`data-current-tool="${id}"`)), "every surface should identify itself to shared navigation");
+assert(surfaceManifest.every(({ id, primaryAction }) => !primaryAction || surfaceHtmlById[id].includes(`id="${primaryAction.slice(1)}"`)), "every manifest primary action should exist on its surface");
 assert(uiSystemCss.includes('data-ui="chassis"') && uiSystemCss.includes('data-ui="screen"') && uiSystemCss.includes("@media (pointer: coarse)"), "UI system should own hardware primitives and touch behavior");
 assert(roomSystem.includes("roomManifest") && roomSystem.includes("cueRoomMotion"), "room system should expose versioned art direction and motion cues");
 assert(designSystemHtml.includes("Environment Library") && designSystemHtml.includes("Instrument Grammar"), "Style Lab should expose the living asset and component system");
@@ -131,10 +137,8 @@ assert(html.includes("data-event-label=\"practice\""), "index.html should includ
 assert(html.includes("id=\"promoteEventBtn\""), "index.html should include promote-to-notes action");
 assert(html.includes("data-quick-tag=\"heater\""), "index.html should include quick crate tags");
 assert(html.includes("id=\"mergeDuplicateBtn\""), "index.html should include duplicate merge action");
-assert(toolRegistry.includes("./pitch-gates.html"), "the tool registry should link to Pitch Gates");
-assert(toolRegistry.includes("./audio-lab.html"), "the tool registry should link to Audio Lab");
-assert(toolRegistry.includes("./midi-playground.html"), "the tool registry should link to MIDI Playground");
-assert(toolRegistry.includes("./beat-school.html"), "the tool registry should link to Beat School");
+assert(toolRegistry.includes("./product-manifest.js"), "the tool registry should consume the shared product manifest");
+assert(surfaceManifest.every(({ href }) => href.startsWith("./") && href.endsWith(".html")), "every product surface should expose a portable HTML href");
 assert(beatSchoolHtml.includes("data-lane=\"kick\"") && beatSchoolHtml.includes("data-lane=\"clap\""), "Beat School should provide a four-pad lesson surface");
 assert(beatSchoolJs.includes("createSemanticInputSpine") && beatSchoolJs.includes("requestMIDIAccess"), "Beat School should normalize touch, keyboard, and MIDI input");
 assert(beatSchoolCss.includes("touch-action: manipulation") && beatSchoolCss.includes("@media (pointer: coarse)"), "Beat School should explicitly optimize coarse-pointer play");
@@ -255,7 +259,7 @@ assert(pitchGatesHtml.includes("id=\"fileBtn\""), "pitch-gates.html should inclu
 assert(pitchGatesHtml.includes("aria-label=\"Choose audio file\""), "pitch-gates.html should label the hidden audio file input");
 assert(pitchGatesHtml.includes("id=\"startRoundBtn\""), "pitch-gates.html should include a round control");
 assert(pitchGatesHtml.includes("data-practice-context"), "Pitch Gates should show contextual set assignments");
-assert(pitchGatesHtml.includes("data-tool-rack") && toolRegistry.includes("./audio-lab.html"), "Pitch Gates should link to Audio Lab through the tool rack");
+assert(pitchGatesHtml.includes("data-tool-rack") && surfaceManifest.some(({ id }) => id === "audio-lab"), "Pitch Gates should link to Audio Lab through the tool rack");
 assert(pitchGatesHtml.includes("data-tool-rack"), "Pitch Gates should include the shared tool rack");
 assert(pitchGatesHtml.includes("src/arcade-shell.css"), "Pitch Gates should use the shared arcade shell");
 assert(pitchGatesHtml.includes("src/tool-registry.js"), "Pitch Gates should load the tool registry");
@@ -402,10 +406,7 @@ assert(pitchGatesDiagnosis.includes("diagnosePitchGateResults"), "Pitch Gates sh
 assert(pitchGatesHtml.includes("id=\"profileRange\"") && audioLabHtml.includes("id=\"profileRange\""), "Pitch Gates and Audio Lab should expose the shared musician profile");
 assert(pitchGatesJs.includes("loadMusicianProfile") && audioLabJs.includes("loadMusicianProfile"), "pitch tools should read the same musician profile");
 assert(toolRegistry.includes("renderToolRack"), "tool-registry.js should render shared tool navigation");
-assert(toolRegistry.includes("audio-lab"), "tool-registry.js should register Audio Lab");
-assert(toolRegistry.includes("pitch-gates"), "tool-registry.js should register Pitch Gates");
-assert(toolRegistry.includes("rhythm-roulette"), "tool-registry.js should register Rhythm Roulette");
-assert(toolRegistry.includes("style-lab"), "tool-registry.js should register the Style Lab");
+assert(["audio-lab", "pitch-gates", "rhythm-roulette", "style-lab"].every((id) => surfaceManifest.some((surface) => surface.id === id)), "the product manifest should register every shared tool");
 assert(performanceEvents.includes("createPerformanceEvent"), "performance-events.js should create structured performance events");
 assert(performanceEvents.includes("metadata"), "performance-events.js should map performance data into audio-event metadata");
 assert(performanceEvents.includes("trackId"), "performance-events.js should preserve set timeline attachment");

@@ -3,9 +3,8 @@ import { spawn } from "node:child_process";
 import { join } from "node:path";
 
 const scriptsDirectory = join(process.cwd(), "scripts");
-const browserTests = new Set(["pages-runtime.test.mjs"]);
 const testFiles = (await readdir(scriptsDirectory))
-  .filter((file) => file.endsWith(".test.mjs") && !browserTests.has(file))
+  .filter((file) => file.endsWith(".test.mjs") && !file.endsWith(".browser.test.mjs"))
   .sort();
 
 for (const file of testFiles) {

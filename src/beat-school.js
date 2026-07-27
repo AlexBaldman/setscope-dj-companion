@@ -1,8 +1,9 @@
 import { createControlObservation, parseMidiMessage } from "./contracts/midi-observation.js";
-import { createInputMapping } from "./contracts/input-timing.js";
 import { createMusicalClock, createSemanticInputSpine } from "./input-spine.js";
+import { loadInputMappings, loadLatencyProfile } from "./input-profile-store.js";
 import { createBeatSchoolAudioEngine } from "./beat-school/audio-engine.js";
 import { BEAT_SCHOOL_LANES, beatSchoolStepMs, createBeatSchoolChallenge } from "./beat-school/challenge.js";
+import { createBeatSchoolMappings } from "./beat-school/input-mappings.js";
 import {
   BEAT_SCHOOL_PHASES,
   createBeatSchoolRun,
@@ -26,8 +27,8 @@ const clock = createMusicalClock({ bpm: challenge.bpm, originTimeMs: performance
 const spine = createSemanticInputSpine({
   sessionId,
   clock,
-  mappings: createDefaultMappings(),
-  latencyProfiles: readLatencyProfiles(),
+  mappings: createBeatSchoolMappings(loadInputMappings()),
+  latencyProfiles: [loadLatencyProfile()],
 });
 
 let run = createBeatSchoolRun(challenge);
@@ -321,41 +322,6 @@ function saveRun(assisted) {
   practice.markComplete(savedEvent);
   render();
   return savedEvent;
-}
-
-function createDefaultMappings() {
-  const mappings = [];
-  for (const lane of BEAT_SCHOOL_LANES) {
-    for (const sourceKind of ["touch", "keyboard", "demo"]) {
-      mappings.push(createInputMapping({
-        mappingId: `${sourceKind}-${lane.id}`,
-        action: `beat-pad:${lane.id}`,
-        sourceScope: "any",
-        observation: { sourceKind, message: { type: "pad-trigger", control: lane.id } },
-        createdAt: "built-in",
-      }));
-    }
-  }
-  const midiNotes = { kick: 36, snare: 38, hat: 42, clap: 39 };
-  for (const [lane, note] of Object.entries(midiNotes)) {
-    mappings.push(createInputMapping({
-      mappingId: `midi-${lane}`,
-      action: `beat-pad:${lane}`,
-      sourceScope: "any",
-      observation: { sourceKind: "midi", message: { type: "note-on", note } },
-      createdAt: "built-in",
-    }));
-  }
-  return mappings;
-}
-
-function readLatencyProfiles() {
-  try {
-    const profile = JSON.parse(localStorage.getItem("setscope-latency-profile-v1") || "null");
-    return profile ? [profile] : [];
-  } catch {
-    return [];
-  }
 }
 
 function flashPad(lane) {

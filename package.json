@@ -9,8 +9,8 @@
     "build:pages": "node scripts/build-pages.mjs",
     "check": "node scripts/check-source.mjs && node scripts/check.mjs && node scripts/run-unit-tests.mjs",
     "smoke": "node scripts/smoke-api.mjs",
-    "test:runtime": "node scripts/runtime-smoke.mjs && npm run build:pages && node scripts/pages-runtime.test.mjs",
-    "test:pages": "npm run build:pages && node scripts/pages-runtime.test.mjs"
+    "test:runtime": "node scripts/runtime-smoke.mjs && npm run build:pages && node scripts/pages-runtime.browser.test.mjs",
+    "test:pages": "npm run build:pages && node scripts/pages-runtime.browser.test.mjs"
   },
   "dependencies": {
     "pitchy": "^4.1.0"

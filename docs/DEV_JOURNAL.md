@@ -1454,3 +1454,46 @@ Future samplers, car stereos, synth skins, cymatics modules, games, and learning
 tools can now feel wildly distinctive while remaining recognizably SetScope.
 Visual invention has a manifest, reusable primitives, a living reference page,
 and an automated quality gate instead of relying on memory or page-by-page CSS.
+
+## 2026-07-27 - Product Manifest and Architecture Hardening
+
+We audited frontend ownership, native portability, test architecture, and the
+production deployment path after the Room System landed. The review found that
+the same eight product surfaces were declared independently in navigation,
+builds, responsive tests, light-mode tests, and practice routing. It also found
+two real consequences: Beat School could not create a canonical practice mission,
+and GitHub Pages could deploy without waiting for the browser suite.
+
+What changed:
+
+- Added a browser-neutral product manifest for routes, files, room identities,
+  navigation labels, primary actions, and practice capability.
+- Derived the shared tool rack, static Pages build, responsive route matrix,
+  light-mode matrix, primary-action checks, and practice paths from that manifest.
+- Derived Session Spine mode validation and labels from the same practice catalog,
+  fixing Beat School mission creation.
+- Added a manifest contract test covering uniqueness, real files, room validity,
+  primary actions, routes, and mission creation for every practice-capable tool.
+- Expanded the built Pages artifact check from three screens to all eight, with
+  HTTP, shared-navigation, image, and console validation.
+- Made Pages deployment install Chromium and pass the complete runtime/static
+  browser suite before uploading production files.
+- Replaced the unit runner's one-off browser-test filename exception with an
+  explicit `.browser.test.mjs` convention.
+- Added a shared input-profile store for controller mappings and latency.
+- Connected MIDI Learn mappings to Beat School through a pure adapter that lets
+  learned drum gestures override defaults while excluding unrelated actions.
+
+Why this matters:
+
+Adding a ninth room now updates navigation, deployment, responsive QA, light
+mode, and architecture contracts through one declaration. A learned hardware
+mapping now reaches the lesson it was meant to control, and a broken UI build can
+no longer pass directly into GitHub Pages.
+
+Remaining priorities:
+
+- make performance event, mission, and skill evidence writes one explicit commit
+- finish the general browser-storage port before native or cloud sync
+- validate nested SetDraft item contracts
+- replace older source-text checks as equivalent behavior tests are added

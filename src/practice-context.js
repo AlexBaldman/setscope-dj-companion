@@ -1,19 +1,17 @@
 import { migrateSetDraft, serializeSetDraft } from "./contracts/set-draft.js";
+import { getSurfaceHref, practiceSurfaces } from "./product-manifest.js";
 import { completePracticeMission } from "./session-spine.js";
 
 const DRAFT_STORAGE_KEY = "setscope-draft-v1";
 
-export const practiceToolPaths = {
-  "audio-lab": "./audio-lab.html",
-  "pitch-gates": "./pitch-gates.html",
-  "rhythm-roulette": "./rhythm-roulette.html",
-  "beat-school": "./beat-school.html",
-};
+export const practiceToolPaths = Object.freeze(Object.fromEntries(
+  practiceSurfaces.map(({ id, href }) => [id, href]),
+));
 
 export function buildPracticeHref(modeId, track, mission = "", missionId = "") {
   const path = practiceToolPaths[modeId];
   const trackId = typeof track === "string" ? track : track?.id;
-  if (!path || !trackId) return path || "./index.html";
+  if (!path || !trackId) return path || getSurfaceHref("setscope");
   const params = new URLSearchParams({ track: trackId });
   if (mission.trim()) params.set("mission", mission.trim());
   if (missionId) params.set("missionId", missionId);
@@ -27,7 +25,7 @@ export function buildSetReturnHref(track, eventId = "", missionId = "") {
   if (eventId) params.set("event", eventId);
   if (missionId) params.set("missionId", missionId);
   const query = params.toString();
-  return `./index.html${query ? `?${query}` : ""}`;
+  return `${getSurfaceHref("setscope")}${query ? `?${query}` : ""}`;
 }
 
 export function missionForMode(modeId, track) {
