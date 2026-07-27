@@ -1,7 +1,9 @@
-import { persistAudioEvent } from "./state.js";
+import { commitCompletion, recoverPendingCompletion } from "./completion-commit.js";
+import { commitAudioEvent, persistAudioEvent } from "./state.js";
 import { createPerformanceEventV2, QUARANTINED_METADATA_V1 } from "./contracts/performance-event.js";
 import { normalizePerformanceMetadata } from "./migrations/performance-event-v1.js";
 import { recordSkillEvidence } from "./skill-graph.js";
+import { uid } from "./utils.js";
 
 export function createPerformanceEvent({
   modeId,
@@ -206,7 +208,7 @@ export function createBeatSchoolCompletionEvent({
   });
 }
 
-export function persistPerformanceEvent(event) {
+export function persistPerformanceEvent(event, { missionId = "", storage = globalThis.localStorage } = {}) {
   const metadata = normalizePerformanceMetadata(event);
   if (metadata?.schemaVersion === QUARANTINED_METADATA_V1) {
     return persistAudioEvent({
@@ -217,7 +219,9 @@ export function persistPerformanceEvent(event) {
       metadata,
     });
   }
-  const saved = persistAudioEvent({
+  const createdAt = metadata.createdAt || new Date().toISOString();
+  const audioEvent = {
+    id: uid(),
     type: audioEventTypeForMode(metadata.modeId),
     labels: labelsForMode(metadata.modeId),
     trackId: metadata.trackId,
@@ -225,9 +229,33 @@ export function persistPerformanceEvent(event) {
     title: metadata.details?.game ? `${metadata.details.game} run` : "Performance run",
     detail: metadata.evidence?.summary || `${metadata.sourceLabel} / ${metadata.score} pts / streak ${metadata.streak}`,
     metadata,
-  });
-  recordSkillEvidence(metadata, saved.id);
-  return saved;
+    createdAt,
+  };
+  return commitCompletion(
+    {
+      audioEvent,
+      metadata,
+      missionId,
+      createdAt,
+    },
+    completionDependencies(storage),
+  );
+}
+
+export function recoverPerformanceCompletion(storage = globalThis.localStorage) {
+  try {
+    return recoverPendingCompletion(completionDependencies(storage));
+  } catch {
+    return null;
+  }
+}
+
+function completionDependencies(storage) {
+  return {
+    storage,
+    commitDraft: (audioEvent, missionId, targetStorage) => commitAudioEvent(audioEvent, missionId, targetStorage),
+    commitSkill: recordSkillEvidence,
+  };
 }
 
 function labelsForMode(modeId) {
@@ -243,3 +271,5 @@ function audioEventTypeForMode(modeId) {
   if (modeId === "rhythm-roulette") return "learning";
   return "learning";
 }
+
+recoverPerformanceCompletion();

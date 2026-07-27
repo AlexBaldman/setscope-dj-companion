@@ -387,8 +387,8 @@ function logSnapshot() {
     evidence: {
       summary: `${sourceLabel.toUpperCase()} / ${note} to ${midiToNote(targetMidi)} / ${frequency} Hz / ${clarity}%${attachedTrack ? ` / ${attachedTrack.title}` : ""}`,
     },
-  }));
-  practiceContext.markComplete(savedEvent);
+  }), { missionId: practiceContext.missionId });
+  practiceContext.markSaved(savedEvent);
   els.snapshotStatus.textContent = "Logged";
   els.snapshotDetail.textContent = `${note} -> ${midiToNote(targetMidi)} / ${frequency} Hz / ${clarity}%${attachedTrack ? ` / ${attachedTrack.time}` : ""}`;
 }

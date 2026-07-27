@@ -412,8 +412,8 @@ function endRound() {
     diagnosis,
     eligibleForMastery,
   });
-  const savedEvent = persistPerformanceEvent(performanceEvent);
-  practiceContext.markComplete(savedEvent);
+  const savedEvent = persistPerformanceEvent(performanceEvent, { missionId: practiceContext.missionId });
+  practiceContext.markSaved(savedEvent);
   appendPerformanceLog(performanceEvent);
   appendLog("COACH", diagnosis.detail);
   els.diagnosisStatus.textContent = diagnosis.detail;

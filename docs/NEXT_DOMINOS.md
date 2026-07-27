@@ -116,17 +116,15 @@ These are important but should support, not interrupt, the vertical slices:
 
 1. Finish the browser storage port started by the shared input-profile store
    before adding sync or native persistence.
-2. Make performance-event, mission, and skill-evidence completion one
-   application-level commit with explicit retry and partial-failure behavior.
-3. Add nested SetDraft item validation for tracks, missions, captures, and
+2. Add nested SetDraft item validation for tracks, missions, captures, and
    performance evidence before native or cloud writes.
-4. Split `src/styles.css` by cockpit room after visual regression baselines exist.
-5. Extract the phase controller shared by playable tools.
-6. Break `src/pitch-gates.js` into input, session, rendering, and UI-controller
+3. Split `src/styles.css` by cockpit room after visual regression baselines exist.
+4. Extract the phase controller shared by playable tools.
+5. Break `src/pitch-gates.js` into input, session, rendering, and UI-controller
    ownership once Beat School confirms the shared engine boundary.
-7. Replace static-string structure checks incrementally with contract and browser
+6. Replace static-string structure checks incrementally with contract and browser
    behavior tests.
-8. Add an archive study view after the first creation loop writes richer evidence.
+7. Add an archive study view after the first creation loop writes richer evidence.
 
 Completed architecture hardening:
 
@@ -136,6 +134,8 @@ Completed architecture hardening:
 - all eight static surfaces receive route, shared-navigation, image, and console checks
 - MIDI Learn mappings and latency profiles now flow into Beat School through a
   shared profile boundary
+- performance events, mission closure, and skill evidence now use one
+  write-ahead, retry-safe completion commit
 
 ## Decision Rule
 

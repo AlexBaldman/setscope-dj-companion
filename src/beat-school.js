@@ -318,8 +318,8 @@ function saveRun(assisted) {
     mission: practice.mission || "",
     assisted,
   });
-  savedEvent = persistPerformanceEvent(event);
-  practice.markComplete(savedEvent);
+  savedEvent = persistPerformanceEvent(event, { missionId: practice.missionId });
+  practice.markSaved(savedEvent);
   render();
   return savedEvent;
 }

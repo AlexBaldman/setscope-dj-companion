@@ -1497,3 +1497,37 @@ Remaining priorities:
 - finish the general browser-storage port before native or cloud sync
 - validate nested SetDraft item contracts
 - replace older source-text checks as equivalent behavior tests are added
+
+## 2026-07-27 - Replay-Safe Learning Completion
+
+We replaced the three-step performance save path with one application-level
+completion transaction. Previously, a game wrote its event into SetDraft, wrote
+skill evidence into a second ledger, and then closed its mission through a third
+path. A browser storage failure or interruption could leave those views
+disagreeing about what the player had completed.
+
+What changed:
+
+- Added a versioned write-ahead completion record containing the stable event,
+  performance metadata, and mission identity.
+- Made audio-event persistence idempotent by event ID.
+- Committed the performance event and mission closure together in one SetDraft
+  write.
+- Kept the cross-session Skill Ledger as an idempotent projection keyed by the
+  same event ID.
+- Cleared the write-ahead record only after both canonical and projected state
+  succeeded.
+- Added automatic recovery when a performance module opens or before the next
+  completion begins.
+- Moved Pitch Gates, Audio Lab, Rhythm Roulette, and Beat School onto the unified
+  commit while keeping practice-context UI updates separate from persistence.
+- Added a failure test that deliberately interrupts the skill write, verifies one
+  event and one closed mission, recovers the receipt, and proves no duplicate is
+  created.
+
+Why this matters:
+
+The learning system now has an honest answer to “did this run save?” A partial
+browser write remains recoverable rather than becoming invisible drift, and the
+same completion boundary can later move behind IndexedDB, SQLite, SwiftData, or a
+sync service without changing every game controller.

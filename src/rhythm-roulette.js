@@ -188,8 +188,9 @@ function saveRun() {
       playerEdits: run.playerEdits,
       scoreBreakdown: breakdown,
     }),
+    { missionId: practiceContext.missionId },
   );
-  practiceContext.markComplete(savedEvent);
+  practiceContext.markSaved(savedEvent);
   els.rouletteStatus.textContent = "RUN SAVED";
   document.body.dataset.phase = "saved";
   els.missionTitle.textContent = "Loop logged";

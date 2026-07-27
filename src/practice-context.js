@@ -89,6 +89,7 @@ export function mountPracticeContext(
       modeId,
       track: null,
       markComplete() {},
+      markSaved() {},
     };
   }
 
@@ -108,14 +109,19 @@ export function mountPracticeContext(
     ...context,
     markComplete(event) {
       completeStoredPracticeMission(context.missionId, event);
-      const trackId = event?.trackId || context.track.id;
-      const href = buildSetReturnHref(trackId, event?.id, context.missionId);
-      updateReturnLinks(root, href);
-      if (!host) return;
-      host.dataset.state = "saved";
-      setText(host, "[data-context-status]", event?.trackId ? "Run attached" : "Run logged");
+      markSaved(event);
     },
+    markSaved,
   };
+
+  function markSaved(event) {
+    const trackId = event?.trackId || context.track.id;
+    const href = buildSetReturnHref(trackId, event?.id, context.missionId);
+    updateReturnLinks(root, href);
+    if (!host) return;
+    host.dataset.state = "saved";
+    setText(host, "[data-context-status]", event?.trackId ? "Run attached" : "Run logged");
+  }
 }
 
 function completeStoredPracticeMission(missionId, event, storage = globalThis.localStorage) {

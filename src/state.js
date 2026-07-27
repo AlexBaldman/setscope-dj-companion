@@ -24,8 +24,8 @@ export const uiState = {
 
 let selectedId = state.tracks[0]?.id;
 
-function loadState() {
-  const saved = localStorage.getItem(STORAGE_KEY);
+function loadState(storage = localStorage) {
+  const saved = storage.getItem(STORAGE_KEY);
   if (!saved) return { tracks: cloneDemoTracks(uid) };
   try {
     const parsed = JSON.parse(saved);
@@ -447,17 +447,31 @@ export function logAudioEvent(event) {
 }
 
 export function persistAudioEvent(event) {
-  const latest = hydrateState(loadState());
+  return commitAudioEvent(event);
+}
+
+export function commitAudioEvent(event, missionId = "", storage = localStorage) {
+  const latest = hydrateState(loadState(storage));
   const created = createAudioEvent(event);
-  latest.audioEvents = [created, ...(Array.isArray(latest.audioEvents) ? latest.audioEvents : [])].slice(0, 100);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(serializeSetDraft(latest)));
+  const existing = latest.audioEvents.find((candidate) => candidate.id === created.id);
+  if (!existing) {
+    latest.audioEvents = [created, ...(Array.isArray(latest.audioEvents) ? latest.audioEvents : [])].slice(0, 100);
+  }
+  if (missionId) {
+    const missionIndex = latest.practiceMissions.findIndex((mission) => mission.id === missionId);
+    if (missionIndex >= 0) {
+      latest.practiceMissions[missionIndex] = closePracticeMission(latest.practiceMissions[missionIndex], existing || created);
+    }
+  }
+  storage.setItem(STORAGE_KEY, JSON.stringify(serializeSetDraft(latest)));
   state.audioEvents = latest.audioEvents;
-  return created;
+  state.practiceMissions = latest.practiceMissions;
+  return existing || created;
 }
 
 function createAudioEvent(event) {
   return {
-    id: uid(),
+    id: event.id || uid(),
     type: event.type || "note",
     labels: Array.isArray(event.labels) ? event.labels : Array.isArray(event.metadata?.labels) ? event.metadata.labels : [],
     trackId: event.trackId || "",
@@ -465,7 +479,7 @@ function createAudioEvent(event) {
     title: event.title || "Audio event",
     detail: event.detail || "",
     metadata: event.metadata || null,
-    createdAt: new Date().toISOString(),
+    createdAt: event.createdAt || new Date().toISOString(),
   };
 }
 

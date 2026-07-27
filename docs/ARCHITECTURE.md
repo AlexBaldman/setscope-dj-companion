@@ -45,6 +45,8 @@
   public routes, room identities, primary actions, and practice capability.
 - `src/input-profile-store.js`: storage boundary for normalized controller
   mappings and latency profiles, including legacy migration.
+- `src/completion-commit.js`: write-ahead, replay-safe coordinator for performance
+  events, mission closure, and cross-session skill evidence.
 - `src/beat-school/input-mappings.js`: pure adapter from learned semantic actions
   into Beat School drum lanes, with built-in fallbacks.
 - `docs/DESIGN_SYSTEM.md`: screenshot-led design principles, audit findings, implemented decisions, and responsive backlog.
@@ -120,6 +122,9 @@
   from the same input-profile store as MIDI Playground.
 - Pages deployment now runs the complete browser suite before artifact upload,
   and the built artifact is checked across all eight surfaces.
+- Performance completion now writes one pending intent, commits the audio event
+  and mission together, projects skill evidence idempotently, and clears the
+  intent only after every projection succeeds.
 
 ## Main Risks
 
@@ -131,9 +136,6 @@
 - Domain commands still mutate the in-memory draft object for compatibility. The persistence boundary is explicit now, but a future reducer/store can make command transitions immutable without changing the serialized contract.
 - Web audio-source capture is permission-scoped: arbitrary computer playback cannot be silently sampled, and shared system-audio choices vary by browser/OS.
 - Continuous listening is deliberately sequential so slow recognition responses cannot overlap capture windows or reorder timeline writes.
-- Performance completion still spans separate SetDraft and Skill Ledger writes.
-  A future application-level commit operation should define retry and partial
-  failure behavior before cloud sync is introduced.
 - Browser storage remains directly accessed by several older modules. The new
   input-profile store is the first adapter boundary; drafts, scores, theme,
   journal, and static archives should move behind the same port incrementally.
@@ -162,6 +164,12 @@ The same audit found that MIDI Learn did not reach Beat School. Controller
 mappings and latency now cross a shared input-profile boundary, and a pure
 adapter accepts learned kick, snare, hat, and clap gestures while excluding
 unrelated transport or mixer commands.
+
+The follow-up completion pass added an application-level transaction boundary.
+Every playable tool now supplies its mission identity to one write-ahead commit.
+The SetDraft event and mission close in one write, skill evidence is a replay-safe
+projection keyed by the event ID, and interrupted commits recover automatically
+without duplicate events or receipts.
 
 ## Recommended Next Refactor
 
