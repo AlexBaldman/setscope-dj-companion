@@ -495,9 +495,10 @@
 
   .tool-rack {
     grid-column: 1 / -1;
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    overflow: visible;
+    display: flex;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
   }
 
   .tool-rack::-webkit-scrollbar {
@@ -520,9 +521,11 @@
   }
 
   .tool-rack.compact .tool-rack-item {
-    min-width: 0;
+    flex: 0 0 64px;
+    min-width: 64px;
     min-height: var(--touch-target);
     padding: 6px;
+    scroll-snap-align: start;
   }
 
   .game-tools .lcd-pill {

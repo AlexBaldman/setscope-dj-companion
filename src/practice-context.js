@@ -7,6 +7,7 @@ export const practiceToolPaths = {
   "audio-lab": "./audio-lab.html",
   "pitch-gates": "./pitch-gates.html",
   "rhythm-roulette": "./rhythm-roulette.html",
+  "beat-school": "./beat-school.html",
 };
 
 export function buildPracticeHref(modeId, track, mission = "", missionId = "") {
@@ -37,6 +38,10 @@ export function missionForMode(modeId, track) {
   if (modeId === "rhythm-roulette") {
     const tempo = Number(track?.bpm) ? `${track.bpm} BPM` : "the set tempo";
     return `Build a ${tempo} flip that could sit beside ${title} without crowding its pocket.`;
+  }
+  if (modeId === "beat-school") {
+    const tempo = Number(track?.bpm) ? `${track.bpm} BPM` : "the set tempo";
+    return `Practice a clean backbeat near ${tempo}, then bring that pocket back to ${title}.`;
   }
   if (modeId === "audio-lab") {
     const key = track?.key && track.key !== "-" ? ` against the ${track.key} key tag` : "";

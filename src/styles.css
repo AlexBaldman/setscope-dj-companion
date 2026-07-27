@@ -2817,12 +2817,15 @@ svg {
 
   .actions > .tool-rack {
     grid-column: 1 / -1;
-    display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    display: flex;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
   }
 
   .actions > .tool-rack .tool-rack-item {
-    min-width: 0;
+    flex: 0 0 64px;
+    min-width: 64px;
     min-height: var(--touch-target);
   }
 

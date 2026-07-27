@@ -1387,3 +1387,34 @@ Why this matters:
 Beat School, Rhythm Roulette, DJ Hero, Loop Studio, and native input no longer
 need to invent their own controller matching or timing math. The next four-pad
 lesson can consume musical action receipts and concentrate on teaching pocket.
+
+## 2026-07-27 - Beat School Backbeat Blueprint
+
+We converted the timing spine into its first complete learning-and-creation loop.
+
+What changed:
+
+- Built a deterministic four-pad challenge, immutable run reducer, signed timing
+  evaluator, repair-target selector, remix grid, replay contract, and run hash.
+- Added original Web Audio synthesis for kick, snare, closed hat, and clap.
+- Routed touch, computer keys, demo input, and General MIDI drum notes through
+  the same latency-aware semantic action spine.
+- Shipped the Hear, Watch, Imitate, Repair, Perform, Remix, Save progression with
+  accuracy, pocket, dynamics, early/late coaching, and a portable receipt.
+- Persisted real runs as Rhythm evidence while keeping assisted demo runs
+  ineligible for mastery.
+- Created an original pixel-art basement beat lab as the room's visual anchor.
+- Reworked shared mobile tool navigation into a horizontal thumb rail.
+- Fixed the Beat School shell's intrinsic-width overflow so phone layouts retain
+  a true two-by-two pad bank with no clipped controls.
+- Kept all four pads and the primary action in the first 390 x 844 viewport.
+- Added engine, static structure, browser interaction, responsive overflow, and
+  GitHub Pages build coverage.
+
+Why this matters:
+
+SetScope now has a real bridge from listening to musicianship: the player can
+hear a hip-hop backbeat, embody it, receive one understandable correction, make
+their own variation, and save credible evidence. The same lesson works with no
+hardware, while remaining ready for the actual Sensel, Korg, Maschine, and DJ
+Hero controller census.

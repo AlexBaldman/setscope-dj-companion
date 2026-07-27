@@ -70,6 +70,21 @@ recordSkillEvidence({
   details: { clarity: 98, cents: 2, stableHold: true },
 }, "event-guided", storage);
 recordSkillEvidence({
+  modeId: "beat-school",
+  score: 90,
+  trackId: "track-1",
+  createdAt: "2026-07-27T12:12:00.000Z",
+  assistance: { level: "none", eligibleForMastery: true },
+  details: { accuracy: 92, pocket: 88, dynamics: 90 },
+}, "event-beat-school", storage);
+recordSkillEvidence({
+  modeId: "beat-school",
+  score: 100,
+  createdAt: "2026-07-27T12:13:00.000Z",
+  assistance: { level: "demo", eligibleForMastery: false },
+  details: { accuracy: 100, pocket: 100, dynamics: 100 },
+}, "event-beat-demo", storage);
+recordSkillEvidence({
   modeId: "pitch-gates",
   score: 999,
   createdAt: "2026-07-27T12:15:00.000Z",
@@ -85,14 +100,14 @@ recordSkillEvidence({
 }, "event-pitch", storage);
 
 const ledger = loadSkillLedger(storage);
-assert.equal(ledger.receipts.length, 4, "event receipts should be deduplicated");
+assert.equal(ledger.receipts.length, 6, "event receipts should be deduplicated");
 const graph = deriveSkillGraph({ profile: calibrated, ledger });
-assert.equal(graph.trustedEvidence, 2);
-assert.equal(graph.guidedEvidence, 2);
+assert.equal(graph.trustedEvidence, 3);
+assert.equal(graph.guidedEvidence, 3);
 assert.equal(graph.nodes.find((node) => node.id === "pitch").level, 84);
-assert.equal(graph.nodes.find((node) => node.id === "rhythm").level, 83);
+assert.equal(graph.nodes.find((node) => node.id === "rhythm").level, 87);
 assert.equal(graph.nodes.find((node) => node.id === "signal").level, 0, "guided signal work must not promote level");
-assert.equal(graph.nodes.find((node) => node.id === "transfer").evidenceCount, 2);
+assert.equal(graph.nodes.find((node) => node.id === "transfer").evidenceCount, 3);
 assert(graph.nodes.find((node) => node.id === "ear").level > 0);
 
 console.log("Skill graph checks passed");

@@ -52,6 +52,7 @@ async function runDesktopFlow() {
   await verifyPitchGates(page);
   await verifyAudioLab(page);
   await verifyMidiPlayground(page);
+  await verifyBeatSchool(page);
   await verifyJournal(page);
   collectRuntimeProblems(logs);
   await context.close();
@@ -107,6 +108,7 @@ async function runResponsiveOverflowPass(viewName, viewport) {
     [`pitch-gates-${viewName}`, "/pitch-gates.html"],
     [`audio-lab-${viewName}`, "/audio-lab.html"],
     [`midi-${viewName}`, "/midi-playground.html"],
+    [`beat-school-${viewName}`, "/beat-school.html"],
     [`journal-${viewName}`, "/journal.html"],
   ];
   for (const [label, path] of routes) {
@@ -128,6 +130,7 @@ async function verifyFirstViewportAction(page, path, viewName) {
     "/audio-lab.html": "#logSnapshotBtn",
     "/rhythm-roulette.html": "#blindDigBtn",
     "/midi-playground.html": "#connectMidiBtn",
+    "/beat-school.html": "#lessonAction",
   }[path];
   if (!selector) return;
   const geometry = await page.locator(selector).evaluate((element) => ({
@@ -246,7 +249,11 @@ async function verifySetScope(page) {
   });
   await archivedSet.click();
   await expectText(page, "#toast", "Set loaded", "archive load toast");
-  await expectText(page, "#setTitle", archivedTitle, "reloaded archive title");
+  await page.waitForFunction(
+    (title) => document.querySelector("#setTitle")?.textContent?.includes(title),
+    archivedTitle,
+  );
+  assert(((await page.locator("#setTitle").textContent()) || "").includes(archivedTitle), "reloaded archive title should be restored");
 
   await auditPage(page, "setscope-desktop");
 }
@@ -406,10 +413,27 @@ async function verifyMidiPlayground(page) {
   await auditPage(page, "midi-playground-desktop");
 }
 
+async function verifyBeatSchool(page) {
+  await goto(page, "/beat-school.html?seed=27");
+  await expectVisible(page, "#padBank", "Beat School drum pads");
+  await expectCount(page, "#padBank .beat-pad", 4, "Beat School four-pad bank");
+  await expectCount(page, "#stepTrack .beat-step", 16, "Beat School step timeline");
+  await page.locator('[data-lane="kick"]').click();
+  await expectText(page, "#inputStatus", "KICK", "Beat School touch input receipt");
+  await page.locator("#demoRun").click();
+  await expectText(page, "#receiptHeading", "saved", "Beat School saved demo receipt");
+  assert(await page.evaluate(() => {
+    const draft = JSON.parse(localStorage.getItem("setscope-draft-v1") || "{}");
+    const run = draft.audioEvents?.find((event) => event.metadata?.modeId === "beat-school");
+    return run?.metadata?.assistance?.eligibleForMastery === false;
+  }), "Beat School demo evidence should never count toward mastery");
+  await auditPage(page, "beat-school-desktop");
+}
+
 async function verifyJournal(page) {
   await goto(page, "/journal.html");
   await expectVisible(page, "#page", "Journal page");
-  await expectCount(page, "[data-tool-rack] .tool-rack-item", 6, "Journal shared tool navigation");
+  await expectCount(page, "[data-tool-rack] .tool-rack-item", 7, "Journal shared tool navigation");
   await page.locator("[data-paper=\"graph\"]").click();
   const paper = await page.locator("body").getAttribute("data-paper");
   assert(paper === "graph", "Journal should switch to graph paper");

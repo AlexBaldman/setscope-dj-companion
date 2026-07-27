@@ -64,7 +64,7 @@ export function validateMidiObservation(observation) {
   if (observation?.schemaVersion !== MIDI_OBSERVATION_VERSION) errors.push("invalid schemaVersion");
   if (!observation?.observationId) errors.push("observationId required");
   if (!observation?.sourceId) errors.push("sourceId required");
-  if (!["midi", "gamepad", "hid", "demo"].includes(observation?.sourceKind)) errors.push("invalid sourceKind");
+  if (!["midi", "gamepad", "hid", "touch", "keyboard", "demo"].includes(observation?.sourceKind)) errors.push("invalid sourceKind");
   if (!Number.isFinite(observation?.timestampMs)) errors.push("timestampMs must be finite");
   if (!observation?.message?.type) errors.push("message type required");
   return { valid: errors.length === 0, errors };

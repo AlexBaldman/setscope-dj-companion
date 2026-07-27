@@ -49,7 +49,7 @@ export function deriveSkillGraph({ profile = {}, ledger = createSkillLedger(), e
   const receipts = dedupeReceipts([...currentReceipts, ...(ledger.receipts || [])]);
   const eligible = receipts.filter((receipt) => receipt.eligibleForMastery);
   const pitchReceipts = eligible.filter((receipt) => receipt.modeId === "pitch-gates");
-  const rhythmReceipts = eligible.filter((receipt) => receipt.modeId === "rhythm-roulette");
+  const rhythmReceipts = eligible.filter((receipt) => ["rhythm-roulette", "beat-school"].includes(receipt.modeId));
   const signalReceipts = eligible.filter((receipt) => receipt.modeId === "audio-lab");
   const intervalStats = Object.values(profile.practice?.intervalHistory || {});
   const intervalAttempts = sum(intervalStats.map((stat) => stat.attempts));
@@ -146,6 +146,13 @@ function dimensionsForEvent(event) {
       originality: clamp(Number(details.scoreBreakdown?.originality || 0) / 4),
     };
   }
+  if (event.modeId === "beat-school") {
+    return {
+      accuracy: clamp(details.accuracy),
+      pocket: clamp(details.pocket),
+      dynamics: clamp(details.dynamics),
+    };
+  }
   if (event.modeId === "audio-lab") {
     return {
       clarity: clamp(details.clarity),
@@ -159,9 +166,11 @@ function dimensionsForEvent(event) {
 function rhythmLevel(receipt) {
   return mean([
     receipt.dimensions.constraint,
+    receipt.dimensions.accuracy,
     receipt.dimensions.pocket,
+    receipt.dimensions.dynamics,
     receipt.dimensions.originality,
-  ]);
+  ].filter(Number.isFinite));
 }
 
 function signalLevel(receipt) {

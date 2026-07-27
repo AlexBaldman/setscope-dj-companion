@@ -8,6 +8,7 @@ const publicFiles = [
   "index.html",
   "pitch-gates.html",
   "audio-lab.html",
+  "beat-school.html",
   "rhythm-roulette.html",
   "midi-playground.html",
   "journal.html",

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Beat School - SetScope</title>
+    <link rel="stylesheet" href="./src/design-tokens.css" />
+    <link rel="stylesheet" href="./src/arcade-shell.css" />
+    <link rel="stylesheet" href="./src/beat-school.css" />
+    <link rel="stylesheet" href="./src/theme.css" />
+  </head>
+  <body>
+    <div class="game-app beat-school-app">
+      <header class="game-topbar app-header">
+        <a class="back-link" data-set-return href="./index.html"><span class="mini-disc"></span>SetScope</a>
+        <div class="game-title"><h1>Beat School</h1><span>Pad Lab 01</span></div>
+        <div class="game-tools">
+          <nav class="tool-rack compact" data-tool-rack data-current-tool="beat-school" aria-label="SetScope tools"></nav>
+          <div class="lcd-pill" id="inputStatus" aria-live="polite">TOUCH READY</div>
+          <button class="theme-toggle" data-theme-toggle aria-label="Switch to light mode" title="Switch to light mode">
+            <img src="./assets/theme/lightning-bulb-toggle-ui.png" alt="" />
+          </button>
+        </div>
+      </header>
+
+      <main class="beat-school-layout">
+        <section class="practice-context" data-practice-context hidden aria-label="SetScope practice assignment">
+          <div class="practice-context-track">
+            <span>Set assignment / <b data-context-time>--:--</b></span>
+            <strong data-context-track>Selected track</strong>
+            <small data-context-artist>Artist</small>
+          </div>
+          <p data-context-mission>Practice mission</p>
+          <div class="practice-context-actions">
+            <span data-context-status aria-live="polite">Assignment armed</span>
+            <a data-set-return href="./index.html">View in set</a>
+          </div>
+        </section>
+
+        <nav class="lesson-rail" aria-label="Lesson stages" data-scroll-region>
+          <button class="active" data-phase="hear">1 <span>Hear</span></button>
+          <button data-phase="watch">2 <span>Watch</span></button>
+          <button data-phase="imitate">3 <span>Imitate</span></button>
+          <button data-phase="repair">4 <span>Repair</span></button>
+          <button data-phase="perform">5 <span>Perform</span></button>
+          <button data-phase="remix">6 <span>Remix</span></button>
+          <button data-phase="save">7 <span>Save</span></button>
+        </nav>
+
+        <section class="beat-workbench">
+          <div class="beat-stage">
+            <div class="beat-scene">
+              <img src="./assets/beat-school/beat-lab.png" alt="Pixel-art basement beat laboratory with records, speakers, and drum machines" />
+              <div class="scene-caption">
+                <span id="phaseEyebrow">HEAR / REFERENCE</span>
+                <strong id="lessonTitle">Backbeat Blueprint</strong>
+                <small id="coachLine">Listen for the kick and snare conversation.</small>
+              </div>
+            </div>
+
+            <div class="step-track" id="stepTrack" aria-label="Sixteen step beat timeline"></div>
+
+            <div class="pad-bank" id="padBank" aria-label="Drum pads">
+              <button class="beat-pad kick" data-lane="kick" aria-label="Play kick">
+                <span>Kick</span><kbd>A</kbd>
+              </button>
+              <button class="beat-pad snare" data-lane="snare" aria-label="Play snare">
+                <span>Snare</span><kbd>S</kbd>
+              </button>
+              <button class="beat-pad hat" data-lane="hat" aria-label="Play hi-hat">
+                <span>Hat</span><kbd>D</kbd>
+              </button>
+              <button class="beat-pad clap" data-lane="clap" aria-label="Play clap">
+                <span>Clap</span><kbd>F</kbd>
+              </button>
+            </div>
+
+            <div class="beat-transport">
+              <button class="primary-action" id="lessonAction">Hear groove</button>
+              <button class="utility-action" id="midiConnect">Connect MIDI</button>
+              <button class="utility-action" id="demoRun">Demo lesson</button>
+            </div>
+          </div>
+
+          <aside class="beat-coach">
+            <div class="metric-rack beat-metrics">
+              <div class="metric-cell" data-accent="tempo"><span>BPM</span><strong id="bpmValue">--</strong></div>
+              <div class="metric-cell" data-accent="score"><span>Score</span><strong id="scoreValue">--</strong></div>
+              <div class="metric-cell" data-accent="success"><span>Accuracy</span><strong id="accuracyValue">--</strong></div>
+              <div class="metric-cell" data-accent="danger"><span>Pocket</span><strong id="pocketValue">--</strong></div>
+            </div>
+
+            <section class="coach-readout" data-accent="review">
+              <span class="block-title">Pocket Coach</span>
+              <strong id="coachHeading">Listen first</strong>
+              <p id="coachDetail">The backbeat lands on beats two and four. Let your hands learn its shape before speed matters.</p>
+              <div class="timing-meter" aria-label="Timing tendency">
+                <span>Early</span><i><b id="timingNeedle"></b></i><span>Late</span>
+              </div>
+            </section>
+
+            <section class="coach-readout" data-accent="info">
+              <span class="block-title">Current Move</span>
+              <strong id="moveHeading">Reference pass</strong>
+              <p id="moveDetail">Tap any pad to explore. Press Hear groove when you are ready.</p>
+            </section>
+
+            <section class="coach-readout receipt-readout" data-accent="success">
+              <span class="block-title">Run Receipt</span>
+              <strong id="receiptHeading">Not saved yet</strong>
+              <p id="receiptDetail">Finish the lesson to add rhythm evidence to your musician profile.</p>
+            </section>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="./src/theme.js"></script>
+    <script type="module" src="./src/tool-registry.js"></script>
+    <script type="module" src="./src/beat-school.js"></script>
+  </body>
+</html>

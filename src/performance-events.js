@@ -158,6 +158,54 @@ export function createRhythmRouletteCompletionEvent({
   });
 }
 
+export function createBeatSchoolCompletionEvent({
+  challenge,
+  score,
+  accuracy,
+  pocket,
+  dynamics,
+  timingBias,
+  meanSignedErrorMs,
+  replayHash,
+  replayActionCount,
+  sourceLabel = "Touch pads",
+  trackId = "",
+  time = "--:--",
+  mission = "",
+  assisted = false,
+} = {}) {
+  return createPerformanceEvent({
+    modeId: "beat-school",
+    score,
+    sourceLabel,
+    trackId,
+    time,
+    details: {
+      game: "Beat School",
+      lessonId: challenge?.lessonId || "",
+      challengeId: challenge?.id || "",
+      seed: challenge?.seed || 0,
+      bpm: challenge?.bpm || 0,
+      accuracy,
+      pocket,
+      dynamics,
+      timingBias,
+      meanSignedErrorMs,
+      replayHash,
+      replayActionCount,
+      mission,
+    },
+    evidence: {
+      summary: `${challenge?.title || "Beat lesson"} / ${score || 0} pts / ${timingBias || "waiting"} pocket`,
+    },
+    assistance: {
+      level: assisted ? "demo" : "none",
+      eligibleForMastery: !assisted,
+      values: { assisted },
+    },
+  });
+}
+
 export function persistPerformanceEvent(event) {
   const metadata = normalizePerformanceMetadata(event);
   if (metadata?.schemaVersion === QUARANTINED_METADATA_V1) {
@@ -185,6 +233,7 @@ export function persistPerformanceEvent(event) {
 function labelsForMode(modeId) {
   if (modeId === "audio-lab") return ["practice", "tuning"];
   if (modeId === "rhythm-roulette") return ["practice", "sample"];
+  if (modeId === "beat-school") return ["practice", "rhythm"];
   return ["practice"];
 }
 

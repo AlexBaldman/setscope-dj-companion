@@ -1,7 +1,6 @@
 # Next Lead Dominos
 
-Updated 2026-07-27 after branch archaeology, repository cleanup, MIDI Playground,
-Beat School planning, and the cymatics module boundary.
+Updated 2026-07-27 after the timing spine and first playable Beat School lesson.
 
 This is the canonical priority list. Domain roadmaps hold depth and inspiration;
 this file decides sequencing.
@@ -31,7 +30,7 @@ Manual latency offsets are working now. Tap and loopback measurement, device
 aliases, and non-MIDI fallback adapters close during the physical census and Beat
 School slice, where real timing evidence can validate them.
 
-## 2. Beat School Vertical Slice - Next
+## 2. Beat School Vertical Slice - Completed
 
 Ship one excellent four-pad hip-hop lesson before expanding curriculum.
 
@@ -45,10 +44,22 @@ The slice:
 - deterministic challenge and replay receipt
 - Rhythm and Transfer evidence in the Skill Constellation
 
-Success means a first-time player can connect nothing, make music immediately,
-understand one correction, and save a recognizable two-bar variation.
+Delivered:
 
-## 3. Physical Hardware Census
+- original pixel-art basement lab and synthesized kick, snare, hat, and clap
+- stable two-by-two touch pads with pressure-derived velocity where available
+- one semantic path for touch, keyboard, demo, and General MIDI drum notes
+- deterministic Hear, Watch, Imitate, Repair, Perform, Remix, Save run engine
+- signed timing diagnosis, accuracy, pocket, and dynamics scoring
+- replay hash and performance receipt persisted into the Skill Constellation
+- assisted demo runs explicitly excluded from mastery
+- desktop, tablet, and phone composition with the primary action in the first
+  phone viewport
+
+The next curriculum pass should add a second two-bar lesson and learner-adjustable
+tempo only after physical controller timing has been measured.
+
+## 3. Physical Hardware Census - Next
 
 Test the actual Sensel Morph, nanoKEY, Maschine Studio, Maschine Jam, and DJ Hero
 controller against the Playground.

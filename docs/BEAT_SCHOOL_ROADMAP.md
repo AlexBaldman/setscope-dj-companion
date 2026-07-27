@@ -1,5 +1,17 @@
 # Beat School Roadmap
 
+## Implemented Vertical Slice
+
+The first playable lesson, Backbeat Blueprint, is live in `beat-school.html`.
+It includes the complete Hear, Watch, Imitate, Repair, Perform, Remix, Save loop,
+original synthesized drums, deterministic challenge/replay contracts, signed
+early/late coaching, touch/keyboard/MIDI input, and persisted rhythm evidence.
+
+Touch is the baseline control surface: four pads retain full thumb geometry,
+avoid gesture delay, derive velocity from pressure when the device provides it,
+and keep the primary lesson action in the first phone viewport. MIDI remains a
+progressive enhancement over the same semantic action path.
+
 Beat School is the flagship experience after the MIDI Hardware Census. It begins
 with hip-hop rhythm and pad performance, then expands into keyboard musicianship
 and an original loop studio. The goal is to make timing visible, practice

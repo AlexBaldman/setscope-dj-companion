@@ -24,6 +24,8 @@ SetScope is a local-first DJ set companion and musician toolbelt. It turns a lis
 - shared musician calibration and adaptive practice guidance across Pitch Gates and Audio Lab
 - Rhythm Roulette, a deterministic blind-crate sequencer with portable run replays
 - MIDI Playground, a controller census, event monitor, and MIDI Learn workbench
+- Beat School, a touch-first four-pad hip-hop lesson with pocket coaching,
+  deterministic replay, MIDI input, and saved skill evidence
 - a portable timing and semantic-input spine with musical action receipts,
   latency provenance, and bar/beat/step coordinates
 - responsive Signal, Timeline, and Intel workspaces for phone, tablet, and desktop
@@ -36,7 +38,7 @@ npm run dev
 
 Then open `http://127.0.0.1:5173`.
 
-The shared tool rack opens Pitch Gates, Audio Lab, Rhythm Roulette, MIDI Playground, and the Dev Journal. Microphone, an audio file, an internal demo source, explicitly shared browser/system audio, touch, keyboard, or mapped MIDI can drive supported tools.
+The shared tool rack opens Pitch Gates, Audio Lab, Beat School, Rhythm Roulette, MIDI Playground, and the Dev Journal. Microphone, an audio file, an internal demo source, explicitly shared browser/system audio, touch, keyboard, or mapped MIDI can drive supported tools.
 
 The app can still be opened directly from `index.html`, but the recognition demo uses the local API server.
 
