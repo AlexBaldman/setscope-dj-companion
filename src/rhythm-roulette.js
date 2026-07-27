@@ -10,6 +10,7 @@ import {
   rhythmChallengeBonus,
   rhythmPatternDensity,
   rhythmRecordVariety,
+  scoreRhythmBreakdown,
   scoreRhythmGroove,
   scoreRhythmRoulette,
 } from "./rhythm-roulette/reducer.js";
@@ -147,6 +148,7 @@ function saveRun() {
   const score = scoreRhythmRoulette(run);
   const groove = scoreRhythmGroove(run.pattern);
   const challengeBonus = rhythmChallengeBonus(run);
+  const breakdown = scoreRhythmBreakdown(run);
   const replay = createRhythmRouletteReplay(run);
   const replayHash = hashRhythmRouletteRun(run);
   const best = Math.max(Number(localStorage.getItem(bestKey) || 0), score);
@@ -180,7 +182,7 @@ function saveRun() {
   els.rouletteStatus.textContent = "RUN SAVED";
   document.body.dataset.phase = "saved";
   els.missionTitle.textContent = "Loop logged";
-  els.missionDetail.textContent = `${run.challenge.rule.title} bonus: +${challengeBonus}. This blind crate flip is now in the SetScope toolbelt event timeline.`;
+  els.missionDetail.textContent = `${run.challenge.rule.title}: ${challengeBonus ? "cleared" : "not yet cleared"}. Constraint ${breakdown.constraint} / pocket ${breakdown.pocket} / originality ${breakdown.originality}.`;
   document.body.classList.add("roulette-saved");
   window.setTimeout(() => document.body.classList.remove("roulette-saved"), 700);
   renderAll();
@@ -247,11 +249,15 @@ function renderCrateReceipt() {
     els.crateReceipt.textContent = "No receipt yet.";
     return;
   }
+  const breakdown = scoreRhythmBreakdown(run);
   els.crateReceipt.innerHTML = `
-    <p><span>Constraint</span><strong>${escapeHtml(run.challenge.rule.title)}</strong></p>
+    <p><span>Constraint</span><strong>${rhythmChallengeBonus(run) ? "CLEAR" : "BUILD"}</strong></p>
+    <p><span>Pocket</span><strong>${breakdown.pocket}</strong></p>
+    <p><span>Originality</span><strong>${breakdown.originality}</strong></p>
     <p><span>Hits</span><strong>${rhythmPatternDensity(run.pattern)}/64</strong></p>
     <p><span>Records used</span><strong>${rhythmRecordVariety(run)}/3</strong></p>
-    <p><span>Bonus</span><strong>+${rhythmChallengeBonus(run)}</strong></p>
+    <p><span>Player edits</span><strong>${run.playerEdits || 0}</strong></p>
+    <p><span>Assist</span><strong>${run.assisted ? "STARTER" : "NONE"}</strong></p>
   `;
 }
 

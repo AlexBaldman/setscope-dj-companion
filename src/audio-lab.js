@@ -481,8 +481,10 @@ function recordPracticeLock() {
   practiceStats.streak += 1;
   practiceStats.lastLockedAt = new Date().toISOString();
   savePracticeStats(practiceStorageKey, practiceStats);
+  const eligibleForMastery = audioSession.getSourceLabel() === "MIC";
   musicianProfile = saveMusicianProfile(recordPracticeResult(musicianProfile, {
     accuracy: 100,
+    eligibleForMastery,
     modeId: "audio-lab",
     stableLock: true,
   }));

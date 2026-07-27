@@ -34,6 +34,22 @@ const personalChallenge = createPitchGatesChallenge({ seed: 12, register: "perso
 assert.equal(personalChallenge.config.centerMidi, 50);
 assert.equal(personalChallenge.gates[0].tolerance, 1.05);
 
+const intervalChallenge = createPitchGatesChallenge({
+  seed: 4,
+  register: "personal",
+  centerMidi: 50,
+  drill: "adaptive",
+  focusInterval: 5,
+  rangeMinMidi: 47,
+  rangeMaxMidi: 55,
+  totalGates: 6,
+});
+assert(intervalChallenge.gates.every((gate) => gate.targetMidi >= 47 && gate.targetMidi <= 55));
+assert.equal(intervalChallenge.gates[2].fromMidi, 50);
+assert.equal(intervalChallenge.gates[2].targetMidi, 55);
+assert.equal(intervalChallenge.gates[2].intervalSemitones, 5);
+assert.equal(intervalChallenge.gates[3].intervalSemitones, -5, "interval direction is measured from the previous target");
+
 const trace = challenge.gates.map((gate, index) => {
   if (index === 1) return { atMs: gate.evaluateAtMs - 20, midi: gate.targetMidi + 3, clarity: 0.95 };
   if (index === 4) return { atMs: gate.evaluateAtMs - 20, midi: gate.targetMidi + gate.tolerance * 1.2, clarity: 0.95 };
@@ -88,6 +104,18 @@ assert.equal(hashPitchGatesRun(advancePitchGatesTo(boundaryRun, boundaryGate.eva
 const lostInputRun = advancePitchGatesTo(createPitchGatesRun(oneGate), boundaryGate.evaluateAtMs);
 assert.equal(lostInputRun.gateResults[0].outcome, "miss", "missing input should resolve as a miss without throwing");
 assert.equal(diagnosePitchGateResults([lostInputRun.gateResults[0]]).code, "silent");
+
+let nearRun = createPitchGatesRun(oneGate);
+const startingLives = nearRun.lives;
+nearRun = applyPitchInput(nearRun, {
+  atMs: boundaryGate.evaluateAtMs,
+  midi: boundaryGate.targetMidi + boundaryGate.tolerance * 1.2,
+  clarity: 1,
+});
+nearRun = advancePitchGatesTo(nearRun, boundaryGate.evaluateAtMs);
+assert.equal(nearRun.gateResults[0].outcome, "near");
+assert.equal(nearRun.lives, startingLives, "a near landing should coach without costing a life");
+assert.equal(nearRun.score, 35, "a near landing should receive partial credit");
 assert.equal(diagnosePitchGateResults([
   { outcome: "miss", signedDistance: 1.1 },
   { outcome: "near", signedDistance: 0.8 },

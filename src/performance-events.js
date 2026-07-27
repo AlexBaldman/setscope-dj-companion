@@ -12,6 +12,7 @@ export function createPerformanceEvent({
   time = "--:--",
   details = {},
   evidence = {},
+  assistance = {},
 } = {}) {
   return createPerformanceEventV2({
     modeId,
@@ -23,6 +24,7 @@ export function createPerformanceEvent({
     time,
     details,
     evidence,
+    assistance,
   });
 }
 
@@ -49,6 +51,7 @@ export function createPitchGatesCompletionEvent({
   accuracy = 0,
   practiceStage = "",
   diagnosis = {},
+  eligibleForMastery = false,
 } = {}) {
   return createPerformanceEvent({
     modeId: "pitch-gates",
@@ -79,6 +82,11 @@ export function createPitchGatesCompletionEvent({
     },
     evidence: {
       summary: `${sourceLabel} / ${register} / ${score} pts / streak ${streak}`,
+    },
+    assistance: {
+      level: eligibleForMastery ? "none" : sourceLabel === "DEMO" ? "demo" : "guided",
+      eligibleForMastery,
+      values: { speed, register },
     },
   });
 }

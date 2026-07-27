@@ -46,16 +46,35 @@
           <div class="score-rack metric-rack">
             <div class="metric-cell" data-accent="score"><span>Score</span><strong id="score">0000</strong></div>
             <div class="metric-cell" data-accent="streak"><span>Streak</span><strong id="streak">00</strong></div>
-            <div class="metric-cell" data-accent="danger"><span>Lives</span><strong id="lives">3</strong></div>
+            <div class="metric-cell" data-accent="danger"><span>Lives</span><strong id="lives">6</strong></div>
             <div class="metric-cell" data-accent="warning"><span>Best</span><strong id="bestScore">0000</strong></div>
           </div>
 
           <div class="screen-shell instrument-screen">
             <canvas id="pitchGameCanvas" aria-label="Pitch Gates game board"></canvas>
             <p class="sr-only" id="pitchCanvasStatus" role="status" aria-live="polite">Choose an input, then start a round.</p>
+            <div class="play-hud" aria-hidden="true">
+              <div class="hud-reading">
+                <span>Live</span>
+                <strong id="hudLiveNote">--</strong>
+              </div>
+              <div class="hud-target">
+                <span id="hudInterval">P1 / Unison</span>
+                <strong id="hudTargetNote">C3</strong>
+              </div>
+              <div class="hud-direction" id="hudDirection">LISTEN</div>
+              <div class="hud-progress"><i id="hudProgress"></i></div>
+            </div>
+            <div class="outcome-flash" id="outcomeFlash" aria-hidden="true"></div>
             <div class="ready-overlay" id="readyOverlay">
-              <strong>PITCH GATES</strong>
+              <strong id="overlayTitle">PITCH GATES</strong>
               <span id="overlayStatus">CHOOSE AN INPUT</span>
+              <div class="result-recap" id="resultRecap" hidden>
+                <div><span>Grade</span><strong id="resultGrade">--</strong></div>
+                <div><span>Accuracy</span><strong id="resultAccuracy">--</strong></div>
+                <div><span>Focus</span><strong id="resultFocus">--</strong></div>
+                <p id="resultNext">Choose an input to begin.</p>
+              </div>
             </div>
           </div>
 
@@ -97,12 +116,28 @@
             </div>
           </div>
 
+          <div class="lab-block interval-coach" data-accent="info">
+            <div class="block-title">Adaptive Mission</div>
+            <div class="mission-head">
+              <strong id="intervalMission">P1 / Unison</strong>
+              <span id="intervalMastery">NEW</span>
+            </div>
+            <div class="mastery-meter" aria-hidden="true"><i id="intervalMasteryFill"></i></div>
+            <p id="intervalMissionDetail">Hear the center, predict the landing, then sing it.</p>
+            <div class="segment-control drill-control" role="radiogroup" aria-label="Interval drill">
+              <button class="active" data-drill="adaptive" aria-pressed="true">Coach</button>
+              <button data-drill="steps" aria-pressed="false">Steps</button>
+              <button data-drill="leaps" aria-pressed="false">Leaps</button>
+            </div>
+            <div class="interval-history" id="intervalHistory" aria-label="Recent interval mastery"></div>
+          </div>
+
           <div class="lab-block" data-accent="danger">
             <div class="block-title">Musician Profile</div>
-            <div class="segment-control range-control" aria-label="Pitch range">
-              <button class="active" data-register="low">Low</button>
-              <button data-register="mid">Mid</button>
-              <button data-register="high">High</button>
+            <div class="segment-control range-control" role="radiogroup" aria-label="Pitch range">
+              <button class="active" data-register="low" aria-pressed="true">Low</button>
+              <button data-register="mid" aria-pressed="false">Mid</button>
+              <button data-register="high" aria-pressed="false">High</button>
               <button id="captureComfortBtn">Calibrate</button>
             </div>
             <div class="comfort-readout"><span>Center</span><strong id="comfortNote">C3</strong></div>
@@ -116,25 +151,26 @@
 
           <div class="lab-block" data-accent="success">
             <div class="block-title">Speed</div>
-            <div class="segment-control" aria-label="Game speed">
-              <button class="active" data-speed="easy">Easy</button>
-              <button data-speed="groove">Groove</button>
-              <button data-speed="rush">Rush</button>
+            <div class="segment-control" role="radiogroup" aria-label="Game speed">
+              <button class="active" data-speed="easy" aria-pressed="true">Easy</button>
+              <button data-speed="groove" aria-pressed="false">Groove</button>
+              <button data-speed="rush" aria-pressed="false">Rush</button>
             </div>
           </div>
 
           <div class="lab-block" data-accent="warning">
             <div class="block-title">Assist</div>
-            <div class="segment-control" aria-label="Pitch forgiveness">
-              <button class="active" data-assist="gentle">Gentle</button>
-              <button data-assist="balanced">Balanced</button>
-              <button data-assist="exact">Exact</button>
+            <div class="segment-control" role="radiogroup" aria-label="Pitch forgiveness">
+              <button class="active" data-assist="gentle" aria-pressed="true">Gentle</button>
+              <button data-assist="balanced" aria-pressed="false">Balanced</button>
+              <button data-assist="exact" aria-pressed="false">Exact</button>
             </div>
             <label class="stability-control" for="stabilityInput">
-              <span>Stability</span>
+              <span>Smoothing</span>
               <input id="stabilityInput" type="range" min="0" max="100" value="70" />
               <strong id="stabilityValue">70</strong>
             </label>
+            <div class="smoothing-scale" aria-hidden="true"><span>Responsive</span><span>Steady</span></div>
           </div>
 
           <div class="lab-block hit-log-block" data-accent="info">

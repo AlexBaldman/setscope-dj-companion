@@ -11,6 +11,7 @@ const ASSISTS = {
   balanced: { tolerance: 0.7 },
   exact: { tolerance: 0.42 },
 };
+const DRILLS = new Set(["journey", "adaptive", "steps", "leaps"]);
 const PHRASE_OFFSETS = [-5, -3, -1, 0, 2, 4, 5];
 
 export function createPitchGatesChallenge({
@@ -19,28 +20,43 @@ export function createPitchGatesChallenge({
   speed = "easy",
   assist = "gentle",
   centerMidi,
+  drill = "journey",
+  focusInterval = 2,
+  rangeMinMidi,
+  rangeMaxMidi,
   totalGates = 12,
 } = {}) {
   const normalizedSeed = normalizeSeed(seed);
   const normalizedRegister = register === "personal" || REGISTER_CENTERS[register] ? register : "low";
   const normalizedSpeed = SPEEDS[speed] ? speed : "easy";
   const normalizedAssist = ASSISTS[assist] ? assist : "gentle";
+  const normalizedDrill = DRILLS.has(drill) ? drill : "journey";
   const count = Math.max(1, Math.min(64, Math.floor(Number(totalGates) || 12)));
   const config = SPEEDS[normalizedSpeed];
   const random = createSeededRandom(normalizedSeed);
   const fallbackCenter = REGISTER_CENTERS[normalizedRegister] || REGISTER_CENTERS.low;
   const normalizedCenter = clamp(Number.isFinite(centerMidi) ? centerMidi : fallbackCenter, 36, 76);
-  const rangeMinMidi = normalizedCenter - 6;
-  const rangeMaxMidi = normalizedCenter + 6;
-  const phrase = createStepwisePhrase(count, random);
+  const normalizedRangeMin = clamp(Number.isFinite(rangeMinMidi) ? rangeMinMidi : normalizedCenter - 6, 24, normalizedCenter);
+  const normalizedRangeMax = clamp(Number.isFinite(rangeMaxMidi) ? rangeMaxMidi : normalizedCenter + 6, normalizedCenter, 88);
+  const normalizedFocus = clamp(
+    Math.round(Number(focusInterval) || 0),
+    Math.ceil(normalizedRangeMin - normalizedCenter),
+    Math.floor(normalizedRangeMax - normalizedCenter),
+  );
+  const phrase = normalizedDrill === "journey"
+    ? createStepwisePhrase(count, random)
+    : createIntervalPhrase(count, normalizedFocus);
 
   const gates = phrase.map((offset, index) => {
     const spawnAtMs = 350 + index * config.spawnIntervalMs;
     const evaluateAtMs = spawnAtMs + config.leadTimeMs;
+    const previousOffset = index === 0 ? 0 : phrase[index - 1];
     return {
       id: `gate-${String(index + 1).padStart(2, "0")}`,
       index,
+      fromMidi: normalizedCenter + previousOffset,
       targetMidi: normalizedCenter + offset,
+      intervalSemitones: offset - previousOffset,
       spawnAtMs,
       evaluateAtMs,
       removeAtMs: evaluateAtMs + config.removeDelayMs,
@@ -50,17 +66,19 @@ export function createPitchGatesChallenge({
 
   return {
     schemaVersion: PITCH_GATES_CHALLENGE_V2,
-    id: `pitch-gates-${normalizedRegister}-${normalizedSpeed}-${normalizedAssist}-${Math.round(normalizedCenter * 10)}-${normalizedSeed}`,
+    id: `pitch-gates-${normalizedRegister}-${normalizedDrill}-${normalizedFocus}-${normalizedSpeed}-${normalizedAssist}-${Math.round(normalizedCenter * 10)}-${normalizedSeed}`,
     version: 2,
     seed: normalizedSeed,
-    skillIds: ["pitch-center", "stable-hold", "stepwise-motion", "anticipation"],
+    skillIds: ["pitch-center", "stable-hold", "interval-hearing", "anticipation", `interval-${normalizedFocus}`],
     config: {
       register: normalizedRegister,
+      drill: normalizedDrill,
+      focusInterval: normalizedFocus,
       speed: normalizedSpeed,
       assist: normalizedAssist,
       centerMidi: normalizedCenter,
-      rangeMinMidi,
-      rangeMaxMidi,
+      rangeMinMidi: normalizedRangeMin,
+      rangeMaxMidi: normalizedRangeMax,
       totalGates: count,
     },
     gates,
@@ -75,6 +93,7 @@ export function validatePitchGatesChallenge(challenge) {
   if (!challenge.config || !(challenge.config.register === "personal" || REGISTER_CENTERS[challenge.config.register])) errors.push("register is not supported");
   if (!challenge.config || !SPEEDS[challenge.config.speed]) errors.push("speed is not supported");
   if (!challenge.config || !ASSISTS[challenge.config.assist]) errors.push("assist is not supported");
+  if (!challenge.config || !DRILLS.has(challenge.config.drill || "journey")) errors.push("drill is not supported");
   if (!Number.isFinite(challenge.config?.centerMidi)) errors.push("centerMidi must be finite");
   if (!Array.isArray(challenge.gates) || challenge.gates.length === 0) errors.push("gates must be a non-empty array");
   challenge.gates?.forEach((gate, index) => {
@@ -84,6 +103,15 @@ export function validatePitchGatesChallenge(challenge) {
     if (!(gate.spawnAtMs < gate.evaluateAtMs && gate.evaluateAtMs < gate.removeAtMs)) errors.push(`gates[${index}] timing must be ordered`);
   });
   return { valid: errors.length === 0, errors };
+}
+
+function createIntervalPhrase(count, focusInterval) {
+  const phrase = [];
+  for (let index = 0; index < count; index += 1) {
+    if (index < 2 || index % 2 === 1) phrase.push(0);
+    else phrase.push(focusInterval);
+  }
+  return phrase;
 }
 
 function createStepwisePhrase(count, random) {

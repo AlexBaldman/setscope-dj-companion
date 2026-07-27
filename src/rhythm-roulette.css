@@ -331,6 +331,33 @@
   scrollbar-width: thin;
 }
 
+.sequencer-wrap {
+  position: relative;
+  overflow: hidden;
+}
+
+.sequencer-wrap::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 4px auto;
+  width: 22px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--roulette-panel));
+}
+
+.beat-ruler {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+  margin: 7px 0 4px 47px;
+  color: var(--muted);
+  font: 800 9px ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.beat-ruler b {
+  display: none;
+}
+
 .lane-label,
 .step-cell {
   min-height: 30px;
@@ -506,13 +533,31 @@
     gap: 4px;
     overflow-x: auto;
     padding: 2px 0 8px;
-    scroll-snap-type: x proximity;
+    scroll-snap-type: x mandatory;
   }
 
   .step-cell {
     min-width: 44px;
     min-height: 44px;
+  }
+
+  .step-cell:nth-of-type(4n + 2) {
     scroll-snap-align: start;
+  }
+
+  .beat-ruler {
+    display: flex;
+    justify-content: space-between;
+    margin-left: 51px;
+  }
+
+  .beat-ruler span {
+    display: none;
+  }
+
+  .beat-ruler b {
+    display: block;
+    font-weight: 800;
   }
 
   .lane-label {

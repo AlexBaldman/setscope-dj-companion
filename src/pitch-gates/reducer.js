@@ -2,10 +2,11 @@ import { validatePitchGatesChallenge } from "./challenge.js";
 
 export const PITCH_GATES_RUN_V1 = "setscope.pitch-gates.run.v1";
 
-export function createPitchGatesRun(challenge, { lives = 3 } = {}) {
+export function createPitchGatesRun(challenge, { lives } = {}) {
   const validation = validatePitchGatesChallenge(challenge);
   if (!validation.valid) throw new Error(`invalid_pitch_gates_challenge: ${validation.errors.join("; ")}`);
-  const initialLives = Math.max(1, Math.floor(Number(lives) || 3));
+  const defaultLives = challenge.config.assist === "gentle" ? 6 : challenge.config.assist === "balanced" ? 4 : 3;
+  const initialLives = Math.max(1, Math.floor(Number(lives) || defaultLives));
   return {
     schemaVersion: PITCH_GATES_RUN_V1,
     challenge,
@@ -19,7 +20,15 @@ export function createPitchGatesRun(challenge, { lives = 3 } = {}) {
     lives: initialLives,
     resolved: 0,
     inputs: [],
-    gateResults: challenge.gates.map((gate) => ({ gateId: gate.id, outcome: "pending", distance: null, signedDistance: null })),
+    gateResults: challenge.gates.map((gate) => ({
+      gateId: gate.id,
+      fromMidi: Number.isFinite(gate.fromMidi) ? gate.fromMidi : challenge.config.centerMidi,
+      targetMidi: gate.targetMidi,
+      intervalSemitones: Number.isFinite(gate.intervalSemitones) ? gate.intervalSemitones : gate.targetMidi - challenge.config.centerMidi,
+      outcome: "pending",
+      distance: null,
+      signedDistance: null,
+    })),
     events: [],
   };
 }
@@ -136,6 +145,9 @@ function evaluateGate(run, gate) {
   next.resolved += 1;
   next.gateResults[gate.index] = {
     gateId: gate.id,
+    fromMidi: Number.isFinite(gate.fromMidi) ? gate.fromMidi : run.challenge.config.centerMidi,
+    targetMidi: gate.targetMidi,
+    intervalSemitones: Number.isFinite(gate.intervalSemitones) ? gate.intervalSemitones : gate.targetMidi - run.challenge.config.centerMidi,
     outcome,
     distance: Number.isFinite(distance) ? distance : null,
     signedDistance,
@@ -149,6 +161,18 @@ function evaluateGate(run, gate) {
     next.score += points;
     next = appendEvent(next, "hit", { atMs: gate.evaluateAtMs, gateId: gate.id, targetMidi: gate.targetMidi, distance, signedDistance, points });
     if (recovered) next = appendEvent(next, "recovery", { atMs: gate.evaluateAtMs, gateId: gate.id, targetMidi: gate.targetMidi });
+  } else if (outcome === "near") {
+    next.streak = 0;
+    const points = 35;
+    next.score += points;
+    next = appendEvent(next, "near", {
+      atMs: gate.evaluateAtMs,
+      gateId: gate.id,
+      targetMidi: gate.targetMidi,
+      distance,
+      signedDistance,
+      points,
+    });
   } else {
     next.streak = 0;
     next.lives -= 1;
@@ -181,7 +205,7 @@ function appendEvent(run, type, values) {
 
 function representativeInputAt(inputs, atMs, lookbackMs = 220) {
   const recent = inputs.filter((input) => input.atMs <= atMs && input.atMs >= atMs - lookbackMs);
-  const pitched = recent.filter((input) => Number.isFinite(input.midi));
+  const pitched = recent.filter((input) => Number.isFinite(input.midi) && input.clarity >= 0.35);
   if (pitched.length === 0) return null;
   const sorted = [...pitched].sort((left, right) => left.midi - right.midi);
   return sorted[Math.floor(sorted.length / 2)];

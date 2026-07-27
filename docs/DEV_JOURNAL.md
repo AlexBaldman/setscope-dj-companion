@@ -1133,3 +1133,38 @@ What changed:
 Why this matters:
 
 SetScope can now be shared as a real interactive artifact while its server and native capabilities continue to mature. The hosted preview is honest about which capabilities are browser-local, and every push to `main` has a repeatable path from source to tested public experience.
+
+## 2026-07-26 - Interval Arcade and Honest Mastery
+
+We turned the shared musician profile into a visible interval-learning system and
+tightened the reward logic across the arcade.
+
+What changed:
+
+- Upgraded the Musician Profile to V3 with interval attempts, hits, near landings,
+  misses, pitch bias, precision, streaks, and last-practiced evidence.
+- Added adaptive, step, and leap missions to Pitch Gates.
+- Made interval direction follow the previous target and constrained My Range
+  challenges to the demonstrated span.
+- Required repeated consistent samples before low and high boundaries become
+  confirmed.
+- Moved live note, target, interval, direction, and progress into the playfield.
+- Added a target corridor, outcome pulses, partial-credit Near results, and a
+  complete round receipt.
+- Prevented demo, shared-audio, file, and Gentle-assist rounds from silently
+  increasing mastery.
+- Kept Audio Lab demo holds as guided practice rather than progression evidence.
+- Rebuilt Rhythm Roulette scoring around visible Constraint, Pocket, and
+  Originality dimensions and removed rewards for failed constraints.
+- Added mobile sequencer continuation cues and four-beat scrolling.
+- Captured the full responsive design review and prioritized backlog in
+  `docs/UI_UX_AUDIT_2026-07-26.md`.
+- Expanded deterministic and browser coverage around calibration confidence,
+  interval history, scoring, assisted evidence, and responsive controls.
+
+Why this matters:
+
+The app now starts to feel like one attentive teacher. It tells the player what
+relationship they are practicing, keeps the important coaching beside the moving
+orb, treats close attempts as useful progress, and distinguishes fun assistance
+from evidence strong enough to shape the next lesson.

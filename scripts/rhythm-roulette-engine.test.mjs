@@ -8,6 +8,7 @@ import {
   rhythmChallengeBonus,
   rhythmPatternDensity,
   rhythmRecordVariety,
+  scoreRhythmBreakdown,
   scoreRhythmGroove,
   scoreRhythmRoulette,
 } from "../src/rhythm-roulette/reducer.js";
@@ -26,7 +27,7 @@ for (let seed = 1; seed <= 256; seed += 1) {
 const initial = createRhythmRouletteRun(challenge);
 assert.equal(rhythmPatternDensity(initial.pattern), 10);
 assert.equal(rhythmRecordVariety(initial), 3);
-assert.equal(scoreRhythmGroove(initial.pattern), 50);
+assert.equal(scoreRhythmGroove(initial.pattern), 74);
 
 const selectedId = createSampleId(challenge.records[2].id, "kick");
 const selected = reduceRhythmRoulette(initial, { type: "select-sample", sampleId: selectedId });
@@ -34,6 +35,12 @@ const toggled = reduceRhythmRoulette(selected, { type: "toggle-step", laneId: "k
 assert.equal(initial.selectedSampleId === selected.selectedSampleId, false, "selection must not mutate the prior run");
 assert.equal(selected.pattern.kick[5], null, "step edits must not mutate the prior run");
 assert.equal(toggled.pattern.kick[5], selectedId);
+assert.equal(toggled.playerEdits, 1);
+assert.equal(
+  scoreRhythmRoulette(toggled),
+  Object.values(scoreRhythmBreakdown(toggled)).reduce((total, value) => total + value, 0),
+  "the headline score must equal the visible scoring dimensions",
+);
 
 const invalid = reduceRhythmRoulette(toggled, { type: "toggle-step", laneId: "missing", step: 99 });
 assert.equal(invalid, toggled, "invalid actions should be identity-preserving no-ops");
@@ -47,7 +54,7 @@ const bonuses = Object.fromEntries(["dusty-pocket", "backbeat-tax", "three-recor
   const run = createRhythmRouletteRun({ ...challenge, rule: { ...challenge.rule, id } });
   return [id, rhythmChallengeBonus(run)];
 }));
-assert.deepEqual(bonuses, { "dusty-pocket": 320, "backbeat-tax": 360, "three-record-rule": 420, "late-swing": 70 });
+assert.deepEqual(bonuses, { "dusty-pocket": 320, "backbeat-tax": 360, "three-record-rule": 420, "late-swing": 0 });
 
 const saved = reduceRhythmRoulette(toggled, { type: "save" });
 const replay = createRhythmRouletteReplay(saved);

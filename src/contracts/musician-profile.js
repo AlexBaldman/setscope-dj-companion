@@ -1,5 +1,5 @@
 export const MUSICIAN_PROFILE_SCHEMA = "setscope.musician-profile";
-export const MUSICIAN_PROFILE_VERSION = 2;
+export const MUSICIAN_PROFILE_VERSION = 3;
 
 export function createMusicianProfile(input = {}) {
   const centerMidi = clampFinite(input.centerMidi, 48, 36, 76);
@@ -39,6 +39,7 @@ export function createMusicianProfile(input = {}) {
       lastMode: normalizeText(input.practice?.lastMode, ""),
       lastPracticedAt: normalizeTimestamp(input.practice?.lastPracticedAt),
       lastDiagnosis: normalizeDiagnosis(input.practice?.lastDiagnosis),
+      intervalHistory: normalizeIntervalHistory(input.practice?.intervalHistory),
     },
   };
   return assertMusicianProfile(profile);
@@ -63,6 +64,7 @@ export function validateMusicianProfile(profile) {
     errors.push("confirmed range requires both boundaries");
   }
   if (!Number.isFinite(profile?.practice?.sessions) || profile.practice.sessions < 0) errors.push("invalid practice.sessions");
+  if (!isIntervalHistory(profile?.practice?.intervalHistory)) errors.push("invalid practice.intervalHistory");
   return { valid: errors.length === 0, errors };
 }
 
@@ -88,11 +90,61 @@ function normalizeTimestamp(value) {
 }
 
 function normalizeBoundary(boundary = {}, fallbackMidi) {
+  const legacyBoundary = boundary.confirmationCount === undefined && !Array.isArray(boundary.samples);
+  const legacyCount = legacyBoundary && boundary.confirmed ? 2 : 0;
+  const samples = Array.isArray(boundary.samples)
+    ? boundary.samples.map(normalizeBoundarySample).filter(Boolean).slice(-5)
+    : [];
+  const confirmationCount = Math.max(samples.length, finiteNonNegative(boundary.confirmationCount) || legacyCount);
   return {
     confirmed: Boolean(boundary.confirmed),
     midi: clampFinite(boundary.midi, fallbackMidi, 0, 127),
     clarity: clampFinite(boundary.clarity, 0, 0, 1),
+    confidence: clampFinite(boundary.confidence, confirmationCount >= 2 ? 0.75 : confirmationCount ? 0.4 : 0, 0, 1),
+    confirmationCount,
+    samples,
     updatedAt: normalizeTimestamp(boundary.updatedAt),
+  };
+}
+
+function normalizeBoundarySample(sample) {
+  if (!Number.isFinite(Number(sample?.midi)) || !Number.isFinite(Number(sample?.clarity))) return null;
+  return {
+    midi: clampFinite(sample.midi, 0, 0, 127),
+    clarity: clampFinite(sample.clarity, 0, 0, 1),
+    capturedAt: normalizeTimestamp(sample.capturedAt),
+  };
+}
+
+function normalizeIntervalHistory(history) {
+  if (!history || typeof history !== "object" || Array.isArray(history)) return {};
+  return Object.fromEntries(
+    Object.entries(history)
+      .map(([key, value]) => [normalizeIntervalKey(key), normalizeIntervalStat(value)])
+      .filter(([key]) => key !== null),
+  );
+}
+
+function normalizeIntervalKey(key) {
+  const interval = Number(key);
+  return Number.isInteger(interval) && interval >= -12 && interval <= 12 ? String(interval) : null;
+}
+
+function normalizeIntervalStat(value = {}) {
+  const attempts = finiteNonNegative(value.attempts);
+  const hits = Math.min(attempts, finiteNonNegative(value.hits));
+  const near = Math.min(attempts - hits, finiteNonNegative(value.near));
+  const misses = Math.max(0, attempts - hits - near);
+  return {
+    attempts,
+    hits,
+    near,
+    misses,
+    meanAbsCents: clampFinite(value.meanAbsCents, 0, 0, 2400),
+    biasCents: clampFinite(value.biasCents, 0, -2400, 2400),
+    streak: finiteNonNegative(value.streak),
+    bestStreak: finiteNonNegative(value.bestStreak),
+    lastPracticedAt: normalizeTimestamp(value.lastPracticedAt),
   };
 }
 
@@ -126,5 +178,20 @@ function isBoundary(boundary) {
   return Boolean(boundary)
     && typeof boundary.confirmed === "boolean"
     && isMidi(boundary.midi)
-    && inRange(boundary.clarity, 0, 1);
+    && inRange(boundary.clarity, 0, 1)
+    && inRange(boundary.confidence, 0, 1)
+    && Number.isInteger(boundary.confirmationCount)
+    && Array.isArray(boundary.samples);
+}
+
+function isIntervalHistory(history) {
+  return Boolean(history)
+    && typeof history === "object"
+    && !Array.isArray(history)
+    && Object.entries(history).every(([key, value]) => normalizeIntervalKey(key) !== null
+      && Number.isInteger(value.attempts)
+      && value.attempts >= 0
+      && value.hits + value.near + value.misses === value.attempts
+      && Number.isFinite(value.meanAbsCents)
+      && Number.isFinite(value.biasCents));
 }

@@ -332,15 +332,17 @@ async function verifyAudioLab(page) {
   await page.locator("[data-demo-midi]").nth(0).click();
   await page.waitForFunction(() => document.querySelector("#liveNote")?.textContent === document.querySelectorAll("[data-demo-midi]")[0]?.textContent);
   await page.locator("#profileLowBtn").click();
+  await page.locator("#profileLowBtn").click();
   await page.locator("[data-demo-midi]").nth(2).click();
   await page.waitForFunction(() => document.querySelector("#liveNote")?.textContent === document.querySelectorAll("[data-demo-midi]")[2]?.textContent);
+  await page.locator("#profileHighBtn").click();
   await page.locator("#profileHighBtn").click();
   await expectText(page, "#profileRange", "Confirmed", "Audio Lab confirmed comfort span");
   await expectText(page, "#profileStage", "HEAR", "confirmed comfort span should advance to hearing");
   await page.locator("[data-demo-midi]").nth(1).click();
   await page.waitForFunction(() => document.querySelector("#liveNote")?.textContent === document.querySelectorAll("[data-demo-midi]")[1]?.textContent);
   await page.waitForTimeout(2500);
-  await expectText(page, "#profileStage", "PREDICT", "Audio Lab stable hold should advance the shared prescription");
+  await expectText(page, "#profileStage", "HEAR", "Audio Lab demo holds should remain guided rather than promote mastery");
   await page.locator("#freezeScopeBtn").click();
   await page.locator("#triggerScopeBtn").click();
   const segmentHeight = await page.locator("[data-demo-midi]").nth(1).evaluate((node) => node.getBoundingClientRect().height);

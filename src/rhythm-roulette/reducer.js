@@ -13,6 +13,8 @@ export function createRhythmRouletteRun(challenge) {
     challenge: structuredClone(challenge),
     pattern: createStarterPattern(challenge),
     selectedSampleId,
+    assisted: true,
+    playerEdits: 0,
     status: "editing",
     actions: [],
     events: [{ type: "dig", seed: challenge.seed }],
@@ -28,6 +30,7 @@ export function reduceRhythmRoulette(run, action) {
     if (!toggleStep(next, action)) return run;
   } else if (action.type === "auto-flip") {
     next.pattern = createStarterPattern(next.challenge, { loose: true });
+    next.assisted = true;
     next.status = "editing";
   } else if (action.type === "clear") {
     next.pattern = createEmptyPattern();
@@ -56,15 +59,27 @@ export function createStarterPattern(challenge, { loose = false } = {}) {
 }
 
 export function scoreRhythmRoulette(run) {
-  const density = rhythmPatternDensity(run.pattern);
-  return Math.round(density * 34 + rhythmRecordVariety(run) * 220 + scoreRhythmGroove(run.pattern) * 55 + rhythmChallengeBonus(run));
+  const breakdown = scoreRhythmBreakdown(run);
+  return breakdown.constraint + breakdown.pocket + breakdown.originality;
+}
+
+export function scoreRhythmBreakdown(run) {
+  return {
+    constraint: rhythmChallengeBonus(run),
+    pocket: scoreRhythmGroove(run.pattern) * 5,
+    originality: rhythmRecordVariety(run) * 100 + Math.min(100, Number(run.playerEdits || 0) * 10),
+  };
 }
 
 export function scoreRhythmGroove(pattern) {
   const activeSteps = rhythmPatternDensity(pattern);
   const backbeat = [4, 12].filter((step) => pattern.snare[step]).length;
-  const swing = [3, 7, 11, 15].filter((step) => pattern.kick[step] || pattern.chop[step]).length;
-  return Math.min(99, activeSteps * 3 + backbeat * 10 + swing * 7);
+  const anchors = [0, 8].filter((step) => pattern.kick[step]).length;
+  const syncopation = [3, 7, 11, 15].filter((step) => pattern.kick[step] || pattern.chop[step]).length;
+  const pocketDensity = activeSteps >= 8 && activeSteps <= 20
+    ? 30
+    : Math.max(0, 30 - Math.abs(activeSteps - 14) * 3);
+  return Math.min(100, pocketDensity + backbeat * 12 + anchors * 10 + syncopation * 7);
 }
 
 export function rhythmPatternDensity(pattern) {
@@ -77,10 +92,10 @@ export function rhythmRecordVariety(run) {
 
 export function rhythmChallengeBonus(run) {
   const id = run.challenge.rule.id;
-  if (id === "dusty-pocket") return rhythmPatternDensity(run.pattern) <= 18 ? 320 : 80;
-  if (id === "backbeat-tax") return run.pattern.snare[4] && run.pattern.snare[12] ? 360 : 40;
-  if (id === "three-record-rule") return rhythmRecordVariety(run) >= 3 ? 420 : 60;
-  if (id === "late-swing") return [3, 7, 11, 15].filter((step) => run.pattern.kick[step] || run.pattern.chop[step]).length >= 2 ? 380 : 70;
+  if (id === "dusty-pocket") return rhythmPatternDensity(run.pattern) <= 18 ? 320 : 0;
+  if (id === "backbeat-tax") return run.pattern.snare[4] && run.pattern.snare[12] ? 360 : 0;
+  if (id === "three-record-rule") return rhythmRecordVariety(run) >= 3 ? 420 : 0;
+  if (id === "late-swing") return [3, 7, 11, 15].filter((step) => run.pattern.kick[step] || run.pattern.chop[step]).length >= 2 ? 380 : 0;
   return 0;
 }
 
@@ -106,6 +121,7 @@ function toggleStep(run, action) {
   const selected = resolveSample(run.challenge, run.selectedSampleId) || resolveSample(run.challenge, createSampleId(run.challenge.records[0].id, lane.id));
   const sampleId = createSampleId(selected.record.id, lane.id);
   run.pattern[lane.id][step] = run.pattern[lane.id][step] ? null : sampleId;
+  run.playerEdits = Number(run.playerEdits || 0) + 1;
   run.status = "editing";
   return true;
 }

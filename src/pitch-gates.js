@@ -3,7 +3,10 @@ import { createPitchGatesCompletionEvent, persistPerformanceEvent } from "./perf
 import { createPitchAnalyzer, isPitchedFrame, midiToNote } from "./pitch-analysis.js";
 import {
   calibrateMusicianProfile,
+  createIntervalMission,
   createPracticePrescription,
+  intervalHistorySummary,
+  intervalShortLabel,
   loadMusicianProfile,
   recordPracticeResult,
   saveMusicianProfile,
@@ -32,12 +35,24 @@ const els = {
   diagnosisStatus: document.querySelector("#diagnosisStatus"),
   gateCount: document.querySelector("#gateCount"),
   hitLog: document.querySelector("#hitLog"),
+  hudDirection: document.querySelector("#hudDirection"),
+  hudInterval: document.querySelector("#hudInterval"),
+  hudLiveNote: document.querySelector("#hudLiveNote"),
+  hudProgress: document.querySelector("#hudProgress"),
+  hudTargetNote: document.querySelector("#hudTargetNote"),
+  intervalHistory: document.querySelector("#intervalHistory"),
+  intervalMastery: document.querySelector("#intervalMastery"),
+  intervalMasteryFill: document.querySelector("#intervalMasteryFill"),
+  intervalMission: document.querySelector("#intervalMission"),
+  intervalMissionDetail: document.querySelector("#intervalMissionDetail"),
   liveClarity: document.querySelector("#liveClarity"),
   liveCents: document.querySelector("#liveCents"),
   liveHz: document.querySelector("#liveHz"),
   liveNote: document.querySelector("#liveNote"),
   lives: document.querySelector("#lives"),
   overlayStatus: document.querySelector("#overlayStatus"),
+  overlayTitle: document.querySelector("#overlayTitle"),
+  outcomeFlash: document.querySelector("#outcomeFlash"),
   pitchCanvasStatus: document.querySelector("#pitchCanvasStatus"),
   pitchGuide: document.querySelector("#pitchGuide"),
   profileDetail: document.querySelector("#profileDetail"),
@@ -46,6 +61,11 @@ const els = {
   profileStage: document.querySelector("#profileStage"),
   rangeLabel: document.querySelector("#rangeLabel"),
   readyOverlay: document.querySelector("#readyOverlay"),
+  resultAccuracy: document.querySelector("#resultAccuracy"),
+  resultFocus: document.querySelector("#resultFocus"),
+  resultGrade: document.querySelector("#resultGrade"),
+  resultNext: document.querySelector("#resultNext"),
+  resultRecap: document.querySelector("#resultRecap"),
   score: document.querySelector("#score"),
   streak: document.querySelector("#streak"),
   stabilityValue: document.querySelector("#stabilityValue"),
@@ -79,6 +99,7 @@ let register = savedProfile.register;
 let personalCenter = musicianProfile.calibration.status === "calibrated" ? musicianProfile.centerMidi : savedProfile.personalCenter;
 let speed = savedProfile.speed;
 let assist = savedProfile.assist;
+let drill = savedProfile.drill;
 let currentFrame = null;
 let game = createPitchGatesRun(createChallenge());
 game = { ...game, status: "idle" };
@@ -90,6 +111,7 @@ let lastInputSampleAt = -Infinity;
 let lastInputHadPitch = false;
 let pitchTrail = [];
 let lastAccessibleStatus = "";
+let feedbackPulse = null;
 
 document.body.dataset.phase = "idle";
 
@@ -132,6 +154,17 @@ document.querySelectorAll("[data-assist]").forEach((button) => {
     pitchStabilizer.setAssist(assist);
     setActive(document.querySelectorAll("[data-assist]"), button);
     persistPitchProfile();
+  });
+});
+document.querySelectorAll("[data-drill]").forEach((button) => {
+  button.addEventListener("click", () => {
+    if (game.status === "running") return;
+    drill = button.dataset.drill;
+    setActive(document.querySelectorAll("[data-drill]"), button);
+    persistPitchProfile();
+    syncSettingsUI();
+    game = { ...createPitchGatesRun(createChallenge()), status: "idle" };
+    drawFrame();
   });
 });
 document.querySelector("#captureComfortBtn").addEventListener("click", captureComfortNote);
@@ -217,12 +250,16 @@ function startRound() {
   lastInputSampleAt = -Infinity;
   lastInputHadPitch = false;
   pitchTrail = [];
+  feedbackPulse = null;
   orbY = canvas.clientHeight / 2;
+  els.resultRecap.hidden = true;
+  els.overlayTitle.textContent = "PITCH GATES";
   els.readyOverlay.classList.add("hidden");
   document.body.dataset.phase = "active";
   els.startRoundBtn.disabled = true;
   els.startRoundBtn.textContent = "Round active";
-  appendLog("ROUND", `${getRangeLabel()} / ${speed} / ${assist}`);
+  const mission = createIntervalMission(musicianProfile, { drill });
+  appendLog("ROUND", `${mission.shortLabel} / ${getRangeLabel()} / ${assist}`);
   syncDemoToneToTarget();
   renderGame();
   startAnimation();
@@ -280,17 +317,33 @@ function endRound() {
   els.startRoundBtn.disabled = false;
   els.startRoundBtn.textContent = "Play again";
   const replay = createPitchGatesReplay(game);
-  const hits = game.gateResults.filter((result) => result.outcome === "hit").length;
-  const accuracy = Math.round((hits / totalGates) * 100);
+  const resolvedResults = game.gateResults.filter((result) => result.outcome !== "pending");
+  const hits = resolvedResults.filter((result) => result.outcome === "hit").length;
+  const near = resolvedResults.filter((result) => result.outcome === "near").length;
+  const accuracy = Math.round(((hits + near * 0.5) / Math.max(1, resolvedResults.length)) * 100);
   const diagnosis = diagnosePitchGateResults(game.gateResults);
+  const sourceLabel = audioSession.getSourceLabel();
+  const eligibleForMastery = sourceLabel === "MIC" && assist !== "gentle";
   musicianProfile = saveMusicianProfile(recordPracticeResult(musicianProfile, {
     accuracy,
+    centerMidi: game.challenge.config.centerMidi,
     diagnosis,
+    eligibleForMastery,
+    intervalResults: game.gateResults,
     modeId: "pitch-gates",
   }));
   const prescription = createPracticePrescription(musicianProfile);
+  const focusGate = game.challenge.gates.find((gate) => gate.intervalSemitones !== 0) || game.challenge.gates[0];
+  els.overlayTitle.textContent = game.endReason === "all-gates-resolved" ? "ROUND COMPLETE" : "RECOVERY STOP";
+  els.resultGrade.textContent = gradeForAccuracy(accuracy);
+  els.resultAccuracy.textContent = `${accuracy}%`;
+  els.resultFocus.textContent = intervalShortLabel(focusGate?.intervalSemitones || 0);
+  els.resultNext.textContent = eligibleForMastery
+    ? prescription.detail
+    : "Guided result only. Use Mic with Balanced or Exact assist to add mastery evidence.";
+  els.resultRecap.hidden = false;
   const performanceEvent = createPitchGatesCompletionEvent({
-    sourceLabel: audioSession.getSourceLabel(),
+    sourceLabel,
     register: getRangeLabel(),
     speed,
     score: game.score,
@@ -312,6 +365,7 @@ function endRound() {
     accuracy,
     practiceStage: prescription.stage,
     diagnosis,
+    eligibleForMastery,
   });
   const savedEvent = persistPerformanceEvent(performanceEvent);
   practiceContext.markComplete(savedEvent);
@@ -329,9 +383,26 @@ function drawFrame() {
   context.setTransform(ratio, 0, 0, ratio, 0, 0);
   context.clearRect(0, 0, width, height);
   drawGrid(width, height);
+  drawTargetCorridor(width, height);
   drawGates(height);
   drawPitchTrail(height);
   drawOrb(height);
+}
+
+function drawTargetCorridor(width, height) {
+  const gate = getNextPitchGate(game);
+  if (!gate) return;
+  const targetY = midiToY(gate.targetMidi, height);
+  const corridorHeight = assist === "gentle" ? 54 : assist === "exact" ? 28 : 40;
+  context.fillStyle = "rgba(117, 215, 182, 0.1)";
+  context.fillRect(0, targetY - corridorHeight / 2, width, corridorHeight);
+  context.strokeStyle = "rgba(117, 215, 182, 0.58)";
+  context.setLineDash([7, 7]);
+  context.beginPath();
+  context.moveTo(0, targetY);
+  context.lineTo(width, targetY);
+  context.stroke();
+  context.setLineDash([]);
 }
 
 function drawGrid(width, height) {
@@ -384,7 +455,7 @@ function drawGates(height) {
     context.fillRect(x, targetY + gapHeight / 2, 27, height - targetY);
     context.fillStyle = "rgba(15,14,12,0.9)";
     context.font = "bold 11px ui-monospace, SFMono-Regular, monospace";
-    context.fillText(midiToNote(gate.targetMidi), x - 1, targetY + 4);
+    context.fillText(intervalShortLabel(gate.intervalSemitones), x - 1, targetY + 4);
   });
 }
 
@@ -398,6 +469,17 @@ function drawOrb(height) {
   context.arc(orbX(), orbY, 13, 0, Math.PI * 2);
   context.fill();
   context.shadowBlur = 0;
+  if (feedbackPulse && performance.now() - feedbackPulse.at < 700) {
+    const age = (performance.now() - feedbackPulse.at) / 700;
+    context.globalAlpha = 1 - age;
+    context.strokeStyle = feedbackPulse.color;
+    context.lineWidth = 3;
+    context.beginPath();
+    context.arc(orbX(), orbY, 18 + age * 24, 0, Math.PI * 2);
+    context.stroke();
+    context.globalAlpha = 1;
+    context.lineWidth = 1;
+  }
 }
 
 function renderGame() {
@@ -407,6 +489,11 @@ function renderGame() {
   els.gateCount.textContent = `${game.resolved}/${totalGates}`;
   const nextGate = getNextPitchGate(game);
   els.targetNote.textContent = nextGate ? midiToNote(nextGate.targetMidi) : midiToNote(getCenterMidi());
+  els.hudTargetNote.textContent = els.targetNote.textContent;
+  els.hudInterval.textContent = nextGate
+    ? `${intervalShortLabel(nextGate.intervalSemitones)} / ${intervalDirection(nextGate.intervalSemitones)}`
+    : "ROUND / COMPLETE";
+  els.hudProgress.style.width = `${Math.round(game.resolved / totalGates * 100)}%`;
   renderAccessiblePitchStatus();
 }
 
@@ -419,12 +506,16 @@ function updatePitchReadout() {
     els.tuningMeter.style.setProperty("--needle", "50%");
     els.pitchGuide.textContent = "LISTEN";
     els.pitchGuide.className = "pitch-guide";
+    els.hudLiveNote.textContent = "--";
+    els.hudDirection.textContent = "LISTEN";
+    els.hudDirection.dataset.state = "listen";
     renderAccessiblePitchStatus();
     return;
   }
   const roundedMidi = Math.round(currentFrame.midi);
   const cents = (currentFrame.midi - roundedMidi) * 100;
   els.liveNote.textContent = midiToNote(roundedMidi);
+  els.hudLiveNote.textContent = els.liveNote.textContent;
   els.liveHz.textContent = currentFrame.frequency.toFixed(1);
   els.liveCents.textContent = `${cents > 0 ? "+" : ""}${Math.round(cents)}¢`;
   els.liveClarity.textContent = `${Math.round(currentFrame.clarity * 100)}%`;
@@ -439,6 +530,8 @@ function updatePitchGuide() {
   const tolerance = getNextPitchGate(game)?.tolerance ?? 0.7;
   els.pitchGuide.textContent = Math.abs(distance) <= tolerance ? "CENTERED" : distance < 0 ? "A LITTLE LOW" : "A LITTLE HIGH";
   els.pitchGuide.className = `pitch-guide ${Math.abs(distance) <= tolerance ? "centered" : "searching"}`;
+  els.hudDirection.textContent = Math.abs(distance) <= tolerance ? "HOLD" : distance < 0 ? "RAISE" : "LOWER";
+  els.hudDirection.dataset.state = Math.abs(distance) <= tolerance ? "hold" : "move";
 }
 
 function appendLog(status, text) {
@@ -480,13 +573,30 @@ function consumeDomainEvents() {
   const events = game.events.slice(consumedEventCount);
   consumedEventCount = game.events.length;
   events.forEach((event) => {
-    if (event.type === "hit") appendLog("HIT", `${midiToNote(event.targetMidi)} +${event.points}`);
-    if (event.type === "near") appendLog("NEAR", midiToNote(event.targetMidi));
-    if (event.type === "miss") appendLog("MISS", midiToNote(event.targetMidi));
+    if (event.type === "hit") {
+      appendLog("HIT", `${midiToNote(event.targetMidi)} +${event.points}`);
+      showOutcome("HIT", "#75d7b6");
+    }
+    if (event.type === "near") {
+      appendLog("NEAR", `${midiToNote(event.targetMidi)} +${event.points}`);
+      showOutcome("NEAR", "#f0ad4e");
+    }
+    if (event.type === "miss") {
+      appendLog("MISS", midiToNote(event.targetMidi));
+      showOutcome("MISS", "#ec6f7e");
+    }
     if (event.type === "recovery") appendLog("RECOVER", midiToNote(event.targetMidi));
   });
   if (events.some((event) => ["hit", "near", "miss"].includes(event.type))) syncDemoToneToTarget();
   renderGame();
+}
+
+function showOutcome(label, color) {
+  feedbackPulse = { at: performance.now(), color };
+  els.outcomeFlash.textContent = label;
+  els.outcomeFlash.dataset.outcome = label.toLowerCase();
+  els.outcomeFlash.classList.remove("show");
+  requestAnimationFrame(() => els.outcomeFlash.classList.add("show"));
 }
 
 function createRoundClock() {
@@ -531,11 +641,28 @@ function renderAccessiblePitchStatus() {
 }
 
 function setActive(buttons, activeButton) {
-  buttons.forEach((button) => button.classList.toggle("active", button === activeButton));
+  buttons.forEach((button) => {
+    const active = button === activeButton;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
 }
 
 function createChallenge(seed = 1) {
-  return createPitchGatesChallenge({ seed, register, speed, assist, centerMidi: getCenterMidi(), totalGates });
+  const mission = createIntervalMission(musicianProfile, { drill });
+  const usesPersonalRange = register === "personal" && musicianProfile.calibration.status === "calibrated";
+  return createPitchGatesChallenge({
+    seed,
+    register,
+    speed,
+    assist,
+    centerMidi: getCenterMidi(),
+    drill,
+    focusInterval: mission.interval,
+    rangeMinMidi: usesPersonalRange ? musicianProfile.lowMidi : undefined,
+    rangeMaxMidi: usesPersonalRange ? musicianProfile.highMidi : undefined,
+    totalGates,
+  });
 }
 
 function getCenterMidi() {
@@ -577,6 +704,11 @@ function syncSettingsUI() {
   document.querySelector("#captureComfortBtn").classList.toggle("active", register === "personal");
   document.querySelectorAll("[data-speed]").forEach((button) => button.classList.toggle("active", button.dataset.speed === speed));
   document.querySelectorAll("[data-assist]").forEach((button) => button.classList.toggle("active", button.dataset.assist === assist));
+  document.querySelectorAll("[data-drill]").forEach((button) => {
+    const active = button.dataset.drill === drill;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
   document.querySelector("#stabilityInput").value = String(Math.round(savedProfile.stability * 100));
   els.stabilityValue.textContent = String(Math.round(savedProfile.stability * 100));
   els.comfortNote.textContent = midiToNote(getCenterMidi());
@@ -593,6 +725,15 @@ function renderMusicianProfile() {
   els.profileStage.textContent = prescription.stage.toUpperCase();
   els.profileBounds.textContent = musicianProfile.calibration.rangeStatus.toUpperCase();
   els.profileDetail.textContent = prescription.detail;
+  const mission = createIntervalMission(musicianProfile, { drill });
+  els.intervalMission.textContent = `${mission.shortLabel} / ${mission.name}`;
+  els.intervalMastery.textContent = mission.attempts ? `${mission.mastery}%` : "NEW";
+  els.intervalMasteryFill.style.width = `${mission.mastery}%`;
+  els.intervalMissionDetail.textContent = mission.detail;
+  const history = intervalHistorySummary(musicianProfile);
+  els.intervalHistory.innerHTML = history.length
+    ? history.map((item) => `<span title="${item.name}; ${item.biasCents > 0 ? "+" : ""}${item.biasCents} cents bias"><b>${item.label}</b>${item.mastery}%</span>`).join("")
+    : '<span class="empty-history">Your interval map lights up after eligible rounds.</span>';
   document.querySelector("#captureComfortBtn").textContent = musicianProfile.calibration.status === "calibrated"
     ? "Recalibrate"
     : "Calibrate";
@@ -606,10 +747,11 @@ function readPitchProfile() {
       personalCenter: Number.isFinite(value.personalCenter) ? value.personalCenter : 48,
       speed: ["easy", "groove", "rush"].includes(value.speed) ? value.speed : "easy",
       assist: ["gentle", "balanced", "exact"].includes(value.assist) ? value.assist : "gentle",
+      drill: ["adaptive", "steps", "leaps"].includes(value.drill) ? value.drill : "adaptive",
       stability: Number.isFinite(value.stability) ? Math.max(0, Math.min(1, value.stability)) : musicianProfile.detector.stability,
     };
   } catch {
-    return { register: "low", personalCenter: 48, speed: "easy", assist: "gentle", stability: musicianProfile.detector.stability };
+    return { register: "low", personalCenter: 48, speed: "easy", assist: "gentle", drill: "adaptive", stability: musicianProfile.detector.stability };
   }
 }
 
@@ -618,5 +760,20 @@ function persistPitchProfile() {
   savedProfile.personalCenter = personalCenter;
   savedProfile.speed = speed;
   savedProfile.assist = assist;
+  savedProfile.drill = drill;
   localStorage.setItem("setscope-pitch-profile-v1", JSON.stringify(savedProfile));
+}
+
+function intervalDirection(interval) {
+  if (interval > 0) return "UP";
+  if (interval < 0) return "DOWN";
+  return "HOLD";
+}
+
+function gradeForAccuracy(accuracy) {
+  if (accuracy >= 95) return "A+";
+  if (accuracy >= 85) return "A";
+  if (accuracy >= 72) return "B";
+  if (accuracy >= 58) return "C";
+  return "BUILD";
 }
