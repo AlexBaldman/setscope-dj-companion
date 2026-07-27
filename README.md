@@ -175,6 +175,7 @@ See [docs/PLATFORM_STRATEGY.md](docs/PLATFORM_STRATEGY.md) for the native iOS an
 See [docs/MIDI_IDEA_BANK.md](docs/MIDI_IDEA_BANK.md) for the device-first MIDI Playground, Alex's hardware compatibility matrix, and the long-range music/game/geometry inspiration bank.
 See [docs/BEAT_SCHOOL_ROADMAP.md](docs/BEAT_SCHOOL_ROADMAP.md) for the hip-hop-first pad curriculum, educational scoring model, keyboard expansion, and original loop studio.
 See [docs/MUSIC_GAME_REMIX_ATLAS.md](docs/MUSIC_GAME_REMIX_ATLAS.md) for original game-mode families inspired by the full history of rhythm, puzzle, arcade, instrument, and science-exhibit interaction.
+See [docs/CYMATICS_MODULE_INTEGRATION.md](docs/CYMATICS_MODULE_INTEGRATION.md) for the portable solid-plate, granular, fluid-surface, simulation, camera-capture, and physical-rig bridge.
 
 ## Product Priorities
 

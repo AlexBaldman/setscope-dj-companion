@@ -27,6 +27,7 @@ const performanceEvents = await readFile("src/performance-events.js", "utf8");
 const performanceContract = await readFile("src/contracts/performance-event.js", "utf8");
 const musicianProfile = await readFile("src/musician-profile.js", "utf8");
 const musicianProfileContract = await readFile("src/contracts/musician-profile.js", "utf8");
+const resonanceExperiment = await readFile("src/contracts/resonance-experiment.js", "utf8");
 const setDraftContract = await readFile("src/contracts/set-draft.js", "utf8");
 const performanceMigration = await readFile("src/migrations/performance-event-v1.js", "utf8");
 const pitchAnalysis = await readFile("src/pitch-analysis.js", "utf8");
@@ -191,6 +192,8 @@ assert(midiPlaygroundJs.includes("requestMIDIAccess({ sysex: false })"), "MIDI P
 assert(midiPlaygroundJs.includes("createControlObservation") && midiPlaygroundJs.includes("parseMidiMessage"), "MIDI Playground adapters should emit normalized observations");
 assert(midiPlaygroundCss.includes(".device-slots") && midiPlaygroundCss.includes("@media"), "MIDI Playground should style a responsive hardware census");
 assert(midiObservation.includes("MIDI_OBSERVATION_SCHEMA") && midiObservation.includes("validateMidiObservation"), "MIDI observations should use a versioned, validated contract");
+assert(resonanceExperiment.includes("RESONANCE_EXPERIMENT_SCHEMA") && resonanceExperiment.includes("RESONANCE_RESULT_SCHEMA"), "resonance modules should share portable experiment and result contracts");
+assert(resonanceExperiment.includes("\"measured\", \"simulated\", \"artistic\""), "resonance results should disclose measured, simulated, or artistic provenance");
 assert(audioLabHtml.includes("src/audio-lab.js"), "audio-lab.html should load audio-lab.js");
 assert(audioLabHtml.includes("<h1>Audio Lab</h1>"), "audio-lab.html should expose a semantic page heading");
 assert(audioLabHtml.includes("id=\"scopeCanvas\""), "audio-lab.html should include oscilloscope canvas");

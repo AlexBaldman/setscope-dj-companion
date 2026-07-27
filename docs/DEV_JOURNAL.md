@@ -1302,3 +1302,31 @@ Alchemy, Harmony Blocks, Orbit Choir, Scratch Circuit, Rhythm Architect, and the
 vibration rooms all reuse the same input, clock, replay, evidence, and creation
 spine. The first recommendation remains Pocket Highway because it converts the
 new MIDI foundation directly into the first Beat School lesson.
+
+## 2026-07-27 - Cymatics Sibling Module
+
+We gave the separate physical cymatics project a clean way to join SetScope
+without collapsing different physical systems into one visual effect.
+
+What changed:
+
+- Added portable versioned contracts for resonance experiment requests and
+  measured, simulated, or artistic results.
+- Kept solid-plate vibration, granular transport, and fluid-surface Faraday
+  behavior as explicit medium types with different material parameters.
+- Designed a three-layer integration: headless Resonance Core, local-only
+  Physical Rig Bridge, and a SetScope Mode Explorer/game room.
+- Required model name, version, assumptions, SI-unit parameters, and provenance
+  on reusable results.
+- Defined a safety boundary where browser UI cannot directly energize hardware;
+  the bridge owns arming, limits, watchdog behavior, measured feedback, and stop.
+- Outlined Mode Explorer, Prediction vs Reality, Plate Instrument, Resonance Hunt,
+  Pattern Memory, Water Rhythm, and Sample the Plate experiences.
+
+Why this matters:
+
+The cymatics project can remain a serious simulation and physical measurement
+tool while becoming a first-class instrument inside SetScope. Real camera
+captures can challenge simulations, MIDI can explore safe parameter spaces, and
+measured resonances can become original sounds in Loop Studio without blurring
+science and spectacle.

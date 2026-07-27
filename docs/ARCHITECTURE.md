@@ -127,26 +127,31 @@
    contract, deterministic challenge/reducer/replay pattern, and calibrated
    session clock. See `docs/BEAT_SCHOOL_ROADMAP.md`.
 
-3. Add a unified session-history view that reads the mission and skill ledgers alongside recognition receipts and performance evidence.
+3. Keep the cymatics project as a sibling resonance module behind the portable
+   experiment/result boundary. Begin with imported plate measurements and a
+   read-only Mode Explorer; keep actuator control inside an independently tested
+   local safety bridge. See `docs/CYMATICS_MODULE_INTEGRATION.md`.
 
-4. Add a dedicated archive study view with sorting, faceted filters, set comparison, and track-level jump targets on top of the completed full-text index.
+4. Add a unified session-history view that reads the mission and skill ledgers alongside recognition receipts and performance evidence.
 
-5. Extend the now-visible recognition provenance badges across mentor interpretation, generated signals, scientific models, and saved performance evidence.
+5. Add a dedicated archive study view with sorting, faceted filters, set comparison, and track-level jump targets on top of the completed full-text index.
 
-6. Extract the implemented phase behavior into a shared controller and apply it to the Journal and cockpit Next Move surface.
+6. Extend the now-visible recognition provenance badges across mentor interpretation, generated signals, scientific models, and saved performance evidence.
 
-7. Add screenshot comparison baselines for the common app header, responsive cockpit workspaces, and instrument primitives now that their composition is stable.
+7. Extract the implemented phase behavior into a shared controller and apply it to the Journal and cockpit Next Move surface.
 
-8. Keep the provider layer native-app ready.
+8. Add screenshot comparison baselines for the common app header, responsive cockpit workspaces, and instrument primitives now that their composition is stable.
+
+9. Keep the provider layer native-app ready.
    - Web can use AudD or future AcoustID/ACRCloud adapters behind `/api/recognize`.
    - iOS can use ShazamKit behind the same normalized match contract.
    - Keep API keys and vendor details outside the UI and archive schema.
 
-9. Expand schema validation to tracks, practice missions, and audio events before archive migration.
+10. Expand schema validation to tracks, practice missions, and audio events before archive migration.
 
-10. Promote the reusable Audio Lab controls into smaller component modules as Beat School and the next musician helpers arrive.
+11. Promote the reusable Audio Lab controls into smaller component modules as Beat School and the next musician helpers arrive.
 
-11. Preserve portable schemas and challenge definitions for a native SwiftUI/ShazamKit iOS application and a Tauri-first desktop capture spike; see `docs/PLATFORM_STRATEGY.md`.
+12. Preserve portable schemas and challenge definitions for a native SwiftUI/ShazamKit iOS application and a Tauri-first desktop capture spike; see `docs/PLATFORM_STRATEGY.md`.
 
 ## Recognition Adapter Contract
 
