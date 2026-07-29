@@ -19,7 +19,8 @@ SetScope is a local-first DJ set companion and musician toolbelt. It turns a lis
 - AudD-ready provider adapter with local stub fallback
 - recognition diagnostics and sample-audio provider test workflow
 - continuous, cancellable listening sessions with replay-safe recognition requests
-- Pitch Gates, a deterministic singing game with comfort controls and replay evidence
+- Pitch Gates, a deterministic singing game with any-octave and exact-octave
+  modes, adaptive comfort controls, imported audio contours, and replay evidence
 - Audio Lab, a tuner and oscilloscope with practice locks and track-aware snapshots
 - shared musician calibration and adaptive practice guidance across Pitch Gates and Audio Lab
 - Rhythm Roulette, a deterministic blind-crate sequencer with portable run replays

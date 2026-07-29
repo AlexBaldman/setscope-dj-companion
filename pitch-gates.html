@@ -142,6 +142,22 @@
             <div class="interval-history" id="intervalHistory" aria-label="Recent interval mastery"></div>
           </div>
 
+          <div class="lab-block imported-level" id="importedLevel" data-accent="warning" hidden>
+            <div class="block-title">Imported Level</div>
+            <strong id="importedFileName">Audio file</strong>
+            <p id="importedLevelDetail">Choose which dominant contour to estimate.</p>
+            <div class="segment-control file-focus-control" role="radiogroup" aria-label="Imported audio practice focus">
+              <button class="active" data-file-focus="melody" aria-pressed="true">Lead</button>
+              <button data-file-focus="bass" aria-pressed="false">Bass</button>
+            </div>
+            <div class="level-evidence">
+              <span>Analysis</span><strong id="importedLevelStatus">WAITING</strong>
+              <span>Confidence</span><strong id="importedLevelConfidence">--</strong>
+            </div>
+            <button class="source-btn level-build-btn" id="buildImportedLevel">Build lead level</button>
+            <small>Dominant-pitch estimate only. Stem separation is not claimed.</small>
+          </div>
+
           <div class="lab-block" data-accent="danger">
             <div class="block-title">Musician Profile</div>
             <div class="segment-control range-control" role="radiogroup" aria-label="Pitch range">
@@ -170,6 +186,11 @@
 
           <div class="lab-block" data-accent="warning">
             <div class="block-title">Assist</div>
+            <div class="match-mode-head"><span>Octave rule</span><strong id="matchModeStatus">ANY OCTAVE</strong></div>
+            <div class="segment-control match-mode-control" role="radiogroup" aria-label="Octave matching rule">
+              <button class="active" data-match-mode="pitch-class" aria-pressed="true">Any octave</button>
+              <button data-match-mode="exact-octave" aria-pressed="false">Exact octave</button>
+            </div>
             <div class="segment-control" role="radiogroup" aria-label="Pitch forgiveness">
               <button class="active" data-assist="gentle" aria-pressed="true">Gentle</button>
               <button data-assist="balanced" aria-pressed="false">Balanced</button>

@@ -449,6 +449,71 @@ body[data-phase="countdown"] .ready-overlay {
   line-height: 1.4;
 }
 
+.imported-level > strong {
+  display: block;
+  margin: 8px 0 5px;
+  overflow: hidden;
+  color: var(--amber);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.imported-level > p,
+.imported-level > small {
+  display: block;
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.file-focus-control,
+.match-mode-control {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 9px;
+}
+
+.level-evidence {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 5px 9px;
+  margin: 9px 0;
+  padding: 8px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.level-evidence span {
+  color: var(--muted);
+}
+
+.level-evidence strong {
+  color: var(--text);
+  text-align: right;
+}
+
+.level-build-btn {
+  width: 100%;
+  margin-bottom: 7px;
+}
+
+.match-mode-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.match-mode-head strong {
+  color: var(--amber);
+}
+
 .drill-control {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }

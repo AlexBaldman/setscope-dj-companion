@@ -80,6 +80,9 @@ Foundation completed:
 - a tap-calibration flow records offset, jitter, sample count, method, and confidence
 - four-beat count-in, explicit retry/advance decisions, and subdivision-specific
   repair make the lesson easier to understand and repeat
+- Pitch Gates now separates welcoming pitch-class matching from exact-octave
+  practice and can turn an imported file into an honest Lead or Bass-register
+  dominant-pitch contour level
 
 Next acceptance test:
 

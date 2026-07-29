@@ -6,6 +6,10 @@ Pitch Gates is SetScope's first playable musician helper: sing or play a single 
 
 - Live monophonic pitch detection with note name, octave, frequency in Hz, and detection clarity.
 - Orb-and-gate game loop with score, streak, lives, three pitch registers, and three speeds.
+- `Any octave` matching accepts the requested pitch class in the player's
+  comfortable register; `Exact octave` preserves absolute-pitch scoring.
+- Beginner microphone rounds can adopt the stable note held before launch as the
+  round's comfortable center.
 - A silent `Demo tone` input that follows gates automatically so the interaction is instantly testable.
 - Completed rounds write a structured `instrument` performance event into SetScope's saved toolbelt timeline.
 - A shared Musician Profile supplies a calibrated center, estimated or confirmed span, detector smoothing, directional landing diagnosis, and the next adaptive practice stage.
@@ -15,7 +19,21 @@ Pitch Gates is SetScope's first playable musician helper: sing or play a single 
 - `Demo tone`: a generated sine wave routed silently through the detector for a no-permission trial run.
 - `Mic`: vocals, guitar, bass, keys, whistle, or another nearby single-note sound through microphone permission.
 - `Share audio`: a browser sharing prompt where the user explicitly chooses a tab, screen, or system-audio option offered by their browser and operating system.
-- `Audio file`: a local recording or music file played into the analyzer.
+- `Audio file`: a local recording or music file played into the analyzer and
+  automatically inspected for a Lead or Bass-register dominant-pitch contour.
+
+## Imported Levels
+
+An imported file is decoded locally, filtered into the chosen frequency region,
+and sampled for stable monophonic pitch frames. A ready contour becomes a
+deterministic gate sequence folded into the player's current range while
+preserving melodic continuity.
+
+This is deliberately labeled as a dominant-pitch estimate, not stem separation.
+Clean vocals, bass, whistling, and solo instruments work best. Dense masters may
+produce insufficient evidence or a contour that follows whichever pitched source
+dominates the selected band. A future source-separation service can implement the
+same level contract with stronger Melody, Bass, Harmony, and Rhythm stems.
 
 ## Important Browser Boundary
 
@@ -25,20 +43,29 @@ This is a reason to keep the audio-analysis core portable: the web prototype can
 
 ## Detection Scope
 
-Today Pitch Gates identifies the strongest stable single pitch. That is useful for singing, whistling, tuning, and isolated melodic instruments. Full songs, chords, noisy drums, and layered DJ mixes may not produce a single meaningful note.
+Today Pitch Gates identifies the strongest stable single pitch. `Any octave`
+compares the nearest pitch-class distance and folds the orb beside the gate while
+the live readout still reports the detected octave. `Exact octave` compares the
+full MIDI distance. Full songs, chords, noisy drums, and layered DJ mixes may not
+produce a single meaningful note.
 
 It does not yet identify which instrument created a sound. Instrument classification will require a separate model or audio-feature pipeline and training/evaluation data; it should show confidence rather than pretend certainty.
 
 ## Next Iterations
 
-1. Add a tuner and oscilloscope view powered by `src/audio-session.js` and `src/pitch-analysis.js`.
-2. Store note hits and misses as richer practice events, not only round summaries.
-3. Add per-interval history, guided scales, and call-and-response phrases using the confirmed comfort bounds.
+1. Add phrase timing so imported targets can retain their source rhythm.
+2. Add optional local or server-assisted stem separation behind explicit model
+   and confidence provenance.
+3. Add call-and-response playback, looping, and section selection.
 4. Prototype instrument-family classification for clean samples, with transparent confidence.
-5. Share portable pitch-analysis contracts with the future iOS app.
+5. Share portable pitch-analysis and imported-level contracts with the future iOS app.
 
 ## Implementation Note
 
 Pitch detection uses [Pitchy](https://github.com/ianprime0509/pitchy), bundled locally for the static browser app. The project retains a small, dependency-light frontend while avoiding a hand-written pitch detector.
 
-The game now delegates browser source lifecycle to `src/audio-session.js`, pitch frames to `src/pitch-analysis.js`, and completed run summaries to `src/performance-events.js`. That keeps Pitch Gates focused on gameplay while making the audio pipeline reusable by the next toolbelt module.
+The game delegates browser source lifecycle to `src/audio-session.js`, live pitch
+frames to `src/pitch-analysis.js`, octave equivalence to
+`src/pitch-gates/pitch-matching.js`, imported contour analysis to
+`src/pitch-gates/audio-level.js`, and completed run summaries to
+`src/performance-events.js`.

@@ -1,4 +1,5 @@
 import { createAudioInputSession } from "./audio-session.js";
+import { analyzeAudioFileForPractice } from "./pitch-gates/audio-level.js";
 import { createPitchGatesCompletionEvent, persistPerformanceEvent } from "./performance-events.js";
 import { createPitchAnalyzer, isPitchedFrame, midiToNote } from "./pitch-analysis.js";
 import {
@@ -15,6 +16,11 @@ import {
 import { mountPracticeContext } from "./practice-context.js";
 import { createPitchGatesChallenge } from "./pitch-gates/challenge.js";
 import { createPitchStabilizer } from "./pitch-gates/pitch-filter.js";
+import {
+  PITCH_MATCH_MODES,
+  pitchClassForMidi,
+  projectPitchNearTarget,
+} from "./pitch-gates/pitch-matching.js";
 import {
   advancePitchGatesTo,
   applyPitchInput,
@@ -48,11 +54,17 @@ const els = {
   intervalMasteryFill: document.querySelector("#intervalMasteryFill"),
   intervalMission: document.querySelector("#intervalMission"),
   intervalMissionDetail: document.querySelector("#intervalMissionDetail"),
+  importedFileName: document.querySelector("#importedFileName"),
+  importedLevel: document.querySelector("#importedLevel"),
+  importedLevelConfidence: document.querySelector("#importedLevelConfidence"),
+  importedLevelDetail: document.querySelector("#importedLevelDetail"),
+  importedLevelStatus: document.querySelector("#importedLevelStatus"),
   liveClarity: document.querySelector("#liveClarity"),
   liveCents: document.querySelector("#liveCents"),
   liveHz: document.querySelector("#liveHz"),
   liveNote: document.querySelector("#liveNote"),
   lives: document.querySelector("#lives"),
+  matchModeStatus: document.querySelector("#matchModeStatus"),
   overlayStatus: document.querySelector("#overlayStatus"),
   overlayTitle: document.querySelector("#overlayTitle"),
   outcomeFlash: document.querySelector("#outcomeFlash"),
@@ -104,7 +116,12 @@ let register = savedProfile.register;
 let personalCenter = musicianProfile.calibration.status === "calibrated" ? musicianProfile.centerMidi : savedProfile.personalCenter;
 let speed = savedProfile.speed;
 let assist = savedProfile.assist;
+let pitchMatchMode = savedProfile.pitchMatchMode;
 let drill = savedProfile.drill;
+let importedFile = null;
+let importedFocus = "melody";
+let importedLevel = null;
+let importedAnalysisId = 0;
 let currentFrame = null;
 let game = createPitchGatesRun(createChallenge());
 game = { ...game, status: "idle" };
@@ -165,6 +182,26 @@ document.querySelectorAll("[data-assist]").forEach((button) => {
     persistPitchProfile();
   });
 });
+document.querySelectorAll("[data-match-mode]").forEach((button) => {
+  button.addEventListener("click", () => {
+    if (isRoundInProgress()) return;
+    pitchMatchMode = button.dataset.matchMode;
+    setActive(document.querySelectorAll("[data-match-mode]"), button);
+    persistPitchProfile();
+    syncSettingsUI();
+    game = { ...createPitchGatesRun(createChallenge()), status: "idle" };
+    drawFrame();
+  });
+});
+document.querySelectorAll("[data-file-focus]").forEach((button) => {
+  button.addEventListener("click", () => {
+    importedFocus = button.dataset.fileFocus;
+    setActive(document.querySelectorAll("[data-file-focus]"), button);
+    document.querySelector("#buildImportedLevel").textContent = `Build ${importedFocus === "bass" ? "bass" : "lead"} level`;
+    analyzeImportedLevel();
+  });
+});
+document.querySelector("#buildImportedLevel").addEventListener("click", analyzeImportedLevel);
 document.querySelectorAll("[data-drill]").forEach((button) => {
   button.addEventListener("click", () => {
     if (isRoundInProgress()) return;
@@ -218,13 +255,59 @@ async function useSharedAudio() {
 async function useAudioFile(file) {
   if (!file) return;
   try {
+    importedFile = file;
+    importedLevel = null;
+    els.importedLevel.hidden = false;
+    els.importedFileName.textContent = file.name;
+    els.importedLevelStatus.textContent = "ANALYZING";
+    els.importedLevelConfidence.textContent = "--";
+    els.importedLevelDetail.textContent = "Listening for a stable dominant-pitch contour...";
     await audioSession.useAudioFile(file);
     pitchAnalyzer.reset();
     pitchStabilizer.reset();
-    setAudioStatus("FILE READY", true);
+    setAudioStatus("FILE ANALYZING", true);
     startAnimation();
+    await analyzeImportedLevel();
   } catch {
     setAudioStatus("FILE ERROR", false);
+    els.importedLevelStatus.textContent = "ERROR";
+    els.importedLevelDetail.textContent = "This browser could not decode the selected audio file.";
+  }
+}
+
+async function analyzeImportedLevel() {
+  if (!importedFile) return;
+  const analysisId = ++importedAnalysisId;
+  const button = document.querySelector("#buildImportedLevel");
+  button.disabled = true;
+  els.importedLevelStatus.textContent = "ANALYZING";
+  els.importedLevelConfidence.textContent = "--";
+  els.importedLevelDetail.textContent = `Estimating the ${importedFocus === "bass" ? "bass" : "lead"} contour...`;
+  try {
+    const level = await analyzeAudioFileForPractice(importedFile, { focus: importedFocus });
+    if (analysisId !== importedAnalysisId) return;
+    importedLevel = level.status === "ready" ? level : null;
+    els.importedLevelStatus.textContent = level.status === "ready" ? "LEVEL READY" : "NEEDS CLEANER AUDIO";
+    els.importedLevelConfidence.textContent = level.status === "ready"
+      ? `${Math.round(level.confidence * 100)}%`
+      : "--";
+    els.importedLevelDetail.textContent = level.detail;
+    setAudioStatus(level.status === "ready" ? "FILE LEVEL READY" : "FILE PREVIEW ONLY", true);
+    if (level.status === "ready" && !isRoundInProgress()) {
+      game = { ...createPitchGatesRun(createChallenge()), status: "idle" };
+      renderGame();
+      drawFrame();
+      appendLog("LEVEL", `${level.focusLabel} / ${level.targetMidiSequence.length} targets`);
+    }
+  } catch {
+    if (analysisId !== importedAnalysisId) return;
+    importedLevel = null;
+    els.importedLevelStatus.textContent = "ERROR";
+    els.importedLevelConfidence.textContent = "--";
+    els.importedLevelDetail.textContent = "The file can play, but its contour could not be analyzed.";
+    setAudioStatus("FILE PREVIEW ONLY", true);
+  } finally {
+    if (analysisId === importedAnalysisId) button.disabled = false;
   }
 }
 
@@ -254,6 +337,7 @@ function stopAudio() {
 function startRound() {
   if (!audioSession.isActive()) return;
   clearPreRoll();
+  adoptComfortableOctave();
   const challenge = createChallenge(Date.now());
   game = createPitchGatesRun(challenge);
   roundClock = null;
@@ -278,7 +362,7 @@ function startRound() {
   els.restartRoundBtn.hidden = false;
   els.restartRoundBtn.disabled = false;
   const mission = createIntervalMission(musicianProfile, { drill });
-  appendLog("READY", `${mission.shortLabel} / ${getRangeLabel()} / ${assist}`);
+  appendLog("READY", `${mission.shortLabel} / ${getRangeLabel()} / ${matchModeLabel()} / ${assist}`);
   syncDemoToneToTarget();
   renderGame();
   startAnimation();
@@ -301,7 +385,7 @@ function beginRound() {
   document.body.dataset.phase = "active";
   els.startRoundBtn.textContent = "Round active";
   els.pauseRoundBtn.disabled = false;
-  appendLog("ROUND", `${getRangeLabel()} / ${speed} / ${assist}`);
+  appendLog("ROUND", `${getRangeLabel()} / ${speed} / ${matchModeLabel()} / ${assist}`);
 }
 
 function startAnimation() {
@@ -366,7 +450,9 @@ function endRound() {
   const diagnosis = diagnosePitchGateResults(game.gateResults);
   const sourceLabel = audioSession.getSourceLabel();
   const enoughSignal = scoredResults.length >= Math.max(4, Math.ceil(resolvedResults.length * 0.6));
-  const eligibleForMastery = sourceLabel === "MIC" && assist !== "gentle" && enoughSignal;
+  const eligibleForMastery = sourceLabel === "MIC"
+    && assist !== "gentle"
+    && enoughSignal;
   musicianProfile = saveMusicianProfile(recordPracticeResult(musicianProfile, {
     accuracy,
     centerMidi: game.challenge.config.centerMidi,
@@ -411,6 +497,12 @@ function endRound() {
     practiceStage: prescription.stage,
     diagnosis,
     eligibleForMastery,
+    pitchMatchMode,
+    importedLevel: importedLevel ? {
+      focus: importedLevel.focus,
+      confidence: importedLevel.confidence,
+      detectedFrames: importedLevel.detectedFrames,
+    } : null,
   });
   const savedEvent = persistPerformanceEvent(performanceEvent, { missionId: practiceContext.missionId });
   practiceContext.markSaved(savedEvent);
@@ -486,9 +578,10 @@ function drawGrid(width, height) {
 function drawPitchTrail(height) {
   if (pitchTrail.length < 2) return;
   context.beginPath();
+  const target = getNextPitchGate(game)?.targetMidi ?? getCenterMidi();
   pitchTrail.forEach((midi, index) => {
     const x = orbX() - Math.min(82, (pitchTrail.length - 1 - index) * 2.2);
-    const y = midiToY(midi, height);
+    const y = midiToY(projectPitchNearTarget(midi, target, pitchMatchMode), height);
     if (index === 0) context.moveTo(x, y);
     else context.lineTo(x, y);
   });
@@ -525,7 +618,11 @@ function drawGates(height) {
 }
 
 function drawOrb(height) {
-  const targetY = currentFrame ? midiToY(currentFrame.midi, height) : height / 2;
+  const target = getNextPitchGate(game)?.targetMidi ?? getCenterMidi();
+  const displayedMidi = currentFrame
+    ? projectPitchNearTarget(currentFrame.midi, target, pitchMatchMode)
+    : null;
+  const targetY = Number.isFinite(displayedMidi) ? midiToY(displayedMidi, height) : height / 2;
   orbY += (targetY - orbY) * 0.28;
   context.beginPath();
   context.fillStyle = currentFrame ? "#6ec6ff" : "rgba(110,198,255,0.46)";
@@ -553,7 +650,8 @@ function renderGame() {
   els.lives.textContent = String(game.lives);
   els.gateCount.textContent = `${game.resolved}/${totalGates}`;
   const nextGate = getNextPitchGate(game);
-  els.targetNote.textContent = nextGate ? midiToNote(nextGate.targetMidi) : midiToNote(getCenterMidi());
+  const targetMidi = nextGate?.targetMidi ?? getCenterMidi();
+  els.targetNote.textContent = targetLabel(targetMidi);
   els.hudTargetNote.textContent = els.targetNote.textContent;
   els.hudInterval.textContent = nextGate
     ? `${intervalShortLabel(nextGate.intervalSemitones)} / ${intervalDirection(nextGate.intervalSemitones)}`
@@ -596,7 +694,8 @@ function updatePitchReadout() {
 
 function updatePitchGuide() {
   const target = getNextPitchGate(game)?.targetMidi ?? getCenterMidi();
-  const distance = currentFrame.midi - target;
+  const displayedMidi = projectPitchNearTarget(currentFrame.midi, target, pitchMatchMode);
+  const distance = displayedMidi - target;
   const tolerance = getNextPitchGate(game)?.tolerance ?? 0.7;
   els.pitchGuide.textContent = Math.abs(distance) <= tolerance ? "CENTERED" : distance < 0 ? "A LITTLE LOW" : "A LITTLE HIGH";
   els.pitchGuide.className = `pitch-guide ${Math.abs(distance) <= tolerance ? "centered" : "searching"}`;
@@ -758,7 +857,7 @@ function renderAccessiblePitchStatus() {
   const target = getNextPitchGate(game)?.targetMidi ?? getCenterMidi();
   const phase = document.body.dataset.phase || "idle";
   const live = currentFrame ? `${midiToNote(Math.round(currentFrame.midi))}, ${els.pitchGuide.textContent.toLowerCase()}` : "no stable note detected";
-  const text = `${phase}. Target ${midiToNote(target)}. ${live}. Gate ${game.resolved} of ${totalGates}. ${game.lives} lives remaining.`;
+  const text = `${phase}. Target ${targetLabel(target)}, ${matchModeLabel()}. ${live}. Gate ${game.resolved} of ${totalGates}. ${game.lives} lives remaining.`;
   if (text !== lastAccessibleStatus) {
     els.pitchCanvasStatus.textContent = text;
     lastAccessibleStatus = text;
@@ -786,6 +885,8 @@ function createChallenge(seed = 1) {
     focusInterval: mission.interval,
     rangeMinMidi: usesPersonalRange ? musicianProfile.lowMidi : undefined,
     rangeMaxMidi: usesPersonalRange ? musicianProfile.highMidi : undefined,
+    pitchMatchMode,
+    targetMidiSequence: importedLevel?.targetMidiSequence,
     totalGates,
   });
 }
@@ -833,6 +934,11 @@ function syncSettingsUI() {
   document.querySelector("#captureComfortBtn").classList.toggle("active", register === "personal");
   document.querySelectorAll("[data-speed]").forEach((button) => button.classList.toggle("active", button.dataset.speed === speed));
   document.querySelectorAll("[data-assist]").forEach((button) => button.classList.toggle("active", button.dataset.assist === assist));
+  document.querySelectorAll("[data-match-mode]").forEach((button) => {
+    const active = button.dataset.matchMode === pitchMatchMode;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
   document.querySelectorAll("[data-drill]").forEach((button) => {
     const active = button.dataset.drill === drill;
     button.classList.toggle("active", active);
@@ -842,6 +948,7 @@ function syncSettingsUI() {
   els.stabilityValue.textContent = String(Math.round(savedProfile.stability * 100));
   els.comfortNote.textContent = midiToNote(getCenterMidi());
   els.rangeLabel.textContent = getRangeLabel();
+  els.matchModeStatus.textContent = pitchMatchMode === PITCH_MATCH_MODES.exactOctave ? "EXACT OCTAVE" : "ANY OCTAVE";
   renderMusicianProfile();
   renderGame();
 }
@@ -876,11 +983,22 @@ function readPitchProfile() {
       personalCenter: Number.isFinite(value.personalCenter) ? value.personalCenter : 48,
       speed: ["easy", "groove", "rush"].includes(value.speed) ? value.speed : "easy",
       assist: ["gentle", "balanced", "exact"].includes(value.assist) ? value.assist : "gentle",
+      pitchMatchMode: value.pitchMatchMode === PITCH_MATCH_MODES.exactOctave
+        ? PITCH_MATCH_MODES.exactOctave
+        : PITCH_MATCH_MODES.pitchClass,
       drill: ["adaptive", "steps", "leaps"].includes(value.drill) ? value.drill : "adaptive",
       stability: Number.isFinite(value.stability) ? Math.max(0, Math.min(1, value.stability)) : musicianProfile.detector.stability,
     };
   } catch {
-    return { register: "low", personalCenter: 48, speed: "easy", assist: "gentle", drill: "adaptive", stability: musicianProfile.detector.stability };
+    return {
+      register: "low",
+      personalCenter: 48,
+      speed: "easy",
+      assist: "gentle",
+      pitchMatchMode: PITCH_MATCH_MODES.pitchClass,
+      drill: "adaptive",
+      stability: musicianProfile.detector.stability,
+    };
   }
 }
 
@@ -889,8 +1007,34 @@ function persistPitchProfile() {
   savedProfile.personalCenter = personalCenter;
   savedProfile.speed = speed;
   savedProfile.assist = assist;
+  savedProfile.pitchMatchMode = pitchMatchMode;
   savedProfile.drill = drill;
   localStorage.setItem("setscope-pitch-profile-v1", JSON.stringify(savedProfile));
+}
+
+function adoptComfortableOctave() {
+  if (
+    pitchMatchMode !== PITCH_MATCH_MODES.pitchClass
+    || audioSession.getSourceLabel() !== "MIC"
+    || !Number.isFinite(currentFrame?.midi)
+  ) return;
+  personalCenter = Math.max(36, Math.min(76, Math.round(currentFrame.midi)));
+  register = "personal";
+  savedProfile.personalCenter = personalCenter;
+  savedProfile.register = register;
+  persistPitchProfile();
+  syncSettingsUI();
+  appendLog("RANGE", `${midiToNote(personalCenter)} adopted as this round's comfortable center`);
+}
+
+function targetLabel(midi) {
+  return pitchMatchMode === PITCH_MATCH_MODES.exactOctave
+    ? midiToNote(midi)
+    : pitchClassForMidi(midi);
+}
+
+function matchModeLabel() {
+  return pitchMatchMode === PITCH_MATCH_MODES.exactOctave ? "exact octave" : "any octave";
 }
 
 function intervalDirection(interval) {

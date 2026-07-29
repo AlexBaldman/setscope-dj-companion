@@ -389,9 +389,23 @@ async function verifyPitchGates(page) {
   await expectVisible(page, "#pitchGameCanvas", "Pitch Gates canvas");
   await expectText(page, "#overlayStatus", "CHOOSE AN INPUT", "Pitch Gates idle guidance");
   await expectVisible(page, "#captureComfortBtn", "Pitch Gates comfort-note control");
+  assert(await page.locator("[data-match-mode=\"pitch-class\"]").evaluate((node) => node.classList.contains("active")), "Pitch Gates should default to any-octave matching");
+  await expectText(page, "#matchModeStatus", "ANY OCTAVE", "Pitch Gates beginner octave rule");
+  await page.locator("[data-match-mode=\"exact-octave\"]").click();
+  await expectText(page, "#matchModeStatus", "EXACT OCTAVE", "Pitch Gates precision octave rule");
+  await page.locator("[data-match-mode=\"pitch-class\"]").click();
   await page.locator("[data-assist=\"balanced\"]").click();
   assert(await page.locator("[data-assist=\"balanced\"]").evaluate((node) => node.classList.contains("active")), "Pitch Gates should change assist presets");
   assert(await page.locator("#startRoundBtn").isDisabled(), "Pitch Gates should require an input before a round");
+  await page.locator("#audioFileInput").setInputFiles({
+    name: "pitch-gates-level.wav",
+    mimeType: "audio/wav",
+    buffer: createPitchPracticeWav(),
+  });
+  await page.waitForFunction(() => document.querySelector("#importedLevelStatus")?.textContent === "LEVEL READY", null, { timeout: 15000 });
+  await expectVisible(page, "#importedLevel", "Pitch Gates imported level builder");
+  await expectText(page, "#importedLevelDetail", "not isolated stems", "Pitch Gates honest imported-level provenance");
+  assert(Number.parseInt(await page.locator("#importedLevelConfidence").textContent(), 10) > 0, "Pitch Gates should expose imported contour confidence");
   await page.locator("#toneBtn").click();
   await page.waitForFunction(() => document.querySelector("#liveNote")?.textContent !== "--");
   await page.locator("#captureComfortBtn").click();
@@ -407,6 +421,36 @@ async function verifyPitchGates(page) {
   await page.locator("#pauseRoundBtn").click();
   assert(await page.locator("#readyOverlay").evaluate((node) => node.classList.contains("hidden")), "Pitch Gates should resume in place");
   await auditPage(page, "pitch-gates-desktop");
+}
+
+function createPitchPracticeWav() {
+  const sampleRate = 44100;
+  const noteDurationSec = 0.55;
+  const frequencies = [261.63, 293.66, 329.63, 392, 349.23, 329.63, 293.66, 261.63];
+  const sampleCount = Math.floor(sampleRate * noteDurationSec * frequencies.length);
+  const bytes = Buffer.alloc(44 + sampleCount * 2);
+  bytes.write("RIFF", 0);
+  bytes.writeUInt32LE(36 + sampleCount * 2, 4);
+  bytes.write("WAVE", 8);
+  bytes.write("fmt ", 12);
+  bytes.writeUInt32LE(16, 16);
+  bytes.writeUInt16LE(1, 20);
+  bytes.writeUInt16LE(1, 22);
+  bytes.writeUInt32LE(sampleRate, 24);
+  bytes.writeUInt32LE(sampleRate * 2, 28);
+  bytes.writeUInt16LE(2, 32);
+  bytes.writeUInt16LE(16, 34);
+  bytes.write("data", 36);
+  bytes.writeUInt32LE(sampleCount * 2, 40);
+  for (let index = 0; index < sampleCount; index += 1) {
+    const noteIndex = Math.min(frequencies.length - 1, Math.floor(index / (sampleRate * noteDurationSec)));
+    const frequency = frequencies[noteIndex];
+    const localTime = (index % Math.floor(sampleRate * noteDurationSec)) / sampleRate;
+    const envelope = Math.min(1, localTime / 0.025) * Math.min(1, (noteDurationSec - localTime) / 0.04);
+    const sample = Math.sin(2 * Math.PI * frequency * index / sampleRate) * 0.62 * Math.max(0, envelope);
+    bytes.writeInt16LE(Math.round(sample * 32767), 44 + index * 2);
+  }
+  return bytes;
 }
 
 async function verifyAudioLab(page) {

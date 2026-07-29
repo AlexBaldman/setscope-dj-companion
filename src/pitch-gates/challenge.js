@@ -1,4 +1,7 @@
+import { normalizePitchMatchMode } from "./pitch-matching.js";
+
 export const PITCH_GATES_CHALLENGE_V2 = "setscope.pitch-gates.challenge.v2";
+export const PITCH_GATES_CHALLENGE_V3 = "setscope.pitch-gates.challenge.v3";
 
 const REGISTER_CENTERS = { low: 48, mid: 55, high: 64 };
 const SPEEDS = {
@@ -24,6 +27,8 @@ export function createPitchGatesChallenge({
   focusInterval = 2,
   rangeMinMidi,
   rangeMaxMidi,
+  pitchMatchMode,
+  targetMidiSequence,
   totalGates = 12,
 } = {}) {
   const normalizedSeed = normalizeSeed(seed);
@@ -43,9 +48,19 @@ export function createPitchGatesChallenge({
     Math.ceil(normalizedRangeMin - normalizedCenter),
     Math.floor(normalizedRangeMax - normalizedCenter),
   );
-  const phrase = normalizedDrill === "journey"
-    ? createStepwisePhrase(count, random)
-    : createIntervalPhrase(count, normalizedFocus);
+  const normalizedPitchMatchMode = normalizePitchMatchMode(pitchMatchMode);
+  const importedTargets = normalizeTargetSequence(
+    targetMidiSequence,
+    count,
+    normalizedCenter,
+    normalizedRangeMin,
+    normalizedRangeMax,
+  );
+  const phrase = importedTargets
+    ? importedTargets.map((target) => target - normalizedCenter)
+    : normalizedDrill === "journey"
+      ? createStepwisePhrase(count, random)
+      : createIntervalPhrase(count, normalizedFocus);
 
   const gates = phrase.map((offset, index) => {
     const spawnAtMs = 350 + index * config.spawnIntervalMs;
@@ -65,9 +80,9 @@ export function createPitchGatesChallenge({
   });
 
   return {
-    schemaVersion: PITCH_GATES_CHALLENGE_V2,
-    id: `pitch-gates-${normalizedRegister}-${normalizedDrill}-${normalizedFocus}-${normalizedSpeed}-${normalizedAssist}-${Math.round(normalizedCenter * 10)}-${normalizedSeed}`,
-    version: 2,
+    schemaVersion: PITCH_GATES_CHALLENGE_V3,
+    id: `pitch-gates-${normalizedRegister}-${normalizedDrill}-${normalizedFocus}-${normalizedSpeed}-${normalizedAssist}-${normalizedPitchMatchMode}-${sequenceId(importedTargets)}-${Math.round(normalizedCenter * 10)}-${normalizedSeed}`,
+    version: 3,
     seed: normalizedSeed,
     skillIds: ["pitch-center", "stable-hold", "interval-hearing", "anticipation", `interval-${normalizedFocus}`],
     config: {
@@ -76,6 +91,7 @@ export function createPitchGatesChallenge({
       focusInterval: normalizedFocus,
       speed: normalizedSpeed,
       assist: normalizedAssist,
+      pitchMatchMode: normalizedPitchMatchMode,
       centerMidi: normalizedCenter,
       rangeMinMidi: normalizedRangeMin,
       rangeMaxMidi: normalizedRangeMax,
@@ -88,11 +104,15 @@ export function createPitchGatesChallenge({
 export function validatePitchGatesChallenge(challenge) {
   const errors = [];
   if (!challenge || typeof challenge !== "object" || Array.isArray(challenge)) return { valid: false, errors: ["challenge must be an object"] };
-  if (challenge.schemaVersion !== PITCH_GATES_CHALLENGE_V2) errors.push("unsupported challenge schema");
+  if (![PITCH_GATES_CHALLENGE_V2, PITCH_GATES_CHALLENGE_V3].includes(challenge.schemaVersion)) errors.push("unsupported challenge schema");
   if (!Number.isInteger(challenge.seed)) errors.push("seed must be an integer");
   if (!challenge.config || !(challenge.config.register === "personal" || REGISTER_CENTERS[challenge.config.register])) errors.push("register is not supported");
   if (!challenge.config || !SPEEDS[challenge.config.speed]) errors.push("speed is not supported");
   if (!challenge.config || !ASSISTS[challenge.config.assist]) errors.push("assist is not supported");
+  if (
+    challenge.schemaVersion === PITCH_GATES_CHALLENGE_V3
+    && !["pitch-class", "exact-octave"].includes(challenge.config?.pitchMatchMode)
+  ) errors.push("pitchMatchMode is not supported");
   if (!challenge.config || !DRILLS.has(challenge.config.drill || "journey")) errors.push("drill is not supported");
   if (!Number.isFinite(challenge.config?.centerMidi)) errors.push("centerMidi must be finite");
   if (!Array.isArray(challenge.gates) || challenge.gates.length === 0) errors.push("gates must be a non-empty array");
@@ -103,6 +123,34 @@ export function validatePitchGatesChallenge(challenge) {
     if (!(gate.spawnAtMs < gate.evaluateAtMs && gate.evaluateAtMs < gate.removeAtMs)) errors.push(`gates[${index}] timing must be ordered`);
   });
   return { valid: errors.length === 0, errors };
+}
+
+function normalizeTargetSequence(sequence, count, center, minimum, maximum) {
+  if (!Array.isArray(sequence) || sequence.length === 0) return null;
+  const normalized = sequence
+    .map(Number)
+    .filter(Number.isFinite);
+  if (!normalized.length) return null;
+  const folded = [];
+  normalized.forEach((midi) => {
+    folded.push(nearestPlayablePitchClass(midi, folded.at(-1) ?? center, minimum, maximum));
+  });
+  return Array.from({ length: count }, (_, index) => folded[index % folded.length]);
+}
+
+function nearestPlayablePitchClass(midi, anchor, minimum, maximum) {
+  const pitchClass = ((Math.round(midi) % 12) + 12) % 12;
+  const candidates = [];
+  for (let value = Math.ceil(minimum); value <= Math.floor(maximum); value += 1) {
+    if (((value % 12) + 12) % 12 === pitchClass) candidates.push(value);
+  }
+  if (!candidates.length) return clamp(Math.round(midi), minimum, maximum);
+  return candidates.sort((left, right) => Math.abs(left - anchor) - Math.abs(right - anchor))[0];
+}
+
+function sequenceId(sequence) {
+  if (!sequence) return "generated";
+  return sequence.map((value) => Math.round(value)).join(".");
 }
 
 function createIntervalPhrase(count, focusInterval) {

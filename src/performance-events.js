@@ -57,6 +57,8 @@ export function createPitchGatesCompletionEvent({
   practiceStage = "",
   diagnosis = {},
   eligibleForMastery = false,
+  pitchMatchMode = "pitch-class",
+  importedLevel = null,
 } = {}) {
   return createPerformanceEvent({
     modeId: "pitch-gates",
@@ -84,6 +86,8 @@ export function createPitchGatesCompletionEvent({
       accuracy,
       practiceStage,
       diagnosis,
+      pitchMatchMode,
+      importedLevel,
     },
     evidence: {
       summary: `${sourceLabel} / ${register} / ${score} pts / streak ${streak}`,
@@ -91,7 +95,7 @@ export function createPitchGatesCompletionEvent({
     assistance: {
       level: eligibleForMastery ? "none" : sourceLabel === "DEMO" ? "demo" : "guided",
       eligibleForMastery,
-      values: { speed, register },
+      values: { speed, register, pitchMatchMode },
     },
   });
 }

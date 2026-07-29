@@ -1,4 +1,5 @@
 import { validatePitchGatesChallenge } from "./challenge.js";
+import { PITCH_MATCH_MODES, signedPitchDistance } from "./pitch-matching.js";
 
 export const PITCH_GATES_RUN_V1 = "setscope.pitch-gates.run.v1";
 
@@ -138,7 +139,15 @@ export function hashPitchGatesRun(run) {
 
 function evaluateGate(run, gate) {
   const input = representativeInputAt(run.inputs, gate.evaluateAtMs);
-  const signedDistance = Number.isFinite(input?.midi) ? input.midi - gate.targetMidi : null;
+  const signedDistance = signedPitchDistance(
+    input?.midi,
+    gate.targetMidi,
+    run.challenge.config.pitchMatchMode || PITCH_MATCH_MODES.exactOctave,
+  );
+  const octaveDistance = Number.isFinite(input?.midi)
+    ? Math.round((input.midi - gate.targetMidi - (signedDistance || 0)) / 12)
+    : null;
+  const octaveEvidence = run.challenge.config.pitchMatchMode ? { octaveDistance } : {};
   const distance = Number.isFinite(signedDistance) ? Math.abs(signedDistance) : Infinity;
   const outcome = !Number.isFinite(input?.midi)
     ? "unvoiced"
@@ -157,6 +166,7 @@ function evaluateGate(run, gate) {
     outcome,
     distance: Number.isFinite(distance) ? distance : null,
     signedDistance,
+    ...octaveEvidence,
   };
 
   if (outcome === "hit") {
@@ -165,7 +175,7 @@ function evaluateGate(run, gate) {
     next.bestStreak = Math.max(next.bestStreak, next.streak);
     const points = 100 + next.streak * 20;
     next.score += points;
-    next = appendEvent(next, "hit", { atMs: gate.evaluateAtMs, gateId: gate.id, targetMidi: gate.targetMidi, distance, signedDistance, points });
+    next = appendEvent(next, "hit", { atMs: gate.evaluateAtMs, gateId: gate.id, targetMidi: gate.targetMidi, distance, signedDistance, ...octaveEvidence, points });
     if (recovered) next = appendEvent(next, "recovery", { atMs: gate.evaluateAtMs, gateId: gate.id, targetMidi: gate.targetMidi });
   } else if (outcome === "near") {
     next.streak = 0;
@@ -177,6 +187,7 @@ function evaluateGate(run, gate) {
       targetMidi: gate.targetMidi,
       distance,
       signedDistance,
+      ...octaveEvidence,
       points,
     });
   } else if (outcome === "unvoiced") {
@@ -197,6 +208,7 @@ function evaluateGate(run, gate) {
       targetMidi: gate.targetMidi,
       distance: Number.isFinite(distance) ? distance : null,
       signedDistance,
+      ...octaveEvidence,
     });
     if (next.lives <= 0) {
       next.status = "complete";

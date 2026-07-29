@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 
-import { createPitchGatesChallenge, validatePitchGatesChallenge } from "../src/pitch-gates/challenge.js";
+import {
+  PITCH_GATES_CHALLENGE_V2,
+  createPitchGatesChallenge,
+  validatePitchGatesChallenge,
+} from "../src/pitch-gates/challenge.js";
 import {
   advancePitchGatesTo,
   applyPitchInput,
@@ -12,6 +16,12 @@ import {
 } from "../src/pitch-gates/reducer.js";
 import { createPitchGatesReplay, replayPitchGates } from "../src/pitch-gates/replay.js";
 import { diagnosePitchGateResults } from "../src/pitch-gates/diagnosis.js";
+import {
+  PITCH_MATCH_MODES,
+  pitchClassForMidi,
+  projectPitchNearTarget,
+  signedPitchDistance,
+} from "../src/pitch-gates/pitch-matching.js";
 
 const challenge = createPitchGatesChallenge({ seed: 424242, register: "mid", speed: "groove", totalGates: 12 });
 assert.equal(validatePitchGatesChallenge(challenge).valid, true);
@@ -49,6 +59,70 @@ assert.equal(intervalChallenge.gates[2].fromMidi, 50);
 assert.equal(intervalChallenge.gates[2].targetMidi, 55);
 assert.equal(intervalChallenge.gates[2].intervalSemitones, 5);
 assert.equal(intervalChallenge.gates[3].intervalSemitones, -5, "interval direction is measured from the previous target");
+
+assert.equal(signedPitchDistance(60, 48, PITCH_MATCH_MODES.pitchClass), 0, "the same note name in another octave should match in beginner mode");
+assert.equal(signedPitchDistance(60, 48, PITCH_MATCH_MODES.exactOctave), 12, "precision mode should preserve octave distance");
+assert.equal(signedPitchDistance(59, 48, PITCH_MATCH_MODES.pitchClass), -1, "pitch-class distance should choose the nearest direction");
+assert.equal(projectPitchNearTarget(72.25, 48, PITCH_MATCH_MODES.pitchClass), 48.25, "beginner visuals should fold the live pitch beside the target");
+assert.equal(pitchClassForMidi(61), "C#");
+
+const importedChallenge = createPitchGatesChallenge({
+  centerMidi: 48,
+  rangeMinMidi: 43,
+  rangeMaxMidi: 55,
+  targetMidiSequence: [72, 76, 79, 74],
+  totalGates: 8,
+});
+assert.deepEqual(
+  importedChallenge.gates.slice(0, 4).map((gate) => gate.targetMidi),
+  [48, 52, 55, 50],
+  "imported contours should preserve pitch classes inside the player's range",
+);
+
+const beginnerOctaveChallenge = createPitchGatesChallenge({
+  centerMidi: 48,
+  pitchMatchMode: PITCH_MATCH_MODES.pitchClass,
+  totalGates: 1,
+});
+const beginnerOctaveGate = beginnerOctaveChallenge.gates[0];
+let beginnerOctaveRun = createPitchGatesRun(beginnerOctaveChallenge);
+beginnerOctaveRun = applyPitchInput(beginnerOctaveRun, {
+  atMs: beginnerOctaveGate.evaluateAtMs,
+  midi: beginnerOctaveGate.targetMidi + 12,
+  clarity: 1,
+});
+beginnerOctaveRun = advancePitchGatesTo(beginnerOctaveRun, beginnerOctaveGate.evaluateAtMs);
+assert.equal(beginnerOctaveRun.gateResults[0].outcome, "hit");
+assert.equal(beginnerOctaveRun.gateResults[0].octaveDistance, 1);
+
+const exactOctaveChallenge = createPitchGatesChallenge({
+  centerMidi: 48,
+  pitchMatchMode: PITCH_MATCH_MODES.exactOctave,
+  totalGates: 1,
+});
+const exactOctaveGate = exactOctaveChallenge.gates[0];
+let exactOctaveRun = createPitchGatesRun(exactOctaveChallenge);
+exactOctaveRun = applyPitchInput(exactOctaveRun, {
+  atMs: exactOctaveGate.evaluateAtMs,
+  midi: exactOctaveGate.targetMidi + 12,
+  clarity: 1,
+});
+exactOctaveRun = advancePitchGatesTo(exactOctaveRun, exactOctaveGate.evaluateAtMs);
+assert.equal(exactOctaveRun.gateResults[0].outcome, "miss");
+
+const legacyChallenge = structuredClone(beginnerOctaveChallenge);
+legacyChallenge.schemaVersion = PITCH_GATES_CHALLENGE_V2;
+legacyChallenge.version = 2;
+delete legacyChallenge.config.pitchMatchMode;
+let legacyRun = createPitchGatesRun(legacyChallenge);
+legacyRun = applyPitchInput(legacyRun, {
+  atMs: legacyChallenge.gates[0].evaluateAtMs,
+  midi: legacyChallenge.gates[0].targetMidi + 12,
+  clarity: 1,
+});
+legacyRun = advancePitchGatesTo(legacyRun, legacyChallenge.gates[0].evaluateAtMs);
+assert.equal(legacyRun.gateResults[0].outcome, "miss", "legacy V2 replays should retain exact-octave scoring");
+assert.equal("octaveDistance" in legacyRun.gateResults[0], false, "legacy V2 replay hashes should not gain V3 fields");
 
 const trace = challenge.gates.map((gate, index) => {
   if (index === 1) return { atMs: gate.evaluateAtMs - 20, midi: gate.targetMidi + 3, clarity: 0.95 };

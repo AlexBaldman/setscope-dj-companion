@@ -1622,3 +1622,40 @@ Next:
 Complete the Set-to-Skill Alpha with representative real recognition clips, one
 canonical track-derived Beat School mission, and a receipt that visibly returns
 to its source set moment.
+
+## 2026-07-28 - Pitch Gates Range Rescue and Imported Levels
+
+Hands-on testing exposed two mismatched promises: Gentle assist widened tuning
+tolerance but still demanded an exact octave, and Audio File merely played music
+through the live detector without constructing a game level.
+
+What changed:
+
+- Added an explicit `Any octave` beginner rule that scores the nearest pitch-class
+  distance and folds the orb beside the target without falsifying the detected
+  note in the live readout.
+- Added `Exact octave` for absolute-pitch practice and persisted the player's rule.
+- Let beginner microphone rounds adopt the stable note held before launch as the
+  session's comfortable center.
+- Recorded octave rule and imported-level provenance in performance receipts.
+- Added local audio decoding, Lead and Bass-register filtering, stable contour
+  extraction, confidence, and insufficient-evidence outcomes.
+- Converted ready contours into deterministic 12-gate sequences folded into the
+  player's range while preserving melodic direction.
+- Labeled the result as dominant-pitch estimation rather than claiming isolated
+  stems or instrument identification.
+- Added deterministic octave, sequence-folding, and contour tests plus a browser
+  canary that generates a real WAV, imports it, and verifies a playable level.
+
+Why this matters:
+
+Pitch Gates now begins from a musical reality: most players have a limited
+comfortable register, and note-name recognition is a different skill from octave
+placement. Imported audio also produces a reviewable level artifact instead of
+quietly pretending that playback itself is analysis.
+
+Next:
+
+Preserve source phrase timing, add section looping and call-and-response playback,
+then introduce optional stem separation behind explicit model and confidence
+provenance.
