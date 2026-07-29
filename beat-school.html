@@ -77,9 +77,17 @@
             </div>
 
             <div class="beat-transport">
-              <button class="primary-action" id="lessonAction" data-ui="action">Hear groove</button>
+              <div class="lesson-decision">
+                <button class="primary-action" id="lessonAction" data-ui="action">Hear groove</button>
+                <button class="alternate-action" id="lessonAlternate" hidden>Continue</button>
+              </div>
               <button class="utility-action" id="midiConnect">Connect MIDI</button>
+              <button class="utility-action" id="timingCalibrate">Calibrate timing</button>
               <button class="utility-action" id="demoRun">Demo lesson</button>
+              <div class="timing-trust" id="timingTrust" data-state="practice" aria-live="polite">
+                <span>Practice timing</span>
+                <strong>Calibrate before scores count toward mastery</strong>
+              </div>
             </div>
           </div>
 

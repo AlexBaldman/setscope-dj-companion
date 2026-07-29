@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { access } from "node:fs/promises";
 import {
   getProductSurface,
+  labSurfaces,
+  playerSurfaces,
   practiceSurfaces,
   productSurfaces,
   publicPageFiles,
@@ -15,6 +17,19 @@ assert.equal(new Set(productSurfaces.map(({ id }) => id)).size, productSurfaces.
 assert.equal(new Set(productSurfaces.map(({ file }) => file)).size, productSurfaces.length);
 assert.equal(new Set(productSurfaces.map(({ route }) => route)).size, productSurfaces.length);
 assert.deepEqual(publicPageFiles, productSurfaces.map(({ file }) => file));
+assert.deepEqual(playerSurfaces.map(({ id }) => id), [
+  "setscope",
+  "beat-school",
+  "pitch-gates",
+  "rhythm-roulette",
+  "audio-lab",
+]);
+assert.deepEqual(labSurfaces.map(({ id }) => id), [
+  "midi-playground",
+  "journal",
+  "style-lab",
+]);
+assert(productSurfaces.every(({ navigationGroup }) => ["player", "labs"].includes(navigationGroup)));
 assert(productSurfaces.every(({ room }) => roomManifest[room]));
 await Promise.all(publicPageFiles.map((file) => access(file)));
 

@@ -35,6 +35,15 @@
   line-height: 1.5;
 }
 
+:root[data-theme="light"] .style-intro,
+:root[data-theme="light"] .style-intro h2 {
+  color: #f5efe4;
+}
+
+:root[data-theme="light"] .style-intro p {
+  color: #bdb4a5;
+}
+
 .room-switcher {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

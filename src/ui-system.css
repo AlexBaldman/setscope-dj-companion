@@ -265,6 +265,16 @@ body[data-listening="active"] [data-motion="meter-lock"] .deck-led-bank i {
     rgba(245,240,230,.94);
 }
 
+:root[data-theme="light"] [data-ui="chassis"],
+:root[data-theme="light"] [data-ui="panel"],
+:root[data-theme="light"] [data-ui="metric"] {
+  color: var(--text-primary);
+}
+
+:root[data-theme="light"] [data-ui="screen"] {
+  color: #f5efe4;
+}
+
 @media (pointer: coarse) {
   [data-room] :is(button, a, summary, select, input:not([type="hidden"])) {
     min-block-size: var(--touch-target) !important;

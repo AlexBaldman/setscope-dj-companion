@@ -42,6 +42,9 @@ assert.equal(run.repairTarget.reason, "centered");
 run = reduceBeatSchool(run, { type: "set-phase", phase: "repair", atMs: 5000 });
 assert.equal(targetsForBeatSchoolRun(run).length, 4);
 assert(targetsForBeatSchoolRun(run).every((target) => target.lane === run.repairTarget.lane));
+assert(targetsForBeatSchoolRun(run).every((target) => (
+  target.step % challenge.stepsPerBeat === run.repairTarget.step % challenge.stepsPerBeat
+)), "repair repetitions should preserve the weak event's subdivision");
 
 run = reduceBeatSchool(run, { type: "set-phase", phase: "remix", atMs: 7000 });
 run = reduceBeatSchool(run, { type: "hit", lane: "clap", atMs: 7000 + stepMs * 6.1, velocity: 0.75, sourceKind: "keyboard" });

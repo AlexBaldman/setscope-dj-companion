@@ -1581,3 +1581,44 @@ Production verification:
 Live application:
 
 `https://alexbaldman.github.io/setscope-dj-companion/`
+
+## 2026-07-28 - Set-to-Skill Alpha Foundation
+
+We acted on the cross-disciplinary product audit by tightening the path from a
+DJ-set discovery to trustworthy musical learning. The pass focused on product
+truth and interaction quality rather than adding another mode.
+
+What changed:
+
+- Focused the primary tool rack on Set, Beat, Pitch, Dig, and Tune while keeping
+  MIDI, Journal, and Style available in a compact Labs drawer.
+- Removed invented AudD confidence, timestamps, and transition labels; incomplete
+  matches now enter review instead of presenting false certainty.
+- Anchored recognized moments to capture start, not the later provider response.
+- Added an audio-clock-to-performance-clock bridge for Beat School scoring.
+- Added a four-beat count-in and a tap-based latency calibration that records
+  offset, jitter, samples, method, and confidence.
+- Marked uncalibrated runs as practice evidence only, excluding their timing
+  judgments from mastery while still saving useful receipts.
+- Replaced automatic lesson advancement with explicit Retry, Repair, and Continue
+  decisions driven by phase performance.
+- Made Repair repeat the actual weak subdivision instead of a generic quarter note.
+- Repaired mixed dark-hardware/light-theme contrast and upgraded the browser
+  regression to measure contrast directly.
+- Expanded unit and runtime coverage for navigation groups, provider truthfulness,
+  timing trust, repair behavior, learning eligibility, responsive touch targets,
+  and light-theme legibility.
+
+Why this matters:
+
+SetScope now distinguishes fun feedback from defensible learning evidence. The
+lesson remains welcoming before calibration, but early/late and pocket claims only
+become mastery data once the input path is measured. At the same time, the app
+shell gives the core listener-to-musician journey more prominence without hiding
+the experimental workshop.
+
+Next:
+
+Complete the Set-to-Skill Alpha with representative real recognition clips, one
+canonical track-derived Beat School mission, and a receipt that visibly returns
+to its source set moment.

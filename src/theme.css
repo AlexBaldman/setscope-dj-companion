@@ -285,7 +285,8 @@
   min-width: 0;
 }
 
-.tool-rack-item {
+.tool-rack-item,
+.tool-labs-summary {
   min-width: 74px;
   min-height: var(--control-height-md);
   padding: 6px 9px;
@@ -298,20 +299,24 @@
 }
 
 .tool-rack-item span,
-.tool-rack-item strong {
+.tool-rack-item strong,
+.tool-labs-summary span,
+.tool-labs-summary strong {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.tool-rack-item span {
+.tool-rack-item span,
+.tool-labs-summary span {
   color: var(--text);
   font-size: 12px;
   font-weight: 800;
 }
 
-.tool-rack-item strong {
+.tool-rack-item strong,
+.tool-labs-summary strong {
   margin-top: 2px;
   font-size: 9px;
   font-weight: 800;
@@ -319,11 +324,38 @@
   text-transform: uppercase;
 }
 
-.tool-rack-item.active {
+.tool-rack-item.active,
+.tool-labs-summary.active {
   color: var(--text);
   border-color: color-mix(in srgb, var(--room-accent), white 18%);
   background: color-mix(in srgb, var(--room-accent), var(--surface-2, var(--panel-2)) 88%);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--room-accent), transparent 76%);
+}
+
+.tool-labs {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.tool-labs > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.tool-labs > summary::-webkit-details-marker {
+  display: none;
+}
+
+.tool-labs-items {
+  display: none;
+  align-items: center;
+  gap: 7px;
+  margin-left: 7px;
+}
+
+.tool-labs[open] .tool-labs-items {
+  display: flex;
 }
 
 .practice-context {
@@ -528,12 +560,21 @@
     scroll-snap-align: start;
   }
 
+  .tool-labs {
+    flex: 0 0 auto;
+  }
+
+  .tool-labs > summary {
+    min-width: 64px;
+  }
+
   .game-tools .lcd-pill {
     width: 100%;
     min-height: var(--touch-target);
   }
 
-  .tool-rack.compact .tool-rack-item strong {
+  .tool-rack.compact .tool-rack-item strong,
+  .tool-rack.compact .tool-labs-summary strong {
     display: none;
   }
 

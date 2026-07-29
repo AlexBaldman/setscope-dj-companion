@@ -35,10 +35,39 @@ export function createBeatSchoolAudioEngine() {
     return start;
   }
 
+  function playCountIn({
+    startTime = null,
+    beatDurationSec = 0.6,
+    beats = 4,
+  } = {}) {
+    const audio = ensure();
+    if (!audio) return 0;
+    const start = Number.isFinite(startTime) ? startTime : audio.currentTime + 0.05;
+    for (let beat = 0; beat < beats; beat += 1) {
+      playPad(beat === beats - 1 ? "clap" : "hat", {
+        when: start + beat * beatDurationSec,
+        velocity: beat === 0 || beat === beats - 1 ? 0.92 : 0.68,
+      });
+    }
+    return start;
+  }
+
+  function performanceTimeFor(audioTimeSec) {
+    const audio = ensure();
+    if (!audio) return performance.now();
+    const timestamp = audio.getOutputTimestamp?.();
+    if (Number.isFinite(timestamp?.contextTime) && Number.isFinite(timestamp?.performanceTime)) {
+      return timestamp.performanceTime + (audioTimeSec - timestamp.contextTime) * 1000;
+    }
+    return performance.now() + (audioTimeSec - audio.currentTime) * 1000;
+  }
+
   return {
     ensure,
     playPad,
     playPattern,
+    playCountIn,
+    performanceTimeFor,
     get currentTime() {
       return ensure()?.currentTime || 0;
     },

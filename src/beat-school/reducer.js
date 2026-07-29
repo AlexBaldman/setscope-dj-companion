@@ -64,7 +64,12 @@ export function reduceBeatSchool(run, action) {
 export function targetsForBeatSchoolRun(run) {
   if (run.phase !== "repair" || !run.repairTarget) return structuredClone(run.challenge.pattern);
   const velocity = run.repairTarget.velocity || 0.85;
-  return [0, 4, 8, 12].map((step) => ({ lane: run.repairTarget.lane, step, velocity }));
+  const stepWithinBeat = run.repairTarget.step % run.challenge.stepsPerBeat;
+  return Array.from({ length: run.challenge.beatsPerBar }, (_, beat) => ({
+    lane: run.repairTarget.lane,
+    step: beat * run.challenge.stepsPerBeat + stepWithinBeat,
+    velocity,
+  }));
 }
 
 export function evaluateBeatSchoolPass(run) {

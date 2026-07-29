@@ -1,6 +1,11 @@
 import { createControlObservation, parseMidiMessage } from "./contracts/midi-observation.js";
 import { createMusicalClock, createSemanticInputSpine } from "./input-spine.js";
-import { loadInputMappings, loadLatencyProfile } from "./input-profile-store.js";
+import {
+  isLatencyProfileTrusted,
+  loadInputMappings,
+  loadLatencyProfile,
+  saveLatencyProfile,
+} from "./input-profile-store.js";
 import { createBeatSchoolAudioEngine } from "./beat-school/audio-engine.js";
 import { BEAT_SCHOOL_LANES, beatSchoolStepMs, createBeatSchoolChallenge } from "./beat-school/challenge.js";
 import { createBeatSchoolMappings } from "./beat-school/input-mappings.js";
@@ -24,11 +29,12 @@ const audio = createBeatSchoolAudioEngine();
 const practice = mountPracticeContext("beat-school");
 const sessionId = `beat-school-${Date.now().toString(36)}`;
 const clock = createMusicalClock({ bpm: challenge.bpm, originTimeMs: performance.now() });
+let latencyProfile = loadLatencyProfile();
 const spine = createSemanticInputSpine({
   sessionId,
   clock,
   mappings: createBeatSchoolMappings(loadInputMappings()),
-  latencyProfiles: [loadLatencyProfile()],
+  latencyProfiles: [latencyProfile],
 });
 
 let run = createBeatSchoolRun(challenge);
@@ -37,9 +43,12 @@ let observationCursor = 0;
 let timers = [];
 let lastSource = "Touch pads";
 let savedEvent = null;
+let calibrationSession = null;
 
 const elements = {
   action: document.querySelector("#lessonAction"),
+  alternate: document.querySelector("#lessonAlternate"),
+  calibrate: document.querySelector("#timingCalibrate"),
   demo: document.querySelector("#demoRun"),
   midi: document.querySelector("#midiConnect"),
   status: document.querySelector("#inputStatus"),
@@ -58,11 +67,14 @@ const elements = {
   score: document.querySelector("#scoreValue"),
   accuracy: document.querySelector("#accuracyValue"),
   pocket: document.querySelector("#pocketValue"),
+  timingTrust: document.querySelector("#timingTrust"),
 };
 
 renderStepTrack();
 wirePads();
 elements.action.addEventListener("click", handleLessonAction);
+elements.alternate.addEventListener("click", handleAlternateAction);
+elements.calibrate.addEventListener("click", startTimingCalibration);
 elements.demo.addEventListener("click", runDemoLesson);
 elements.midi.addEventListener("click", connectMidi);
 window.addEventListener("keydown", handleKeyDown);
@@ -100,7 +112,12 @@ function receivePad(lane, velocity, sourceKind, sourceId, timestampMs = performa
 }
 
 function receiveObservation(observation) {
-  const action = spine.receive(observation, { receivedAtMs: performance.now(), audioTimeSec: audio.currentTime });
+  const receivedAtMs = performance.now();
+  if (calibrationSession) {
+    captureCalibrationTap(Number(observation?.timestampMs) || receivedAtMs);
+    return;
+  }
+  const action = spine.receive(observation, { receivedAtMs, audioTimeSec: audio.currentTime });
   if (!action) return;
   const lane = action.action.replace("beat-pad:", "");
   lastSource = sourceLabel(action.sourceKind);
@@ -125,9 +142,8 @@ async function handleLessonAction() {
     return;
   }
   if (run.status === "result") {
-    const next = BEAT_SCHOOL_PHASES[BEAT_SCHOOL_PHASES.indexOf(run.phase) + 1];
-    setPhase(next);
-    render();
+    if (shouldRetryLatestPass()) await retryCurrentPass();
+    else advanceFromResult();
     return;
   }
   if (run.phase === "hear" || run.phase === "watch") {
@@ -136,6 +152,23 @@ async function handleLessonAction() {
     render();
     return;
   }
+  await capturePass();
+}
+
+async function handleAlternateAction() {
+  if (busy || run.status !== "result") return;
+  if (shouldRetryLatestPass()) advanceFromResult();
+  else await retryCurrentPass();
+}
+
+function advanceFromResult() {
+  const next = BEAT_SCHOOL_PHASES[BEAT_SCHOOL_PHASES.indexOf(run.phase) + 1];
+  setPhase(next);
+  render();
+}
+
+async function retryCurrentPass() {
+  setPhase(run.phase);
   await capturePass();
 }
 
@@ -156,21 +189,30 @@ async function playReference(showTargets) {
 
 async function capturePass() {
   busy = true;
-  const leadMs = 600;
-  const startMs = performance.now() + leadMs;
+  const stepDurationSec = beatSchoolStepMs(challenge) / 1000;
+  const beatDurationSec = stepDurationSec * 4;
+  const countInBeats = 4;
+  const countInAudioStart = audio.currentTime + 0.16;
+  const patternAudioStart = countInAudioStart + beatDurationSec * countInBeats;
+  const startMs = audio.performanceTimeFor(patternAudioStart);
   const durationMs = beatSchoolStepMs(challenge) * 16;
   run = reduceBeatSchool(run, { type: "set-phase", phase: run.phase, atMs: startMs });
   clock.restart(startMs);
   render();
+  audio.playCountIn({
+    startTime: countInAudioStart,
+    beatDurationSec,
+    beats: countInBeats,
+  });
   const targets = targetsForBeatSchoolRun(run);
   if (run.phase === "imitate" || run.phase === "repair") {
     audio.playPattern(targets, {
-      startTime: audio.currentTime + leadMs / 1000,
-      stepDurationSec: beatSchoolStepMs(challenge) / 1000,
+      startTime: patternAudioStart,
+      stepDurationSec,
     });
   }
   animatePattern(startMs, targets, run.phase !== "perform");
-  await wait(durationMs + leadMs + 120);
+  await wait(Math.max(0, startMs - performance.now()) + durationMs + 120);
   if (run.phase === "remix") {
     setPhase("save");
   } else {
@@ -213,7 +255,12 @@ function render() {
   elements.coachLine.textContent = phaseCoach(run.phase);
   elements.action.textContent = actionLabel();
   elements.action.disabled = busy || run.status === "saved";
+  elements.alternate.hidden = run.status !== "result";
+  elements.alternate.textContent = alternateActionLabel();
+  elements.alternate.disabled = busy;
   elements.demo.disabled = busy;
+  elements.calibrate.disabled = busy;
+  renderTimingTrust();
   renderTargets();
   renderCoach(result);
 }
@@ -222,6 +269,10 @@ function renderCoach(result) {
   if (!run.passes.length) {
     elements.coachHeading.textContent = "Listen first";
     elements.coachDetail.textContent = "The backbeat lands on beats two and four. Let your hands learn its shape before speed matters.";
+    elements.needle.style.left = "50%";
+  } else if (!timingEligible()) {
+    elements.coachHeading.textContent = "Practice timing only";
+    elements.coachDetail.textContent = `${Math.round(result.accuracy)}% of targets matched. Calibrate timing before early, late, or pocket judgments count as learning evidence.`;
     elements.needle.style.left = "50%";
   } else {
     const direction = result.timingBias === "early" ? "Rushing the beat" : result.timingBias === "late" ? "Behind the beat" : result.timingBias === "silent" ? "No matched hits" : "Centered pocket";
@@ -233,7 +284,15 @@ function renderCoach(result) {
   elements.moveDetail.textContent = moveDetail(run.phase);
   if (savedEvent) {
     elements.receiptHeading.textContent = `${latestBeatSchoolScore(run).score} point run saved`;
-    elements.receiptDetail.textContent = `${lastSource} performance added as rhythm evidence.`;
+    elements.receiptDetail.textContent = savedEvent.metadata?.assistance?.eligibleForMastery
+      ? `${lastSource} performance added as trusted rhythm evidence.`
+      : `${lastSource} practice saved, but excluded from mastery until timing is calibrated.`;
+  } else if (timingEligible()) {
+    elements.receiptHeading.textContent = "Trusted timing ready";
+    elements.receiptDetail.textContent = "A completed unassisted run can count toward rhythm mastery.";
+  } else {
+    elements.receiptHeading.textContent = "Practice evidence only";
+    elements.receiptDetail.textContent = "Runs still save, but mastery waits for a measured timing profile.";
   }
 }
 
@@ -265,7 +324,7 @@ async function connectMidi() {
           observationId: `${sessionId}-${++observationCursor}`,
           sessionId,
           sourceId: input.id,
-          timestampMs: performance.now(),
+          timestampMs: Number.isFinite(event.timeStamp) ? event.timeStamp : performance.now(),
         });
         if (observation?.message.type === "note-on") receiveObservation(observation);
       };
@@ -275,6 +334,96 @@ async function connectMidi() {
   } catch {
     elements.status.textContent = "MIDI BLOCKED";
   }
+}
+
+async function startTimingCalibration() {
+  if (busy) return;
+  busy = true;
+  clearTimers();
+  const beatDurationSec = 60 / challenge.bpm;
+  const warmupBeats = 4;
+  const measuredBeats = 8;
+  const clickCount = warmupBeats + measuredBeats;
+  const audioStart = audio.currentTime + 0.35;
+  const targetTimes = Array.from({ length: measuredBeats }, (_, index) => (
+    audio.performanceTimeFor(audioStart + (warmupBeats + index) * beatDurationSec)
+  ));
+  calibrationSession = {
+    targetTimes,
+    taps: [],
+    usedTargets: new Set(),
+  };
+  elements.status.textContent = "TAP ANY PAD / FOLLOW CLICKS";
+  audio.playCountIn({
+    startTime: audioStart,
+    beatDurationSec,
+    beats: clickCount,
+  });
+  render();
+  await wait((clickCount + 0.4) * beatDurationSec * 1000 + 350);
+  finishTimingCalibration();
+  busy = false;
+  render();
+}
+
+function captureCalibrationTap(atMs) {
+  if (!calibrationSession) return;
+  const candidates = calibrationSession.targetTimes
+    .map((targetAtMs, index) => ({ index, targetAtMs, errorMs: atMs - targetAtMs }))
+    .filter(({ index, errorMs }) => !calibrationSession.usedTargets.has(index) && Math.abs(errorMs) <= 240)
+    .sort((left, right) => Math.abs(left.errorMs) - Math.abs(right.errorMs));
+  const match = candidates[0];
+  if (!match) return;
+  calibrationSession.usedTargets.add(match.index);
+  calibrationSession.taps.push(match);
+  elements.status.textContent = `CALIBRATION / ${calibrationSession.taps.length} OF ${calibrationSession.targetTimes.length}`;
+  renderTimingTrust();
+}
+
+function finishTimingCalibration() {
+  const taps = calibrationSession?.taps || [];
+  calibrationSession = null;
+  if (taps.length < 5) {
+    elements.status.textContent = "CALIBRATION / TRY AGAIN";
+    return;
+  }
+  const errors = taps.map(({ errorMs }) => errorMs);
+  const offsetMs = median(errors);
+  const jitterMs = median(errors.map((error) => Math.abs(error - offsetMs)));
+  const sampleCoverage = Math.min(1, taps.length / 8);
+  const stability = Math.max(0, Math.min(1, 1 - jitterMs / 90));
+  const confidence = Math.min(0.82, 0.42 + sampleCoverage * 0.24 + stability * 0.16);
+  latencyProfile = saveLatencyProfile({
+    profileId: `latency_tap_${Date.now().toString(36)}`,
+    sourceId: "*",
+    inputLatencyMs: Math.max(0, Math.min(180, Math.round(offsetMs))),
+    outputLatencyMs: 0,
+    jitterMs: Math.round(jitterMs),
+    sampleCount: taps.length,
+    confidence,
+    method: "tap",
+  });
+  spine.setLatencyProfiles([latencyProfile]);
+  elements.status.textContent = timingEligible() ? "TIMING CALIBRATED" : "TIMING / LOW CONFIDENCE";
+}
+
+function renderTimingTrust() {
+  if (calibrationSession) {
+    elements.timingTrust.dataset.state = "listening";
+    elements.timingTrust.querySelector("span").textContent = "Calibration";
+    elements.timingTrust.querySelector("strong").textContent = `Tap with the clicks / ${calibrationSession.taps.length} of ${calibrationSession.targetTimes.length} measured`;
+    return;
+  }
+  const trusted = timingEligible();
+  elements.timingTrust.dataset.state = trusted ? "calibrated" : "practice";
+  elements.timingTrust.querySelector("span").textContent = trusted ? "Timing calibrated" : "Practice timing";
+  elements.timingTrust.querySelector("strong").textContent = trusted
+    ? `${latencyProfile.method} profile / ${Math.round(latencyProfile.confidence * 100)}% confidence / ±${Math.round(latencyProfile.jitterMs)} ms`
+    : "Calibrate before early/late scores count toward mastery";
+}
+
+function timingEligible() {
+  return isLatencyProfileTrusted(latencyProfile);
 }
 
 function runDemoLesson() {
@@ -317,6 +466,8 @@ function saveRun(assisted) {
     time: practice.track?.time || "--:--",
     mission: practice.mission || "",
     assisted,
+    calibrationProfile: latencyProfile,
+    timingEligible: timingEligible(),
   });
   savedEvent = persistPerformanceEvent(event, { missionId: practice.missionId });
   practice.markSaved(savedEvent);
@@ -350,10 +501,12 @@ function wait(ms) {
 }
 
 function actionLabel() {
-  if (busy) return run.phase === "hear" || run.phase === "watch" ? "Playing..." : "Get ready...";
+  if (calibrationSession) return "Calibrating...";
+  if (busy) return run.phase === "hear" || run.phase === "watch" ? "Playing..." : "Count in...";
   if (run.status === "result") {
+    if (shouldRetryLatestPass()) return `Retry ${phaseName(run.phase)}`;
     const next = BEAT_SCHOOL_PHASES[BEAT_SCHOOL_PHASES.indexOf(run.phase) + 1];
-    return next === "repair" ? "Repair weak spot" : next === "perform" ? "Perform solo" : "Build a remix";
+    return advanceLabel(next);
   }
   return {
     hear: "Hear groove",
@@ -364,6 +517,30 @@ function actionLabel() {
     remix: "Record remix",
     save: run.status === "saved" ? "Run saved" : "Save run",
   }[run.phase];
+}
+
+function alternateActionLabel() {
+  if (run.status !== "result") return "";
+  if (shouldRetryLatestPass()) {
+    const next = BEAT_SCHOOL_PHASES[BEAT_SCHOOL_PHASES.indexOf(run.phase) + 1];
+    return advanceLabel(next);
+  }
+  return `Retry ${phaseName(run.phase)}`;
+}
+
+function shouldRetryLatestPass() {
+  if (run.status !== "result") return false;
+  const score = latestBeatSchoolScore(run);
+  const minimum = { imitate: 60, repair: 68, perform: 72 }[run.phase] || 0;
+  return score.accuracy < minimum;
+}
+
+function advanceLabel(next) {
+  return next === "repair" ? "Repair weak spot" : next === "perform" ? "Perform solo" : "Build a remix";
+}
+
+function phaseName(phase) {
+  return phase.charAt(0).toUpperCase() + phase.slice(1);
 }
 
 function phaseTag(phase) {
@@ -400,4 +577,11 @@ function moveDetail(phase) {
 
 function sourceLabel(kind) {
   return { touch: "Touch pads", keyboard: "Keyboard", midi: "MIDI", demo: "Demo" }[kind] || "Controller";
+}
+
+function median(values) {
+  const sorted = values.map(Number).filter(Number.isFinite).sort((left, right) => left - right);
+  if (!sorted.length) return 0;
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
 }

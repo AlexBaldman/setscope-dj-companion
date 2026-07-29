@@ -51,6 +51,28 @@ const metadata = createBeatSchoolCompletionEvent({
   trackId: track.id,
   time: track.time,
 });
+assert.equal(metadata.assistance.eligibleForMastery, false, "uncalibrated timing should remain practice-only");
+assert.equal(metadata.calibration.status, "degraded");
+
+const calibratedMetadata = createBeatSchoolCompletionEvent({
+  challenge: { id: "beat-calibrated", lessonId: "backbeat-1", seed: 18, bpm: 94, title: "Calibrated Beat" },
+  score: 92,
+  accuracy: 94,
+  pocket: 88,
+  dynamics: 90,
+  timingBias: "centered",
+  timingEligible: true,
+  calibrationProfile: {
+    profileId: "tap-profile",
+    method: "tap",
+    confidence: 0.68,
+    jitterMs: 16,
+    sampleCount: 8,
+  },
+});
+assert.equal(calibratedMetadata.assistance.eligibleForMastery, true);
+assert.equal(calibratedMetadata.calibration.status, "calibrated");
+assert.equal(calibratedMetadata.calibration.values.sampleCount, 8);
 
 assert.throws(
   () => persistPerformanceEvent(metadata, { missionId: mission.id }),

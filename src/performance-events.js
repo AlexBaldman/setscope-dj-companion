@@ -16,6 +16,7 @@ export function createPerformanceEvent({
   details = {},
   evidence = {},
   assistance = {},
+  calibration = {},
 } = {}) {
   return createPerformanceEventV2({
     modeId,
@@ -28,6 +29,7 @@ export function createPerformanceEvent({
     details,
     evidence,
     assistance,
+    calibration,
   });
 }
 
@@ -175,6 +177,8 @@ export function createBeatSchoolCompletionEvent({
   time = "--:--",
   mission = "",
   assisted = false,
+  calibrationProfile = {},
+  timingEligible = false,
 } = {}) {
   return createPerformanceEvent({
     modeId: "beat-school",
@@ -196,14 +200,27 @@ export function createBeatSchoolCompletionEvent({
       replayHash,
       replayActionCount,
       mission,
+      timingConfidence: calibrationProfile.confidence || 0,
+      timingMethod: calibrationProfile.method || "manual",
+      timingJitterMs: calibrationProfile.jitterMs || 0,
     },
     evidence: {
       summary: `${challenge?.title || "Beat lesson"} / ${score || 0} pts / ${timingBias || "waiting"} pocket`,
     },
     assistance: {
-      level: assisted ? "demo" : "none",
-      eligibleForMastery: !assisted,
-      values: { assisted },
+      level: assisted ? "demo" : timingEligible ? "none" : "guided",
+      eligibleForMastery: !assisted && timingEligible,
+      values: { assisted, timingEligible },
+    },
+    calibration: {
+      status: timingEligible ? "calibrated" : "degraded",
+      values: {
+        profileId: calibrationProfile.profileId || "",
+        method: calibrationProfile.method || "manual",
+        confidence: calibrationProfile.confidence || 0,
+        jitterMs: calibrationProfile.jitterMs || 0,
+        sampleCount: calibrationProfile.sampleCount || 0,
+      },
     },
   });
 }

@@ -5,6 +5,7 @@ export async function captureAudioWindow(stream, durationMs = 4000, { signal } =
 
   const mimeType = chooseMimeType();
   const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+  const captureStartedAtMs = Date.now();
   return new Promise((resolve, reject) => {
     const chunks = [];
     let settled = false;
@@ -38,6 +39,8 @@ export async function captureAudioWindow(stream, durationMs = 4000, { signal } =
             mimeType: blob.type,
             size: blob.size,
             durationMs,
+            captureStartedAtMs,
+            capturedAt: new Date(captureStartedAtMs).toISOString(),
           },
         });
       } catch {
@@ -57,6 +60,7 @@ export async function captureAudioWindow(stream, durationMs = 4000, { signal } =
 }
 
 export async function createSampleAudioPayload(durationMs = 8000) {
+  const captureStartedAtMs = Date.now();
   const sampleRate = 44100;
   const frameCount = Math.floor(sampleRate * (durationMs / 1000));
   const buffer = new ArrayBuffer(44 + frameCount * 2);
@@ -79,6 +83,8 @@ export async function createSampleAudioPayload(durationMs = 8000) {
     mimeType: blob.type,
     size: blob.size,
     durationMs,
+    captureStartedAtMs,
+    capturedAt: new Date(captureStartedAtMs).toISOString(),
   };
 }
 

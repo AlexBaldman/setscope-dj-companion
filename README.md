@@ -40,7 +40,10 @@ npm run dev
 
 Then open `http://127.0.0.1:5173`.
 
-The shared tool rack opens Pitch Gates, Audio Lab, Beat School, Rhythm Roulette, MIDI Playground, the Dev Journal, and the Style Lab. Microphone, an audio file, an internal demo source, explicitly shared browser/system audio, touch, keyboard, or mapped MIDI can drive supported tools.
+The shared tool rack keeps Set, Beat, Pitch, Dig, and Tune in the primary player
+path. MIDI Playground, the Dev Journal, and Style Lab remain close at hand in the
+Labs drawer. Microphone, an audio file, an internal demo source, explicitly shared
+browser/system audio, touch, keyboard, or mapped MIDI can drive supported tools.
 
 The app can still be opened directly from `index.html`, but the recognition demo uses the local API server.
 
@@ -189,5 +192,6 @@ See [docs/NEXT_DOMINOS.md](docs/NEXT_DOMINOS.md) for the canonical, currently ra
 
 SetScope's production loop is now Listen, Understand, Practice, Create, and
 Remember. The shared timing and semantic-input spine now lets normalized device
-events drive one calibrated musical clock. The next lead domino is the first
-four-pad Beat School vertical slice.
+events drive one calibrated musical clock. The next lead domino is completing the
+Set-to-Skill Alpha: route one honestly recognized DJ-set moment into a measured
+Beat School mission and return its learning receipt to that source moment.

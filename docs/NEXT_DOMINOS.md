@@ -1,6 +1,6 @@
 # Next Lead Dominos
 
-Updated 2026-07-27 after the timing spine and first playable Beat School lesson.
+Updated 2026-07-28 after the Set-to-Skill Alpha foundation pass.
 
 This is the canonical priority list. Domain roadmaps hold depth and inspiration;
 this file decides sequencing.
@@ -59,7 +59,36 @@ Delivered:
 The next curriculum pass should add a second two-bar lesson and learner-adjustable
 tempo only after physical controller timing has been measured.
 
-## 3. Physical Hardware Census - Next
+## 3. Set-to-Skill Alpha - In Progress
+
+Prove the product's unique loop with one real path:
+
+1. identify a moment in a DJ set,
+2. preserve its honest timestamp and recognition provenance,
+3. turn its musical feature into a short practice mission,
+4. complete that mission with trustworthy timing, and
+5. return the earned evidence to the original set moment.
+
+Foundation completed:
+
+- five player-facing tools now form the primary app shell; MIDI, Journal, and
+  Style remain accessible in an explicit Labs drawer
+- recognition no longer invents confidence, timestamps, or transition labels
+- capture-start time, rather than response time, anchors a recognized set moment
+- Beat School uses the audio clock as its scoring origin
+- uncalibrated performances remain useful practice but cannot claim timing mastery
+- a tap-calibration flow records offset, jitter, sample count, method, and confidence
+- four-beat count-in, explicit retry/advance decisions, and subdivision-specific
+  repair make the lesson easier to understand and repeat
+
+Next acceptance test:
+
+- run representative DJ-set clips through a real provider token
+- route one recognized tempo/rhythm observation into a canonical Beat School mission
+- complete it with a measured timing profile
+- show the resulting receipt on both the skill graph and source set moment
+
+## 4. Physical Hardware Census
 
 Test the actual Sensel Morph, nanoKEY, Maschine Studio, Maschine Jam, and DJ Hero
 controller against the Playground.
@@ -76,7 +105,7 @@ Record:
 The DJ Hero deck gets a protocol decision only after MIDI, Gamepad, and HID probes
 are observed.
 
-## 4. Creation Handoff
+## 5. Creation Handoff
 
 Let the Beat School result become an editable loop:
 
@@ -89,7 +118,7 @@ Let the Beat School result become an editable loop:
 
 This proves the core thesis that learning should end in authorship.
 
-## 5. Cymatics Mode Explorer
+## 6. Cymatics Mode Explorer
 
 Integrate the sibling cymatics project read-only before hardware control:
 
@@ -102,7 +131,7 @@ Integrate the sibling cymatics project read-only before hardware control:
 
 Actuator control waits behind the separately tested local safety bridge.
 
-## 6. Production Validation
+## 7. Production Validation
 
 - test AudD with a real token and representative DJ-set audio
 - run extended microphone/listening sessions on target mobile hardware

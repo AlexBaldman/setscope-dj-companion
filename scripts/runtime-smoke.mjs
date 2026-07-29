@@ -144,6 +144,24 @@ async function runLightThemePass() {
   for (const { id, route: path } of productSurfaces) {
     await goto(page, path);
     assert(await page.evaluate(() => document.documentElement.dataset.theme === "light"), `${path} should restore light mode`);
+    if (id === "style-lab") {
+      const contrast = await page.locator(".style-intro").evaluate((node) => {
+        const parseRgb = (value) => value.match(/\d+/g)?.slice(0, 3).map(Number) ?? [0, 0, 0];
+        const luminance = (rgb) => {
+          const channels = rgb.map((value) => {
+            const normalized = value / 255;
+            return normalized <= 0.03928
+              ? normalized / 12.92
+              : ((normalized + 0.055) / 1.055) ** 2.4;
+          });
+          return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+        };
+        const foreground = luminance(parseRgb(getComputedStyle(node.querySelector("h2")).color));
+        const background = luminance(parseRgb(getComputedStyle(node).backgroundColor));
+        return (Math.max(foreground, background) + 0.05) / (Math.min(foreground, background) + 0.05);
+      });
+      assert(contrast >= 4.5, `Style Lab light heading should remain legible on black lacquer: ${contrast.toFixed(2)}:1`);
+    }
     await auditPage(page, `${id}-light`);
   }
   collectRuntimeProblems(logs);
@@ -455,6 +473,7 @@ async function verifyBeatSchool(page) {
   await expectVisible(page, "#padBank", "Beat School drum pads");
   await expectCount(page, "#padBank .beat-pad", 4, "Beat School four-pad bank");
   await expectCount(page, "#stepTrack .beat-step", 16, "Beat School step timeline");
+  await expectText(page, "#timingTrust", "Practice timing", "Beat School uncalibrated evidence state");
   await page.locator('[data-lane="kick"]').click();
   await expectText(page, "#inputStatus", "KICK", "Beat School touch input receipt");
   await page.locator("#demoRun").click();
@@ -536,7 +555,10 @@ async function auditPage(page, label) {
         .filter((node) => {
           const rect = node.getBoundingClientRect();
           const style = getComputedStyle(node);
-          return style.display !== "none" && (rect.width < 43 || rect.height < 43);
+          const visible = node.getClientRects().length > 0
+            && style.display !== "none"
+            && style.visibility !== "hidden";
+          return visible && (rect.width < 43 || rect.height < 43);
         })
         .map((node) => {
           const rect = node.getBoundingClientRect();

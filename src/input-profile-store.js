@@ -38,3 +38,15 @@ export function saveLatencyProfile(profile, storage = globalThis.localStorage) {
   storage?.setItem(LATENCY_PROFILE_STORAGE_KEY, JSON.stringify(normalized));
   return normalized;
 }
+
+export function isLatencyProfileTrusted(
+  profile,
+  { minimumConfidence = 0.5, minimumSamples = 5 } = {},
+) {
+  return Boolean(
+    profile
+    && ["tap", "loopback"].includes(profile.method)
+    && Number(profile.confidence) >= minimumConfidence
+    && Number(profile.sampleCount) >= minimumSamples
+  );
+}

@@ -68,12 +68,15 @@ export function createWorkflows(els, { render, renderArchiveList, applySkin, sho
   async function requestRecognition(audio, { signal } = {}) {
     const requestId = uid();
     const windowSeconds = Math.max(1, Math.round(Number(audio?.durationMs || 0) / 1000) || 8);
+    const sessionStartedAtMs = Date.parse(state.recognitionStartedAt || new Date().toISOString());
+    const captureStartedAtMs = Number(audio?.captureStartedAtMs);
+    const observedAtMs = Number.isFinite(captureStartedAtMs) ? captureStartedAtMs : Date.now();
     const payload = await recognizeWindow({
       audio,
       cursor: state.recognitionCursor,
       requestId,
       sessionId: state.recognitionSessionId,
-      setElapsedMs: Math.max(0, Date.now() - Date.parse(state.recognitionStartedAt || new Date().toISOString())),
+      setElapsedMs: Math.max(0, observedAtMs - sessionStartedAtMs),
       signal,
       windowSeconds,
     });

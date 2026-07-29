@@ -5,6 +5,7 @@ import {
   INPUT_MAPPINGS_STORAGE_KEY,
   LATENCY_PROFILE_STORAGE_KEY,
   LEGACY_INPUT_MAPPINGS_STORAGE_KEY,
+  isLatencyProfileTrusted,
   loadInputMappings,
   loadLatencyProfile,
   saveInputMappings,
@@ -69,5 +70,18 @@ const savedLatency = saveLatencyProfile({
 assert.equal(savedLatency.inputLatencyMs, 12);
 assert(values.has(LATENCY_PROFILE_STORAGE_KEY));
 assert.equal(loadLatencyProfile(storage).outputLatencyMs, 8);
+assert.equal(isLatencyProfileTrusted(savedLatency), false);
+
+const tapLatency = saveLatencyProfile({
+  profileId: "tap",
+  sourceId: "*",
+  inputLatencyMs: 24,
+  jitterMs: 18,
+  sampleCount: 8,
+  confidence: 0.68,
+  method: "tap",
+}, storage);
+assert.equal(isLatencyProfileTrusted(tapLatency), true);
+assert.equal(isLatencyProfileTrusted({ ...tapLatency, sampleCount: 3 }), false);
 
 console.log("Input profile store checks passed");

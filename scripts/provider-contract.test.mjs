@@ -106,9 +106,23 @@ assert.equal(auddMatch.provider, "audd");
 assert.equal(auddMatch.title, "Needle Drop");
 assert.equal(auddMatch.artist, "The Test Pressings");
 assert.equal(auddMatch.era, "1990s");
-assert.equal(auddMatch.status, "matched");
-assert.equal(auddMatch.needsReview, false);
+assert.equal(auddMatch.confidence, 0);
+assert.equal(auddMatch.status, "review");
+assert.equal(auddMatch.needsReview, true);
+assert.equal(auddMatch.transition, "Unknown");
 assert.equal(auddMatch.raw.result.label, "Spec Records");
+
+const scoredAudDMatch = mapAudDResult({
+  status: "success",
+  result: {
+    artist: "The Test Pressings",
+    title: "Needle Drop",
+    score: 0.91,
+  },
+});
+assert.equal(scoredAudDMatch.confidence, 91);
+assert.equal(scoredAudDMatch.status, "matched");
+assert.equal(scoredAudDMatch.needsReview, false);
 
 const auddMiss = mapAudDResult({ status: "success", result: null });
 

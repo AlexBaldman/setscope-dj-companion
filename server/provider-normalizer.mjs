@@ -7,12 +7,12 @@ export function normalizeProviderMatch(raw) {
   const confidence = normalizeConfidence(raw.confidence ?? raw.score ?? raw.matchScore ?? 0);
   const status = normalizeStatus(raw.status, { title, artist, confidence });
   return assertNormalizedMatch({
-    time: raw.time || "00:00",
+    time: raw.time || "--:--",
     title: title || "Unknown track",
     artist: artist || "Unknown artist",
     bpm: normalizeBpm(raw.bpm ?? raw.tempo),
     key: raw.key || "-",
-    transition: raw.transition || "Blend",
+    transition: raw.transition || "Unknown",
     confidence,
     wave: clampNumber(raw.wave, 0, 100, 50),
     colors: Array.isArray(raw.colors) ? raw.colors : ["#f0ad4e", "#75d7b6", "#ec6f7e"],
