@@ -13,6 +13,7 @@ const desktopViewport = { width: 1440, height: 1100 };
 const compactViewport = { width: 1024, height: 768 };
 const tabletViewport = { width: 768, height: 1024 };
 const mobileViewport = { width: 390, height: 844 };
+const narrowMobileViewport = { width: 320, height: 720 };
 const failures = [];
 
 let browser;
@@ -28,6 +29,7 @@ try {
   await runResponsiveOverflowPass("compact", compactViewport);
   await runResponsiveOverflowPass("tablet", tabletViewport);
   await runMobileOverflowPass();
+  await runNarrowIntelOverflowPass();
   await runLightThemePass();
   await runReducedMotionPass();
 } finally {
@@ -99,6 +101,20 @@ async function installFakeMicrophone(context) {
 
 async function runMobileOverflowPass() {
   await runResponsiveOverflowPass("mobile", mobileViewport);
+}
+
+async function runNarrowIntelOverflowPass() {
+  const context = await browser.newContext({ viewport: narrowMobileViewport, hasTouch: true });
+  await installFakeMicrophone(context);
+  const page = await context.newPage();
+  const logs = captureRuntimeProblems(page, "narrow-mobile");
+  await goto(page, "/");
+  await page.locator("#workspaceTimelineTab").click();
+  await page.locator(".track-row").first().click();
+  await expectVisible(page, "#intelWorkspace", "narrow mobile Intel workspace");
+  await auditPage(page, "setscope-narrow-mobile-intel");
+  collectRuntimeProblems(logs);
+  await context.close();
 }
 
 async function runResponsiveOverflowPass(viewName, viewport) {

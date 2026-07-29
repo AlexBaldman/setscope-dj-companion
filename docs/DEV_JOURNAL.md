@@ -1531,3 +1531,34 @@ The learning system now has an honest answer to “did this run save?” A parti
 browser write remains recoverable rather than becoming invisible drift, and the
 same completion boundary can later move behind IndexedDB, SQLite, SwiftData, or a
 sync service without changing every game controller.
+
+## 2026-07-28 - Repository Hygiene and Cross-Platform Layout Repair
+
+We audited every local branch, remote branch, worktree, pull request, and
+unreachable commit before doing any cleanup. The repository already had one
+intentional line of development: `main`, synchronized with `origin/main`, with no
+stranded commits or stale branches to merge or delete. The useful cleanup target
+was instead the failing Linux browser checks in GitHub Actions.
+
+What changed:
+
+- Traced the GitHub-only phone overflow to native form-control minimum widths in
+  the Intel workspace's two-column metadata editor.
+- Replaced intrinsic grid tracks with shrink-safe tracks and hardened the
+  inspector, panel header, content blocks, and fields against width propagation.
+- Constrained the mobile workspace shell and tab grid without hiding overflow,
+  preserving complete controls down to a 320-pixel viewport.
+- Added a dedicated narrow-phone browser regression that opens a timeline track
+  and audits the resulting Intel workspace.
+- Updated the CI checkout and Node setup actions to their current major versions.
+- Upgraded `esbuild` to its patched release and cleared the only dependency
+  advisory.
+- Re-ran source checks, 26 unit groups, API smoke checks, the complete responsive
+  browser suite, the Pages build, and the built-site browser suite.
+
+Why this matters:
+
+Local macOS rendering and GitHub's Linux rendering now follow the same explicit
+layout contract. Repository cleanup also remains evidence-based: no branch was
+deleted merely to make the branch list look tidy, and future narrow-screen
+regressions have a focused test before they can reach GitHub Pages.
