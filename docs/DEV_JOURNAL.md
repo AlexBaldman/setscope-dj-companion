@@ -1562,3 +1562,22 @@ Local macOS rendering and GitHub's Linux rendering now follow the same explicit
 layout contract. Repository cleanup also remains evidence-based: no branch was
 deleted merely to make the branch list look tidy, and future narrow-screen
 regressions have a focused test before they can reach GitHub Pages.
+
+## 2026-07-28 - First Production GitHub Pages Deployment
+
+We made the repository public so GitHub Pages could run on the current account
+plan, enabled GitHub Actions as the Pages source, and successfully deployed the
+verified `main` artifact with HTTPS enforced.
+
+Production verification:
+
+- All eight product routes returned HTTP 200 from the live Pages origin.
+- Every route rendered the complete eight-tool shared navigation.
+- All image assets loaded with no browser console, page, or HTTP errors.
+- The live mobile Timeline-to-Intel flow worked at 320 x 720.
+- The deployed Intel workspace had no horizontal overflow and kept Save and
+  Listen fully inside the viewport.
+
+Live application:
+
+`https://alexbaldman.github.io/setscope-dj-companion/`
