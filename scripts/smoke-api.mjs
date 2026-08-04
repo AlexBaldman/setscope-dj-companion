@@ -18,6 +18,10 @@ const server = spawn(process.execPath, ["server.mjs"], {
     AUDD_TOKEN: "",
     PORT: String(port),
     SETSCOPE_DATA_DIR: dataDirectory,
+    SETSCOPE_ALLOWED_ORIGINS: "https://app.setscope.test",
+    SETSCOPE_OIDC_ISSUER: "",
+    SETSCOPE_OIDC_AUDIENCE: "",
+    SETSCOPE_OIDC_JWKS_URL: "",
   },
   stdio: ["ignore", "pipe", "pipe"],
 });
@@ -37,7 +41,7 @@ try {
 
   const foreignHost = await rawRequest(`${baseUrl}/api/health`, { host: "attacker.example" });
   assert.equal(foreignHost.status, 403);
-  assert.equal(foreignHost.body.error, "local_host_required");
+  assert.equal(foreignHost.body.error, "allowed_host_required");
 
   const foreignOrigin = await fetch(`${baseUrl}/api/analyze`, {
     method: "POST",
@@ -48,7 +52,32 @@ try {
     body: JSON.stringify({ tracks: [] }),
   });
   assert.equal(foreignOrigin.status, 403);
-  assert.equal((await foreignOrigin.json()).error, "local_origin_required");
+  assert.equal((await foreignOrigin.json()).error, "allowed_origin_required");
+
+  const preflight = await fetch(`${baseUrl}/api/recognize`, {
+    method: "OPTIONS",
+    headers: { origin: "https://app.setscope.test" },
+  });
+  assert.equal(preflight.status, 204);
+  assert.equal(preflight.headers.get("access-control-allow-origin"), "https://app.setscope.test");
+
+  const remoteAnalysis = await fetch(`${baseUrl}/api/analyze`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: "https://app.setscope.test",
+    },
+    body: JSON.stringify({ tracks: [] }),
+  });
+  assert.equal(remoteAnalysis.status, 503);
+  assert.equal(remoteAnalysis.headers.get("access-control-allow-origin"), "https://app.setscope.test");
+  assert.equal((await remoteAnalysis.json()).error, "remote_auth_not_configured");
+
+  const remoteJournal = await fetch(`${baseUrl}/api/journal`, {
+    headers: { origin: "https://app.setscope.test" },
+  });
+  assert.equal(remoteJournal.status, 403);
+  assert.equal((await remoteJournal.json()).error, "remote_route_not_available");
 
   const audioBytes = Buffer.from("UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=", "base64");
   const recognition = await postAudio(`${baseUrl}/api/recognize`, audioBytes, {

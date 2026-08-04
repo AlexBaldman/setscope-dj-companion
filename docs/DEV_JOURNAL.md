@@ -1705,3 +1705,47 @@ Next:
 Synchronize imported Pitch Gates targets to source timestamps and loop playback,
 add a listen-predict-sing reference-tone cycle, preserve full versioned replay
 payloads, and separate controller-specific Beat School latency profiles.
+
+## 2026-08-04 - Authenticated Gateway and Trusted Takes
+
+We reviewed the app as a product someone could pay for, concentrating on the
+boundary between a delightful local prototype and a trustworthy public service.
+The review found that remote recognition needed identity before deployment, and
+that Beat School was accidentally accepting count-in taps as scored mistakes.
+
+What changed:
+
+- Added validated runtime configuration so a static Pages build can discover a
+  separately deployed HTTPS recognition API without moving archives or the
+  journal into the cloud.
+- Added strict public host/origin policy, cross-origin route isolation, preflight
+  support, and short-window recognition abuse limits.
+- Added fail-closed RS256 OIDC verification for public recognition and analysis.
+  Loopback development remains local and zero-login.
+- Migrated recognition idempotency records to an owner-scoped key so two users
+  can safely submit the same request ID.
+- Moved rate-limit consumption inside the idempotent provider operation so a
+  replay does not spend another request allowance.
+- Added a post-deploy canary that verifies every registered product page,
+  `runtime-config.json`, and configured API health.
+- Replaced silent first-load story fixtures with an honest empty listening
+  moment; the fictional set now appears only after the user chooses Demo.
+- Prevented Beat School count-in taps from entering a scored take.
+- Bound timing calibration to the exact touch, keyboard, or MIDI controller used
+  instead of applying one wildcard profile to unrelated hardware.
+- Stored the complete versioned Beat School replay inside its performance receipt
+  and added a real Run it back loop after save.
+
+Why this matters:
+
+The public recognition path no longer mistakes CORS for identity, customer
+request IDs no longer share one global namespace, and deployment has a live
+verification step. Beat School receipts also contain enough evidence to rebuild
+the take that produced them, while the lesson begins and repeats more fairly.
+
+Next:
+
+Build the first Catch, Learn, Return quest around a source-tempo Beat School
+lesson and a visibly changed track moment. Before paid recognition ships,
+add a durable usage ledger, shared quotas, account UI, and an independently
+deployed API with migrations and rollback.

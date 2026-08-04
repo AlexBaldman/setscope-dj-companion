@@ -8,6 +8,9 @@ globalThis.localStorage = {
   setItem: (key, value) => values.set(key, String(value)),
 };
 globalThis.fetch = async (url) => {
+  if (String(url).endsWith("/runtime-config.json")) {
+    return new Response(JSON.stringify({ schemaVersion: 1, apiBaseUrl: "" }), { status: 200 });
+  }
   assert(String(url).endsWith("/docs/DEV_JOURNAL.md"));
   return new Response("# SetScope Dev Journal\n\n## Published\n\nStatic journal fixture.\n", { status: 200 });
 };

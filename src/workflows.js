@@ -8,7 +8,9 @@ import {
   nextTimecode,
   normalizeTrack,
   persist,
+  prepareDemoSet,
   resetForNewSet,
+  seedDemoTracks,
   setSelectedId,
   state,
   uiState,
@@ -87,6 +89,7 @@ export function createWorkflows(els, { render, renderArchiveList, applySkin, sho
 
   function runLocalDemoFallback() {
     window.clearInterval(demoTimer);
+    seedDemoTracks();
     let index = 0;
     els.engineStatus.textContent = "Listening";
     setSelectedId(state.tracks[index]?.id);
@@ -107,6 +110,8 @@ export function createWorkflows(els, { render, renderArchiveList, applySkin, sho
   function runDemo() {
     stopListening({ announce: false });
     window.clearInterval(demoTimer);
+    const freshDemo = prepareDemoSet();
+    if (freshDemo) document.querySelector("#setTitle").textContent = "Jazzy Jeff study demo";
     let captures = 0;
     els.engineStatus.textContent = "Recognizing";
     showToast("Recognition stub started");
@@ -317,6 +322,7 @@ export function createWorkflows(els, { render, renderArchiveList, applySkin, sho
   function newSet() {
     stopListening({ announce: false });
     resetForNewSet();
+    document.querySelector("#setTitle").textContent = "Untitled listening session";
     addTrack({
       time: "00:00",
       title: "Listening for first track",
@@ -335,6 +341,7 @@ export function createWorkflows(els, { render, renderArchiveList, applySkin, sho
       needsReview: true,
       notes:
         "Start with a mic capture, imported audio, or manual entry. The archive stores a timestamped track log with analysis fields.",
+      placeholder: true,
     });
     render();
     refreshArchiveList();

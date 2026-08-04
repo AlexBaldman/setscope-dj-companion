@@ -7,7 +7,13 @@ import {
   recognizeAudioWindow,
 } from "./recognition-provider.mjs";
 
-export function createApiRouter({ archiveStore, journalStore, recognitionStore }) {
+export function createApiRouter({
+  archiveStore,
+  journalStore,
+  recognitionStore,
+  recognitionLimiter,
+  recognitionClientKey = () => "anonymous",
+}) {
   return async function routeApi(url, request, response) {
     if (url.pathname === "/api/health") {
       sendJson(response, 200, {
@@ -33,19 +39,29 @@ export function createApiRouter({ archiveStore, journalStore, recognitionStore }
       const demoMode = header(request, "x-setscope-demo") === "1";
       const controller = new AbortController();
       request.once("aborted", () => controller.abort("client_aborted"));
-      const transaction = await recognitionStore.execute(requestId, () => recognizeAudioWindow({
-        requestId,
-        cursor,
-        audio: { ...audio, durationMs: windowMs },
-        signal: controller.signal,
-        metadata: {
-          sessionId,
-          setElapsedMs,
-          windowSeconds: Math.max(1, Math.round(windowMs / 1000)),
-          demoMode,
-        },
-      }));
-      logRecognitionTransaction(transaction, requestId);
+      let rate = null;
+      const principal = request.setscopePrincipal || { tenantId: "local" };
+      const transaction = await recognitionStore.execute(requestId, async () => {
+        rate = recognitionLimiter?.consume(principal.tenantId || recognitionClientKey(request));
+        return recognizeAudioWindow({
+          requestId,
+          cursor,
+          audio: { ...audio, durationMs: windowMs },
+          signal: controller.signal,
+          metadata: {
+            sessionId,
+            setElapsedMs,
+            windowSeconds: Math.max(1, Math.round(windowMs / 1000)),
+            demoMode,
+          },
+        });
+      }, principal.tenantId);
+      if (rate) {
+        response.setHeader("x-ratelimit-limit", String(rate.limit));
+        response.setHeader("x-ratelimit-remaining", String(rate.remaining));
+        response.setHeader("x-ratelimit-reset", new Date(rate.resetAt).toISOString());
+      }
+      logRecognitionTransaction(transaction, requestId, principal);
       sendJson(response, 200, {
         ...transaction.value,
         transaction: {
@@ -117,7 +133,7 @@ function finiteHeader(request, name) {
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
 }
 
-function logRecognitionTransaction(transaction, requestId) {
+function logRecognitionTransaction(transaction, requestId, principal = {}) {
   const observation = transaction.value?.observation || {};
   console.log(JSON.stringify({
     event: "recognition_transaction",
@@ -127,5 +143,8 @@ function logRecognitionTransaction(transaction, requestId) {
     provider: observation.provider || "unknown-provider",
     latencyMs: observation.latencyMs || 0,
     replayed: transaction.replayed,
+    tenantId: principal.tenantId || "local",
+    plan: principal.plan || "local",
+    platform: principal.platform || "unknown",
   }));
 }

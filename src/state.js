@@ -26,12 +26,12 @@ let selectedId = state.tracks[0]?.id;
 
 function loadState(storage = localStorage) {
   const saved = storage.getItem(STORAGE_KEY);
-  if (!saved) return { tracks: cloneDemoTracks(uid) };
+  if (!saved) return { tracks: [createStarterTrack()] };
   try {
     const parsed = JSON.parse(saved);
-    return parsed.tracks?.length ? parsed : { tracks: cloneDemoTracks(uid) };
+    return Array.isArray(parsed.tracks) ? parsed : { tracks: [createStarterTrack()] };
   } catch {
-    return { tracks: cloneDemoTracks(uid) };
+    return { tracks: [createStarterTrack()] };
   }
 }
 
@@ -211,6 +211,9 @@ export function completePracticeMission(missionId, event) {
 }
 
 export function addTrack(track = {}) {
+  if (!track.placeholder && state.tracks.length && state.tracks.every((item) => item.placeholder)) {
+    state.tracks = [];
+  }
   const created = {
     id: uid(),
     time: track.time || nextTimecode(),
@@ -231,6 +234,7 @@ export function addTrack(track = {}) {
     why: track.why || "Captured into the timeline for follow-up listening.",
     status: track.status || "review",
     needsReview: track.needsReview ?? true,
+    placeholder: Boolean(track.placeholder),
     notes:
       track.notes ||
       "Captured from the set. Add recognition provider data, release context, samples, label info, and DJ transition notes here.",
@@ -241,6 +245,24 @@ export function addTrack(track = {}) {
   return created;
 }
 
+export function prepareDemoSet() {
+  return !state.tracks.length || state.tracks.every((track) => track.placeholder);
+}
+
+export function seedDemoTracks() {
+  if (state.tracks.length && state.tracks.every((track) => track.placeholder)) {
+    state.tracks = [];
+  }
+  const existing = new Set(state.tracks.map((track) => `${track.artist}\0${track.title}`));
+  const additions = cloneDemoTracks(uid)
+    .map(normalizeTrack)
+    .filter((track) => !existing.has(`${track.artist}\0${track.title}`));
+  state.tracks.push(...additions);
+  selectedId = additions[0]?.id || state.tracks[0]?.id;
+  persist();
+  return additions;
+}
+
 export function upsertRecognizedTrack(match) {
   const requestId = match.observation?.requestId || match.transaction?.requestId || "";
   const priorCapture = requestId ? state.captureLog.find((entry) => entry.requestId === requestId) : null;
@@ -248,6 +270,10 @@ export function upsertRecognizedTrack(match) {
     const priorTrack = state.tracks.find((track) => track.id === priorCapture.trackId);
     if (priorTrack) selectedId = priorTrack.id;
     return priorTrack || null;
+  }
+  if (state.tracks.length && state.tracks.every((track) => track.placeholder)) {
+    state.tracks = [];
+    selectedId = undefined;
   }
   const existing = state.tracks.find((track) => track.time === match.time && track.title === match.title);
   const next = normalizeTrack({
@@ -525,6 +551,32 @@ export function resetForNewSet() {
   state.tracks = [];
   selectedId = undefined;
   persist();
+}
+
+function createStarterTrack() {
+  return {
+    id: uid(),
+    time: "00:00",
+    title: "Listening for first track",
+    artist: "Your audio goes here",
+    bpm: 0,
+    key: "-",
+    transition: "Blend",
+    tags: [],
+    confidence: 0,
+    wave: 18,
+    colors: ["#f0ad4e", "#75d7b6", "#ec6f7e"],
+    era: "New session",
+    label: "Not analyzed",
+    source: "Mic or import",
+    texture: "Waiting for signal",
+    lineage: "No musical claim yet",
+    why: "Import audio, start listening, or choose the explicit demo to begin.",
+    status: "unknown",
+    needsReview: true,
+    placeholder: true,
+    notes: "This is an empty listening moment, not a recognized track. Replace it with your audio or try the demo set.",
+  };
 }
 
 function appendAudioEvent(event) {

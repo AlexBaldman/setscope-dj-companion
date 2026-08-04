@@ -1,7 +1,7 @@
 import { audioEventLabels, audioEventsForTrack, normalizeTrack, state } from "./state.js";
 
 export function createSetCoachModel() {
-  const tracks = state.tracks.map(normalizeTrack);
+  const tracks = state.tracks.filter((track) => !track.placeholder).map(normalizeTrack);
   const events = state.audioEvents || [];
   const reviewTracks = tracks.filter((track) => track.needsReview);
   const tracksWithSignals = tracks.filter((track) => audioEventsForTrack(track, 100).length > 0);
@@ -37,6 +37,12 @@ export function createSetCoachModel() {
 }
 
 function buildCoachActions({ events, labeledEvents, reviewTracks, tracks, tracksWithSignals }) {
+  if (!tracks.length) {
+    return [
+      { action: "listen", button: "Start listening", detail: "Catch the room", title: "Find the first record" },
+      { action: "demo", button: "Try demo", detail: "Explore a sample set", title: "See SetScope in motion" },
+    ];
+  }
   const unlabeledEvent = events.find((event) => !audioEventLabels(event).length);
   const actions = [];
   if (reviewTracks.length) {
@@ -84,6 +90,13 @@ function buildCoachActions({ events, labeledEvents, reviewTracks, tracks, tracks
 }
 
 function buildCreativePrompts({ bpms, events, reviewTracks, tracks, transitions }) {
+  if (!tracks.length) {
+    return [
+      "Start with one real musical moment and let the timeline grow from evidence.",
+      "Use Demo when you want to explore without microphone permission.",
+      "Import a recording when the source is already on this device.",
+    ];
+  }
   const prompts = [];
   const range = bpms.length ? Math.max(...bpms) - Math.min(...bpms) : 0;
   if (range >= 10) prompts.push("Try a tempo-story pass: mark where the room climbs, settles, and snaps back.");

@@ -48,6 +48,10 @@ The current MVP supports the essential loop:
   deterministic demo, and local MIDI Learn.
 - Cross-session Skill Constellation and resumable Practice Missions connect set
   moments to trusted learning evidence.
+- Optional Pages-to-API recognition routing is HTTPS-only, OIDC-protected,
+  tenant-scoped, and covered by a post-deploy route canary.
+- Beat School excludes count-in taps, stores complete deterministic take replays,
+  binds timing trust to one controller, and offers a repeat-take loop after save.
 
 ## MVP Gaps
 
@@ -60,6 +64,12 @@ The current MVP supports the essential loop:
 - Pitch Gates detects stable monophonic pitch; instrument-family classification and chord detection are later work.
 - Shared computer-audio capture depends on explicit browser/OS sharing support and permission.
 - iOS/ShazamKit path is designed conceptually but not implemented.
+- Paid live recognition still needs account UI, a production API deployment,
+  durable usage metering, shared quotas, and billing integration. The current
+  in-memory request limit is abuse friction only.
+- A fresh browser opens on an honest starter moment and replaces it with real
+  audio or an explicitly selected demo. The next onboarding step is turning that
+  choice into a guided three-minute quest.
 
 ## Launch-Quality Checklist
 
@@ -75,6 +85,8 @@ The current MVP supports the essential loop:
 - Keep the no-horizontal-overflow and labeled-control browser audit green across every top-level surface.
 - Run `npm run test:runtime` before major UI commits.
 - Decide public/private repo status and license.
+- Make first launch an explicit Catch, Learn, Return quest and visibly attach the
+  completed Beat School receipt to its source track.
 
 ## Verification Commands
 

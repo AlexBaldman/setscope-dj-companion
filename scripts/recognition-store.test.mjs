@@ -31,6 +31,14 @@ assert.equal(executions, 1, "committed requests should replay after store recrea
 assert.equal(replay.replayed, true);
 assert.equal(replay.value.match.title, "One committed result");
 
+let secondOwnerExecutions = 0;
+const secondOwner = await restartedStore.execute(requestId, async () => {
+  secondOwnerExecutions += 1;
+  return { match: { title: "Independent owner result" } };
+}, "owner_b");
+assert.equal(secondOwner.replayed, false, "request IDs should be isolated by owner");
+assert.equal(secondOwnerExecutions, 1);
+
 await restartedStore.execute("recognition_test_002", async () => ({ match: { title: "Two" } }));
 await restartedStore.execute("recognition_test_003", async () => ({ match: { title: "Three" } }));
 assert.equal(restartedStore.count(), 2, "the transaction ledger should remain bounded");

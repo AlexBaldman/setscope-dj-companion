@@ -67,7 +67,7 @@ export function createRenderer(els, handlers) {
           <div class="mini-wave"></div>
           ${renderTrackEventStrip(events)}
         </div>
-        <div class="tag bpm">${track.bpm} BPM</div>
+        <div class="tag bpm">${track.bpm || "--"} BPM</div>
         <div class="tag">${escapeHtml(track.transition)}</div>
       `;
       row.addEventListener("click", () => handlers.onSelectTrack(track.id));
@@ -101,12 +101,13 @@ export function createRenderer(els, handlers) {
     els.nextMoveDetail.textContent = move.detail;
     els.nextMoveMode.textContent = move.modeId ? modeLabel(move.modeId) : "Listen";
     els.nextMoveAction.textContent = move.action;
-    els.nextMoveTrack.textContent = track?.title || "Catch the first record";
+    els.nextMoveTrack.textContent = move.modeId ? track?.title || "Selected record" : "Your first record";
     els.sessionCaptured.textContent = session.stats.captured;
     els.sessionPracticed.textContent = session.stats.practiced;
     els.sessionCompleted.textContent = session.stats.missionsCompleted;
-    els.nextMoveBtn.disabled = !move.modeId;
+    els.nextMoveBtn.disabled = !move.modeId && !move.command;
     els.nextMoveBtn.dataset.modeId = move.modeId;
+    els.nextMoveBtn.dataset.command = move.command || "";
     els.nextMoveBtn.dataset.mission = move.prompt;
     els.nextMoveBtn.dataset.missionId = move.missionId;
     els.nextMoveBtn.dataset.trackId = move.trackId || "";
@@ -149,7 +150,7 @@ export function createRenderer(els, handlers) {
     els.momentList.innerHTML = `
       <li>${track.time} entry with ${track.transition.toLowerCase()} transition</li>
       <li>${track.bpm} BPM, Camelot ${track.key}</li>
-      <li>${track.confidence || 76}% recognition confidence</li>
+      <li>${Number.isFinite(Number(track.confidence)) ? Number(track.confidence) : 0}% recognition confidence</li>
       <li><span class="evidence-kind" data-kind="${escapeHtml(track.observation?.provenance || (track.provider === "setscope-stub" ? "story" : "inference"))}">${escapeHtml(formatEvidenceKind(track.observation?.provenance || (track.provider === "setscope-stub" ? "story" : "inference")))}</span> ${escapeHtml(track.observation?.outcome || track.status || "review")}</li>
       ${renderTrackToolbeltMoments(trackEvents)}
     `;
@@ -192,7 +193,7 @@ export function createRenderer(els, handlers) {
   }
 
   function renderSummary() {
-    const tracks = state.tracks.map(normalizeTrack);
+    const tracks = state.tracks.filter((track) => !track.placeholder).map(normalizeTrack);
     const bpms = tracks.map((track) => Number(track.bpm)).filter(Boolean);
     const transitions = mode(tracks.map((track) => track.transition));
     const eras = tracks.map((track) => track.era).filter(Boolean);
@@ -396,16 +397,16 @@ export function createRenderer(els, handlers) {
   }
 
   function renderTrackTags(track) {
-    normalizeTrack(track);
-    if (!track.tags.length) {
+    const normalized = normalizeTrack(track);
+    if (!normalized.tags.length) {
       els.tagList.innerHTML = `<p>No crate tags yet.</p>`;
     } else {
-      els.tagList.innerHTML = track.tags
+      els.tagList.innerHTML = normalized.tags
         .map((tag) => `<span class="crate-tag">${escapeHtml(tag)}</span>`)
         .join("");
     }
     els.tagButtons.forEach((button) => {
-      button.classList.toggle("active", track.tags.includes(button.dataset.quickTag));
+      button.classList.toggle("active", normalized.tags.includes(button.dataset.quickTag));
     });
   }
 

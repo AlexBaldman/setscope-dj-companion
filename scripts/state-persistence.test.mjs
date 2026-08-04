@@ -33,7 +33,9 @@ assert.equal("archiveList" in durableOnly, false);
 const beforeAddCount = durableOnly.tracks.length;
 addTrack({ title: "Command persistence" });
 const afterCommand = JSON.parse(localStorage.getItem("setscope-draft-v1"));
-assert.equal(afterCommand.tracks.length, beforeAddCount + 1);
+assert.equal(durableOnly.tracks[0].placeholder, true);
+assert.equal(afterCommand.tracks.length, beforeAddCount, "the first real track should replace the starter moment");
+assert.equal(afterCommand.tracks[0].title, "Command persistence");
 const editedDraft = structuredClone(state);
 editedDraft.tracks.push({
   id: "latest-track-edit",

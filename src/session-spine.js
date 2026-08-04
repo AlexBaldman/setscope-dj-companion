@@ -65,10 +65,10 @@ export function completePracticeMission(mission, event, completedAt = new Date()
 }
 
 export function deriveSessionSpine(draft = {}, selectedTrack = null, { skillGraph = null } = {}) {
-  const tracks = Array.isArray(draft.tracks) ? draft.tracks : [];
+  const tracks = (Array.isArray(draft.tracks) ? draft.tracks : []).filter((track) => !track?.placeholder);
   const events = Array.isArray(draft.audioEvents) ? draft.audioEvents : [];
   const missions = (Array.isArray(draft.practiceMissions) ? draft.practiceMissions : []).map(normalizePracticeMission);
-  const track = selectedTrack || tracks[0] || null;
+  const track = selectedTrack && !selectedTrack.placeholder ? selectedTrack : tracks[0] || null;
   const trackMissions = track ? missions.filter((mission) => mission.trackId === track.id) : [];
   const completedModes = completedModesForTrack(track, events, trackMissions);
   const activeMission = trackMissions.find((mission) => mission.status === "active") || null;
@@ -105,6 +105,7 @@ function recommendMove(track, completedModes, skillGraph) {
       detail: "Listen or import audio to give the session a musical center.",
       prompt: "",
       action: "Listen",
+      command: "listen",
       missionId: "",
     };
   }

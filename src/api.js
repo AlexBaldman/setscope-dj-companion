@@ -1,12 +1,16 @@
+import { loadRuntimeConfig } from "./runtime-config.js";
+
 export async function getApiHealth() {
-  if (isStaticDeployment()) return staticHealth();
-  const response = await fetch("/api/health");
+  const endpoint = await recognitionApiUrl("/api/health");
+  if (!endpoint) return staticHealth();
+  const response = await fetch(endpoint);
   if (!response.ok) throw new Error("health_check_failed");
   return response.json();
 }
 
 export async function getProviderDiagnostics() {
-  if (isStaticDeployment()) {
+  const endpoint = await recognitionApiUrl("/api/providers/diagnostics");
+  if (!endpoint) {
     return {
       ok: true,
       checks: [
@@ -15,7 +19,7 @@ export async function getProviderDiagnostics() {
       ],
     };
   }
-  const response = await fetch("/api/providers/diagnostics");
+  const response = await fetch(endpoint);
   if (!response.ok) throw new Error("provider_diagnostics_failed");
   return response.json();
 }
@@ -30,19 +34,21 @@ export async function recognizeWindow({
   windowSeconds = 12,
   demoMode = false,
 }) {
-  if (isStaticDeployment()) throw new Error("static_demo_recognition");
+  const endpoint = await recognitionApiUrl("/api/recognize");
+  if (!endpoint) throw new Error("static_demo_recognition");
   const body = audio?.blob instanceof Blob ? audio.blob : new Blob([], { type: audio?.mimeType || "application/octet-stream" });
-  const response = await fetch("/api/recognize", {
+  const headers = await authenticatedHeaders({
+    "content-type": body.type || "application/octet-stream",
+    "x-setscope-cursor": String(cursor || 0),
+    "x-setscope-request-id": requestId,
+    "x-setscope-session-id": sessionId || "",
+    "x-setscope-set-elapsed-ms": String(setElapsedMs || 0),
+    "x-setscope-window-ms": String(Math.max(1000, Number(audio?.durationMs || windowSeconds * 1000))),
+    "x-setscope-demo": demoMode ? "1" : "0",
+  });
+  const response = await fetch(endpoint, {
     method: "POST",
-    headers: {
-      "content-type": body.type || "application/octet-stream",
-      "x-setscope-cursor": String(cursor || 0),
-      "x-setscope-request-id": requestId,
-      "x-setscope-session-id": sessionId || "",
-      "x-setscope-set-elapsed-ms": String(setElapsedMs || 0),
-      "x-setscope-window-ms": String(Math.max(1000, Number(audio?.durationMs || windowSeconds * 1000))),
-      "x-setscope-demo": demoMode ? "1" : "0",
-    },
+    headers,
     body,
     signal,
   });
@@ -51,7 +57,8 @@ export async function recognizeWindow({
 }
 
 export async function analyzeSet(tracks) {
-  if (isStaticDeployment()) {
+  const endpoint = await recognitionApiUrl("/api/analyze");
+  if (!endpoint) {
     const bpms = tracks.map((track) => Number(track.bpm)).filter((bpm) => Number.isFinite(bpm) && bpm > 0);
     return {
       trackCount: tracks.length,
@@ -59,9 +66,9 @@ export async function analyzeSet(tracks) {
       reviewCount: tracks.filter((track) => track.needsReview).length,
     };
   }
-  const response = await fetch("/api/analyze", {
+  const response = await fetch(endpoint, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: await authenticatedHeaders({ "content-type": "application/json" }),
     body: JSON.stringify({ tracks }),
   });
   if (!response.ok) throw new Error("analysis_failed");
@@ -150,6 +157,21 @@ function staticHealth() {
       native: { target: "ShazamKit", status: "Planned iOS adapter" },
     },
   };
+}
+
+async function recognitionApiUrl(path) {
+  if (!isStaticDeployment()) return path;
+  const { apiBaseUrl } = await loadRuntimeConfig();
+  return apiBaseUrl ? `${apiBaseUrl}${path}` : "";
+}
+
+async function authenticatedHeaders(input) {
+  const headers = { ...input, "x-setscope-client-platform": "web" };
+  const getAccessToken = globalThis.__SETSCOPE_AUTH__?.getAccessToken;
+  if (typeof getAccessToken !== "function") return headers;
+  const token = await getAccessToken();
+  if (typeof token === "string" && token.trim()) headers.authorization = `Bearer ${token.trim()}`;
+  return headers;
 }
 
 function saveStaticSet(input) {

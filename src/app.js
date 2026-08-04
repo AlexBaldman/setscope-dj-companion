@@ -219,6 +219,16 @@ function toggleSelectedEventLabel(label) {
 
 function runCoachAction(dataset) {
   const action = dataset.coachAction;
+  if (action === "listen") {
+    cockpitWorkspace.select("signal", { reveal: true });
+    workflows.toggleListening();
+    return;
+  }
+  if (action === "demo") {
+    cockpitWorkspace.select("signal", { reveal: true });
+    workflows.runDemo();
+    return;
+  }
   if (action === "review") {
     uiState.reviewOnly = true;
     uiState.signalFilter = "all";
@@ -257,6 +267,11 @@ function runCoachAction(dataset) {
 function launchNextMove() {
   const track = getSelectedTrack();
   const modeId = els.nextMoveBtn.dataset.modeId;
+  if (els.nextMoveBtn.dataset.command === "listen") {
+    cockpitWorkspace.select("signal", { reveal: true });
+    workflows.toggleListening();
+    return;
+  }
   if (!track || !modeId) return;
   const mission = armPracticeMission({
     modeId,

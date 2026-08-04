@@ -1,8 +1,8 @@
 import { audioEventLabels, audioEventsForTrack, getSelectedTrack, normalizeTrack, state } from "./state.js";
 
 export function createDjMentorModel(track = getSelectedTrack()) {
-  const selected = track ? normalizeTrack(track) : null;
-  const tracks = state.tracks.map(normalizeTrack);
+  const selected = track && !track.placeholder ? normalizeTrack(track) : null;
+  const tracks = state.tracks.filter((item) => !item.placeholder).map(normalizeTrack);
   const events = selected ? audioEventsForTrack(selected, 100) : [];
   const bpm = Number(selected?.bpm) || 0;
   const energy = energyBand(selected, events);

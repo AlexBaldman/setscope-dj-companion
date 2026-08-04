@@ -56,7 +56,9 @@
 - `src/dom.js`: DOM element references for the main app.
 - `src/utils.js`: small shared browser utilities.
 - `src/api.js`: frontend API client.
-- `src/fixtures.js`: shared demo track metadata used by frontend defaults and backend stub recognition.
+- `src/runtime-config.js`: validated static-build configuration for an optional
+  remote HTTPS recognition API.
+- `src/fixtures.js`: shared, explicitly activated demo track metadata used by the frontend demo and backend stub recognition.
 - `server.mjs`: no-dependency local server bootstrap.
 - `server/env.mjs`: tiny local `.env` loader for development secrets.
 - `server/routes.mjs`: API route dispatch.
@@ -70,6 +72,10 @@
 - `server/provider-normalizer.mjs`: shared provider-to-SetScope match normalization.
 - `server/recognition-provider.mjs`: explicit demo recognition, configured-provider dispatch, track analysis, and provider response normalization.
 - `server/recognition-store.mjs`: bounded, atomic, replay-safe recognition transaction ledger keyed by request ID.
+- `server/request-policy.mjs`: host, origin, cross-origin route, and client-address policy.
+- `server/oidc-auth.mjs`: fail-closed RS256 OIDC verification and tenant context
+  for public recognition and analysis requests.
+- `server/rate-limit.mjs`: short-window, per-principal recognition abuse limit.
 - `server/json.mjs`: bounded JSON request parsing plus structured HTTP error responses.
 - `data/setscope.sqlite`: shared local database for recognition receipts and archived sets.
 - `data/sets.json`: legacy archive imported and renamed on first successful migration.
@@ -128,6 +134,14 @@
 - Performance completion now writes one pending intent, commits the audio event
   and mission together, projects skill evidence idempotently, and clears the
   intent only after every projection succeeds.
+- Static deployments can discover an independently deployed recognition API at
+  runtime. Public recognition requires OIDC, tenant-scopes idempotency records,
+  and never exposes archive or journal routes cross-origin.
+- Beat School ignores count-in taps, binds calibration trust to the controller
+  that produced it, stores a complete deterministic replay in the receipt, and
+  supports a fresh repeat take after save.
+- The release workflow now verifies the deployed Pages URL and every registered
+  product route after upload.
 
 ## Main Risks
 
@@ -148,6 +162,9 @@
 - `scripts/check.mjs` still contains many source-text assertions. New behavior
   should prefer contract or browser tests, and old assertions should be retired
   as equivalent behavior coverage lands.
+- The public gateway has authentication and tenant isolation but not yet a
+  durable usage ledger, multi-instance quota, account UI, or an API deployment.
+  Its memory rate limit must not be treated as paid-provider cost control.
 
 ## 2026-07-27 Architecture Hardening
 

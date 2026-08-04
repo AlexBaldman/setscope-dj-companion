@@ -56,7 +56,16 @@ The public static build is deployed from `main` by `.github/workflows/pages.yml`
 npm run test:pages
 ```
 
-GitHub Pages runs in an explicit Demo mode. Audio instruments, games, timeline editing, archive search, and the journal remain usable; archives and journal edits are stored in that browser. Live AudD recognition, shared SQLite persistence, and server-backed journal files remain available through `npm run dev`.
+GitHub Pages runs in an explicit Demo mode by default. Audio instruments, games,
+timeline editing, archive search, and the journal remain usable; archives and
+journal edits are stored in that browser. A Pages build can point recognition
+and analysis at a separately deployed HTTPS API through the
+`SETSCOPE_API_BASE_URL` repository variable. Public recognition fails closed
+unless that API has OIDC configured and the browser supplies a user access token.
+Shared SQLite persistence and server-backed journal files remain local-only.
+
+Production gateway setup and its remaining paid-service boundaries are recorded
+in `docs/PRODUCTION_GATEWAY.md`.
 
 For live web recognition, create a local `.env` with:
 
@@ -156,7 +165,10 @@ Raw browser audio remains ephemeral and is never written to the ledger. Legacy J
 - `GET /api/journal`: loads `docs/DEV_JOURNAL.md`.
 - `POST /api/journal`: saves edited journal markdown.
 
-The frontend and backend share demo recognition data from `src/fixtures.js`, which keeps the mock provider and UI defaults aligned. Real provider results are normalized through the server adapter layer before reaching the UI.
+The frontend and backend share explicit demo recognition data from
+`src/fixtures.js`. A fresh session starts with an honest empty listening moment;
+story fixtures only appear after the user chooses Demo. Real provider results are
+normalized through the server adapter layer before reaching the UI.
 
 ## Dev Journal
 
@@ -177,6 +189,9 @@ npm run check
 npm run smoke
 npm run test:runtime
 ```
+
+After deployment, `npm run canary` checks every public route plus configured API
+health. Set `DEPLOYMENT_URL` to the deployed site URL when running it manually.
 
 The runtime suite starts the current server on an ephemeral port, exercises every surface in Chromium, checks responsive overflow and first-viewport actions, and writes screenshots to a temporary artifact directory. GitHub Actions runs the same suite on pushes and pull requests.
 

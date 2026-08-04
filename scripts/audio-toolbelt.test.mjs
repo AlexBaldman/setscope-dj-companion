@@ -16,6 +16,7 @@ const { createPitchGatesCompletionEvent, createRhythmRouletteCompletionEvent, pe
 const { createSetCoachModel } = await import("../src/set-coach.js");
 const { createDjMentorModel, createDjMoveCard } = await import("../src/dj-mentor.js");
 const {
+  addTrack,
   appendSelectedTrackNote,
   audioEventsForTrack,
   toggleAudioEventLabel,
@@ -26,6 +27,19 @@ const {
   uiState,
   visibleTracks,
 } = await import("../src/state.js");
+
+addTrack({
+  time: "04:00",
+  title: "First test moment",
+  artist: "Test source",
+  confidence: 82,
+});
+addTrack({
+  time: "08:00",
+  title: "Second test moment",
+  artist: "Test source",
+  confidence: 86,
+});
 
 assert.equal(midiToNote(69), "A4");
 assert.equal(Math.round(midiToFrequency(69)), 440);

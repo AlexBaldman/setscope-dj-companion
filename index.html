@@ -21,9 +21,9 @@
         </div>
 
         <div class="set-meta">
-          <span class="set-title" id="setTitle">Jazzy Jeff study notes</span>
+          <span class="set-title" id="setTitle">Untitled listening session</span>
           <span class="pill" id="setDate">Local draft</span>
-          <span class="pill" id="setLength">42:18</span>
+          <span class="pill" id="setLength">--:--</span>
         </div>
 
         <div class="actions">
@@ -78,8 +78,8 @@
         </div>
         <div class="cockpit-workspace-now">
           <span>Selected</span>
-          <strong id="workspaceNowTitle">Warm Up The Room</strong>
-          <small id="workspaceNowArtist">K.M. Session Band</small>
+          <strong id="workspaceNowTitle">Listening for first track</strong>
+          <small id="workspaceNowArtist">Your audio goes here</small>
         </div>
         <button class="workspace-listen-btn" id="workspaceListenBtn" title="Start listening" aria-pressed="false">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -130,21 +130,21 @@
                 <button class="skin-chip" data-skin="cd">CD</button>
               </div>
               <div class="track-now">
-                <h1 id="nowTitle">Warm Up The Room</h1>
-                <p id="nowArtist">K.M. Session Band</p>
+                <h1 id="nowTitle">Listening for first track</h1>
+                <p id="nowArtist">Your audio goes here</p>
               </div>
               <div class="stats-grid">
                 <div class="stat">
                   <span>BPM</span>
-                  <strong id="nowBpm">94</strong>
+                  <strong id="nowBpm">--</strong>
                 </div>
                 <div class="stat">
                   <span>Key</span>
-                  <strong id="nowKey">9A</strong>
+                  <strong id="nowKey">--</strong>
                 </div>
                 <div class="stat">
                   <span>Match</span>
-                  <strong id="nowConfidence">91%</strong>
+                  <strong id="nowConfidence">--</strong>
                   <div class="confidence-meter" id="nowConfidenceMeter" aria-hidden="true">
                     <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
                   </div>
@@ -160,10 +160,11 @@
                   Import audio
                 </button>
                 <input class="file-input" type="file" id="audioInput" accept="audio/*" aria-label="Import audio file" />
-                <button class="icon-btn" id="demoBtn" title="Run recognition demo">
+                <button class="quiet-btn" id="demoBtn" title="Try the demo set" aria-label="Try the demo set">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="m5 3 14 9-14 9V3Z" />
                   </svg>
+                  Demo
                 </button>
               </div>
               <div class="live-transport" id="liveTransport" data-state="idle" aria-live="polite">

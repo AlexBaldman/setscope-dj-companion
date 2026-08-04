@@ -51,6 +51,13 @@ try {
   await page.goto(`http://127.0.0.1:${port}/?static-demo=1`, { waitUntil: "networkidle" });
   await page.locator("#apiStatus").waitFor();
   assert.equal((await page.locator("#apiStatus").textContent())?.trim(), "Demo");
+  assert.equal((await page.locator("#nowTitle").textContent())?.trim(), "Listening for first track");
+  assert.equal(await page.getByText("Palm Trees At Noon", { exact: true }).count(), 0, "story fixtures should require explicit demo activation");
+  await page.locator("#demoBtn").click();
+  await page.waitForFunction(() => {
+    const draft = JSON.parse(localStorage.getItem("setscope-draft-v1") || "{}");
+    return draft.tracks?.some((track) => track.title === "Palm Trees At Noon");
+  });
 
   await page.locator("#archiveBtn").click();
   await page.waitForFunction(() => document.querySelector("#toast")?.textContent === "Set archived");

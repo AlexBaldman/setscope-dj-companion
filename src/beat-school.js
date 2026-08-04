@@ -42,6 +42,7 @@ let busy = false;
 let observationCursor = 0;
 let timers = [];
 let lastSource = "Touch pads";
+let lastSourceId = "touch-pads";
 let savedEvent = null;
 let calibrationSession = null;
 
@@ -114,13 +115,18 @@ function receivePad(lane, velocity, sourceKind, sourceId, timestampMs = performa
 function receiveObservation(observation) {
   const receivedAtMs = performance.now();
   if (calibrationSession) {
-    captureCalibrationTap(Number(observation?.timestampMs) || receivedAtMs);
+    captureCalibrationTap(
+      Number(observation?.timestampMs) || receivedAtMs,
+      observation?.sourceId,
+      observation?.sourceKind,
+    );
     return;
   }
   const action = spine.receive(observation, { receivedAtMs, audioTimeSec: audio.currentTime });
   if (!action) return;
   const lane = action.action.replace("beat-pad:", "");
   lastSource = sourceLabel(action.sourceKind);
+  lastSourceId = action.sourceId;
   audio.playPad(lane, { velocity: action.intensity });
   flashPad(lane);
   elements.status.textContent = `${lastSource.toUpperCase()} / ${lane.toUpperCase()}`;
@@ -137,6 +143,10 @@ function receiveObservation(observation) {
 
 async function handleLessonAction() {
   if (busy) return;
+  if (run.status === "saved") {
+    resetTake();
+    return;
+  }
   if (run.phase === "save") {
     saveRun(false);
     return;
@@ -254,7 +264,7 @@ function render() {
   elements.phaseEyebrow.textContent = `${run.phase.toUpperCase()} / ${phaseTag(run.phase)}`;
   elements.coachLine.textContent = phaseCoach(run.phase);
   elements.action.textContent = actionLabel();
-  elements.action.disabled = busy || run.status === "saved";
+  elements.action.disabled = busy;
   elements.alternate.hidden = run.status !== "result";
   elements.alternate.textContent = alternateActionLabel();
   elements.alternate.disabled = busy;
@@ -352,6 +362,8 @@ async function startTimingCalibration() {
     targetTimes,
     taps: [],
     usedTargets: new Set(),
+    sourceId: "",
+    sourceKind: "",
   };
   elements.status.textContent = "TAP ANY PAD / FOLLOW CLICKS";
   audio.playCountIn({
@@ -366,8 +378,16 @@ async function startTimingCalibration() {
   render();
 }
 
-function captureCalibrationTap(atMs) {
+function captureCalibrationTap(atMs, sourceId, sourceKind) {
   if (!calibrationSession) return;
+  if (!calibrationSession.sourceId) {
+    calibrationSession.sourceId = String(sourceId || "unknown-controller");
+    calibrationSession.sourceKind = String(sourceKind || "unknown");
+  }
+  if (calibrationSession.sourceId !== sourceId) {
+    elements.status.textContent = `CALIBRATION / KEEP USING ${sourceLabel(calibrationSession.sourceKind).toUpperCase()}`;
+    return;
+  }
   const candidates = calibrationSession.targetTimes
     .map((targetAtMs, index) => ({ index, targetAtMs, errorMs: atMs - targetAtMs }))
     .filter(({ index, errorMs }) => !calibrationSession.usedTargets.has(index) && Math.abs(errorMs) <= 240)
@@ -382,6 +402,8 @@ function captureCalibrationTap(atMs) {
 
 function finishTimingCalibration() {
   const taps = calibrationSession?.taps || [];
+  const calibrationSourceId = calibrationSession?.sourceId || lastSourceId;
+  const calibrationSourceKind = calibrationSession?.sourceKind || "unknown";
   calibrationSession = null;
   if (taps.length < 5) {
     elements.status.textContent = "CALIBRATION / TRY AGAIN";
@@ -395,7 +417,7 @@ function finishTimingCalibration() {
   const confidence = Math.min(0.82, 0.42 + sampleCoverage * 0.24 + stability * 0.16);
   latencyProfile = saveLatencyProfile({
     profileId: `latency_tap_${Date.now().toString(36)}`,
-    sourceId: "*",
+    sourceId: calibrationSourceId,
     inputLatencyMs: Math.max(0, Math.min(180, Math.round(offsetMs))),
     outputLatencyMs: 0,
     jitterMs: Math.round(jitterMs),
@@ -403,6 +425,8 @@ function finishTimingCalibration() {
     confidence,
     method: "tap",
   });
+  lastSourceId = latencyProfile.sourceId;
+  lastSource = sourceLabel(calibrationSourceKind);
   spine.setLatencyProfiles([latencyProfile]);
   elements.status.textContent = timingEligible() ? "TIMING CALIBRATED" : "TIMING / LOW CONFIDENCE";
 }
@@ -423,7 +447,7 @@ function renderTimingTrust() {
 }
 
 function timingEligible() {
-  return isLatencyProfileTrusted(latencyProfile);
+  return latencyProfile?.sourceId === lastSourceId && isLatencyProfileTrusted(latencyProfile);
 }
 
 function runDemoLesson() {
@@ -461,6 +485,7 @@ function saveRun(assisted) {
     ...result,
     replayHash: replay.expectedHash,
     replayActionCount: replay.actions.length,
+    replay,
     sourceLabel: lastSource,
     trackId: practice.track?.id || "",
     time: practice.track?.time || "--:--",
@@ -473,6 +498,14 @@ function saveRun(assisted) {
   practice.markSaved(savedEvent);
   render();
   return savedEvent;
+}
+
+function resetTake() {
+  clearTimers();
+  run = createBeatSchoolRun(challenge);
+  savedEvent = null;
+  elements.status.textContent = `${lastSource.toUpperCase()} / READY`;
+  render();
 }
 
 function flashPad(lane) {
@@ -508,6 +541,7 @@ function actionLabel() {
     const next = BEAT_SCHOOL_PHASES[BEAT_SCHOOL_PHASES.indexOf(run.phase) + 1];
     return advanceLabel(next);
   }
+  if (run.status === "saved") return "Run it back";
   return {
     hear: "Hear groove",
     watch: "Watch the pads",
@@ -515,7 +549,7 @@ function actionLabel() {
     repair: "Repair the pocket",
     perform: "Perform solo",
     remix: "Record remix",
-    save: run.status === "saved" ? "Run saved" : "Save run",
+    save: "Save run",
   }[run.phase];
 }
 

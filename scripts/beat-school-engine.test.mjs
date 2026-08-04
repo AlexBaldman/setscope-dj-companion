@@ -22,6 +22,15 @@ assert.equal(BEAT_SCHOOL_LANES.length, 4);
 let run = createBeatSchoolRun(challenge);
 run = reduceBeatSchool(run, { type: "set-phase", phase: "imitate", atMs: 1000 });
 const stepMs = beatSchoolStepMs(challenge);
+const beforeCountInTap = run;
+run = reduceBeatSchool(run, {
+  type: "hit",
+  lane: "kick",
+  atMs: 999,
+  velocity: 0.8,
+  sourceKind: "touch",
+});
+assert.equal(run, beforeCountInTap, "count-in taps must not enter the scored take");
 for (const target of challenge.pattern) {
   run = reduceBeatSchool(run, {
     type: "hit",

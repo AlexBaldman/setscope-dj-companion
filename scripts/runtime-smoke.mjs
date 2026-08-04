@@ -242,6 +242,14 @@ async function verifySetScope(page) {
   await expectVisible(page, "#nextMovePanel", "SetScope next move panel");
   await expectVisible(page, "#skillGraphPanel", "cross-session skill constellation");
   await expectText(page, "#skillFocus", "Signal", "new learner skill focus");
+  await expectText(page, "#nowTitle", "Listening for first track", "honest first listening moment");
+  await expectText(page, "#nextMoveMode", "Listen", "first session capture recommendation");
+  assert(!(await page.locator("#nextMoveBtn").isDisabled()), "first session Listen action should be available");
+  await page.locator("#demoBtn").click();
+  await page.waitForFunction(() => {
+    const draft = JSON.parse(localStorage.getItem("setscope-draft-v1") || "{}");
+    return draft.tracks?.some((track) => !track.placeholder);
+  });
   await expectText(page, "#nextMoveMode", "Audio Lab", "first session recommendation");
   await page.locator("#nextMoveBtn").click();
   await page.waitForURL(/audio-lab\.html/);

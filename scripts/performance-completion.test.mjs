@@ -48,11 +48,19 @@ const metadata = createBeatSchoolCompletionEvent({
   timingBias: "centered",
   replayHash: "commit-replay",
   replayActionCount: 16,
+  replay: {
+    schema: "setscope.beat-school.replay",
+    schemaVersion: 1,
+    challenge: { id: "beat-commit" },
+    actions: [{ type: "save" }],
+    expectedHash: "commit-replay",
+  },
   trackId: track.id,
   time: track.time,
 });
 assert.equal(metadata.assistance.eligibleForMastery, false, "uncalibrated timing should remain practice-only");
 assert.equal(metadata.calibration.status, "degraded");
+assert.equal(metadata.details.replay.expectedHash, "commit-replay", "saved evidence should retain its replay payload");
 
 const calibratedMetadata = createBeatSchoolCompletionEvent({
   challenge: { id: "beat-calibrated", lessonId: "backbeat-1", seed: 18, bpm: 94, title: "Calibrated Beat" },

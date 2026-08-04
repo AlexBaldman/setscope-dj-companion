@@ -37,6 +37,7 @@ export function reduceBeatSchool(run, action) {
     next.currentHits = [];
     next.status = action.phase === "save" ? "result" : "active";
   } else if (action.type === "hit" && isPlayablePhase(next.phase)) {
+    if (finite(action.atMs, 0) < next.phaseStartMs) return run;
     const lane = BEAT_SCHOOL_LANES.find((item) => item.id === action.lane);
     if (!lane) return run;
     const hit = {
