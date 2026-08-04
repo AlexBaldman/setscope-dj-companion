@@ -37,17 +37,22 @@ export function createAudioInputSession({ bufferLength = 2048, onEnded = () => {
   async function useAudioFile(file) {
     if (!file) throw new Error("audio_file_required");
     stop();
-    await createContext();
-    playbackUrl = URL.createObjectURL(file);
-    playbackElement = new Audio(playbackUrl);
-    playbackElement.loop = true;
-    playbackElement.addEventListener("ended", onEnded);
-    sourceNode = audioContext.createMediaElementSource(playbackElement);
-    sourceNode.connect(analyser);
-    sourceNode.connect(audioContext.destination);
-    sourceLabel = "FILE";
-    await playbackElement.play();
-    return snapshot();
+    try {
+      await createContext();
+      playbackUrl = URL.createObjectURL(file);
+      playbackElement = new Audio(playbackUrl);
+      playbackElement.loop = true;
+      playbackElement.addEventListener("ended", onEnded);
+      sourceNode = audioContext.createMediaElementSource(playbackElement);
+      sourceNode.connect(analyser);
+      sourceNode.connect(audioContext.destination);
+      sourceLabel = "FILE";
+      await playbackElement.play();
+      return snapshot();
+    } catch (error) {
+      stop();
+      throw error;
+    }
   }
 
   async function useDemoTone({ midi = 57 } = {}) {
@@ -98,24 +103,37 @@ export function createAudioInputSession({ bufferLength = 2048, onEnded = () => {
 
   async function attachStream(stream, label) {
     stop();
-    await createContext();
     inputStream = stream;
-    sourceNode = audioContext.createMediaStreamSource(stream);
-    sourceNode.connect(analyser);
-    inputStream.getTracks().forEach((track) => {
-      track.addEventListener("ended", () => {
-        stop();
-        onEnded();
+    try {
+      await createContext();
+      sourceNode = audioContext.createMediaStreamSource(stream);
+      sourceNode.connect(analyser);
+      inputStream.getTracks().forEach((track) => {
+        track.addEventListener("ended", () => {
+          stop();
+          onEnded();
+        });
       });
-    });
-    sourceLabel = label;
+      sourceLabel = label;
+    } catch (error) {
+      stop();
+      throw error;
+    }
   }
 
   async function createContext() {
-    audioContext = new AudioContext();
-    await audioContext.resume();
-    analyser = audioContext.createAnalyser();
-    analyser.fftSize = bufferLength;
+    const context = new AudioContext();
+    audioContext = context;
+    try {
+      await context.resume();
+      analyser = context.createAnalyser();
+      analyser.fftSize = bufferLength;
+    } catch (error) {
+      void context.close();
+      if (audioContext === context) audioContext = null;
+      analyser = null;
+      throw error;
+    }
   }
 
   function snapshot() {

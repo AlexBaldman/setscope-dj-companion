@@ -95,5 +95,9 @@ assert.throws(
   () => confirmMusicianBoundary(calibrated, "low", { midi: 52, clarity: 0.9 }),
   /low_boundary_out_of_range/,
 );
+assert.throws(
+  () => confirmMusicianBoundary(calibrated, "low", { midi: 46, clarity: 0.49 }),
+  /stable_pitch_required/,
+);
 
 console.log("Musician profile checks passed");

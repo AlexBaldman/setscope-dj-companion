@@ -16,7 +16,7 @@ SetScope is a local-first DJ set companion and musician toolbelt. It turns a lis
 - one-click human-readable setlist copy
 - imported-audio BPM estimation
 - markdown-backed dev journal with page-turn UI and paper skins
-- AudD-ready provider adapter with local stub fallback
+- AudD-ready provider adapter with an explicit, separate demo mode
 - recognition diagnostics and sample-audio provider test workflow
 - continuous, cancellable listening sessions with replay-safe recognition requests
 - Pitch Gates, a deterministic singing game with any-octave and exact-octave
@@ -66,7 +66,11 @@ AUDD_RETURN=apple_music,spotify
 AUDD_TIMEOUT_MS=10000
 ```
 
-Without a token, SetScope uses the clearly labeled local demo recognizer so the full product loop remains usable. Recognition requests stream bounded binary audio, carry durable IDs, explicit outcomes, set-relative timing, and provenance; provider failures do not create fake tracks.
+Without a token, live recognition reports that a provider is needed; the explicit
+Demo workflow remains available without pretending that captured audio was
+matched. Recognition requests stream bounded binary audio, carry durable IDs,
+explicit outcomes, set-relative timing, and provenance; provider failures do not
+create fake tracks.
 
 ## Visual Direction
 

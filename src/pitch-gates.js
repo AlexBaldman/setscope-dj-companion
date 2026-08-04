@@ -197,7 +197,7 @@ document.querySelectorAll("[data-file-focus]").forEach((button) => {
   button.addEventListener("click", () => {
     importedFocus = button.dataset.fileFocus;
     setActive(document.querySelectorAll("[data-file-focus]"), button);
-    document.querySelector("#buildImportedLevel").textContent = `Build ${importedFocus === "bass" ? "bass" : "lead"} level`;
+    document.querySelector("#buildImportedLevel").textContent = `Analyze ${importedFocus === "bass" ? "low" : "upper"} contour`;
     analyzeImportedLevel();
   });
 });
@@ -229,6 +229,7 @@ window.addEventListener("resize", () => {
 });
 
 async function useMicrophone() {
+  prepareInputSwitch("STARTING MIC");
   try {
     await audioSession.useMicrophone();
     pitchAnalyzer.reset();
@@ -241,6 +242,7 @@ async function useMicrophone() {
 }
 
 async function useSharedAudio() {
+  prepareInputSwitch("STARTING SHARE");
   try {
     await audioSession.useSharedAudio();
     pitchAnalyzer.reset();
@@ -254,6 +256,7 @@ async function useSharedAudio() {
 
 async function useAudioFile(file) {
   if (!file) return;
+  prepareInputSwitch("LOADING FILE");
   try {
     importedFile = file;
     importedLevel = null;
@@ -262,6 +265,7 @@ async function useAudioFile(file) {
     els.importedLevelStatus.textContent = "ANALYZING";
     els.importedLevelConfidence.textContent = "--";
     els.importedLevelDetail.textContent = "Listening for a stable dominant-pitch contour...";
+    els.importedLevel.scrollIntoView({ behavior: "smooth", block: "nearest" });
     await audioSession.useAudioFile(file);
     pitchAnalyzer.reset();
     pitchStabilizer.reset();
@@ -280,9 +284,10 @@ async function analyzeImportedLevel() {
   const analysisId = ++importedAnalysisId;
   const button = document.querySelector("#buildImportedLevel");
   button.disabled = true;
+  button.textContent = `Analyzing ${importedFocus === "bass" ? "low" : "upper"} contour...`;
   els.importedLevelStatus.textContent = "ANALYZING";
   els.importedLevelConfidence.textContent = "--";
-  els.importedLevelDetail.textContent = `Estimating the ${importedFocus === "bass" ? "bass" : "lead"} contour...`;
+  els.importedLevelDetail.textContent = `Estimating the ${importedFocus === "bass" ? "low" : "upper"} dominant contour...`;
   try {
     const level = await analyzeAudioFileForPractice(importedFile, { focus: importedFocus });
     if (analysisId !== importedAnalysisId) return;
@@ -307,11 +312,15 @@ async function analyzeImportedLevel() {
     els.importedLevelDetail.textContent = "The file can play, but its contour could not be analyzed.";
     setAudioStatus("FILE PREVIEW ONLY", true);
   } finally {
-    if (analysisId === importedAnalysisId) button.disabled = false;
+    if (analysisId === importedAnalysisId) {
+      button.disabled = false;
+      button.textContent = `${importedLevel ? "Reanalyze" : "Analyze"} ${importedFocus === "bass" ? "low" : "upper"} contour`;
+    }
   }
 }
 
 async function useDemoTone() {
+  prepareInputSwitch("STARTING DEMO");
   try {
     await audioSession.useDemoTone({ midi: getCenterMidi() });
     pitchAnalyzer.reset();
@@ -322,6 +331,15 @@ async function useDemoTone() {
     stopAudio();
     setAudioStatus("DEMO ERROR", false);
   }
+}
+
+function prepareInputSwitch(status) {
+  currentFrame = null;
+  pitchTrail = [];
+  pitchAnalyzer.reset();
+  pitchStabilizer.reset();
+  updatePitchReadout();
+  setAudioStatus(status, true);
 }
 
 function stopAudio() {
@@ -452,6 +470,7 @@ function endRound() {
   const enoughSignal = scoredResults.length >= Math.max(4, Math.ceil(resolvedResults.length * 0.6));
   const eligibleForMastery = sourceLabel === "MIC"
     && assist !== "gentle"
+    && pitchMatchMode === PITCH_MATCH_MODES.exactOctave
     && enoughSignal;
   musicianProfile = saveMusicianProfile(recordPracticeResult(musicianProfile, {
     accuracy,
@@ -471,7 +490,9 @@ function endRound() {
     ? prescription.detail
     : !enoughSignal
       ? "Signal was too sparse for mastery. Check input, sustain the note, and try again."
-      : "Guided result only. Use Mic with Balanced or Exact assist to add mastery evidence.";
+      : pitchMatchMode !== PITCH_MATCH_MODES.exactOctave
+        ? "Any Octave builds pitch-class control. Switch to Exact Octave when you want this run to count toward interval mastery."
+        : "Guided result only. Use Mic with Balanced or Exact assist to add mastery evidence.";
   els.resultRecap.hidden = false;
   const performanceEvent = createPitchGatesCompletionEvent({
     sourceLabel,
@@ -840,6 +861,13 @@ function clearPreRoll() {
   countdownTimers = [];
   preRollActive = false;
 }
+
+window.addEventListener("pagehide", () => {
+  clearPreRoll();
+  if (animationId) cancelAnimationFrame(animationId);
+  animationId = null;
+  audioSession.stop();
+});
 
 function syncLaunchSteps(inputReady) {
   document.querySelectorAll("[data-launch-step]").forEach((step) => {

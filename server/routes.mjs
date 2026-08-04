@@ -30,6 +30,7 @@ export function createApiRouter({ archiveStore, journalStore, recognitionStore }
       const sessionId = header(request, "x-setscope-session-id");
       const setElapsedMs = finiteHeader(request, "x-setscope-set-elapsed-ms");
       const windowMs = finiteHeader(request, "x-setscope-window-ms");
+      const demoMode = header(request, "x-setscope-demo") === "1";
       const controller = new AbortController();
       request.once("aborted", () => controller.abort("client_aborted"));
       const transaction = await recognitionStore.execute(requestId, () => recognizeAudioWindow({
@@ -41,6 +42,7 @@ export function createApiRouter({ archiveStore, journalStore, recognitionStore }
           sessionId,
           setElapsedMs,
           windowSeconds: Math.max(1, Math.round(windowMs / 1000)),
+          demoMode,
         },
       }));
       logRecognitionTransaction(transaction, requestId);

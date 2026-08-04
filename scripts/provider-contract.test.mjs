@@ -72,7 +72,7 @@ const audioResult = await recognizeAudioWindow({
     mimeType: "audio/webm",
     size: 1234,
   },
-  metadata: { windowSeconds: 4 },
+  metadata: { windowSeconds: 4, demoMode: true },
 });
 
 assert.equal(audioResult.audio.hasData, true);
@@ -86,6 +86,23 @@ assert.equal(audioResult.observation.schemaVersion, 1);
 assert.equal(audioResult.observation.outcome, "matched");
 assert.equal(audioResult.observation.provenance, process.env.AUDD_API_TOKEN ? "inference" : "story");
 assert.equal(typeof audioResult.observation.latencyMs, "number");
+
+const unavailableResult = await recognizeAudioWindow({
+  requestId: "provider_contract_002",
+  cursor: 1,
+  audio: {
+    bytes: Buffer.from("abc123"),
+    durationMs: 4000,
+    mimeType: "audio/webm",
+    size: 1234,
+  },
+  metadata: { windowSeconds: 4 },
+});
+if (!process.env.AUDD_API_TOKEN) {
+  assert.equal(unavailableResult.outcome, "provider_error");
+  assert.equal(unavailableResult.errorCode, "recognition_provider_not_configured");
+  assert.equal(unavailableResult.match, undefined);
+}
 
 assert.equal(isAudDConfigured({}), false);
 assert.equal(isAudDConfigured({ AUDD_API_TOKEN: "token" }), true);
@@ -133,7 +150,7 @@ assert.equal(auddMiss.raw.dataUrl, undefined);
 
 const providerStatus = getRecognitionProviderStatus();
 
-assert.equal(providerStatus.activeProvider, process.env.AUDD_API_TOKEN ? "audd" : "setscope-stub");
+assert.equal(providerStatus.activeProvider, process.env.AUDD_API_TOKEN ? "audd" : "none");
 assert.equal(providerStatus.sampleSeconds, 8);
 assert.equal(providerStatus.providers.some((provider) => provider.id === "shazamkit"), true);
 assert.equal(providerStatus.native.target, "ShazamKit");

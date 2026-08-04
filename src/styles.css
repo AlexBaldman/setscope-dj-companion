@@ -110,6 +110,12 @@ a {
   flex: 1;
 }
 
+@media (min-width: 960px) {
+  .set-meta {
+    min-width: 190px;
+  }
+}
+
 .set-title {
   color: var(--text);
   font-weight: 650;
@@ -2778,11 +2784,23 @@ svg {
   }
 
   .track-row {
-    grid-template-columns: 60px minmax(0, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
-  .track-row .tag {
-    grid-column: span 1;
+  .track-row .timecode {
+    grid-column: 1;
+  }
+
+  .track-row .track-main {
+    grid-column: 2 / -1;
+  }
+
+  .track-row .tag.bpm {
+    grid-column: 1 / 3;
+  }
+
+  .track-row .tag:not(.bpm) {
+    grid-column: 3 / 5;
   }
 
   .timeline-tools {
@@ -2887,11 +2905,23 @@ svg {
   }
 
   .track-row {
-    grid-template-columns: 60px minmax(0, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
-  .track-row .tag {
-    grid-column: span 1;
+  .track-row .timecode {
+    grid-column: 1;
+  }
+
+  .track-row .track-main {
+    grid-column: 2 / -1;
+  }
+
+  .track-row .tag.bpm {
+    grid-column: 1 / 3;
+  }
+
+  .track-row .tag:not(.bpm) {
+    grid-column: 3 / 5;
   }
 
   .timeline-footer {

@@ -33,10 +33,19 @@ const live = createPerformanceEventV2({
   calibration: { status: "calibrated", values: { latencyMs: 18 } },
   inference: { confidence: 0.92, analyzerVersion: "pitchy-4" },
 });
-assert.equal(live.assistance.eligibleForMastery, true);
+assert.equal(live.assistance.eligibleForMastery, false);
 assert.equal(live.calibration.values.latencyMs, 18);
 assert.equal(live.inference.confidence, 0.92);
 assert.equal(validatePerformanceEventV2(live).valid, true);
+
+const explicitlyEligible = createPerformanceEventV2({
+  modeId: "audio-lab",
+  sourceLabel: "microphone",
+  score: 100,
+  assistance: { level: "none", eligibleForMastery: true },
+  calibration: { status: "calibrated" },
+});
+assert.equal(explicitlyEligible.assistance.eligibleForMastery, true);
 
 const malformed = { ...migrated, result: { score: "loud", streak: 2 } };
 const quarantined = normalizePerformanceMetadata(malformed);

@@ -20,7 +20,7 @@ Pitch Gates is SetScope's first playable musician helper: sing or play a single 
 - `Mic`: vocals, guitar, bass, keys, whistle, or another nearby single-note sound through microphone permission.
 - `Share audio`: a browser sharing prompt where the user explicitly chooses a tab, screen, or system-audio option offered by their browser and operating system.
 - `Audio file`: a local recording or music file played into the analyzer and
-  automatically inspected for a Lead or Bass-register dominant-pitch contour.
+  automatically inspected for an Upper or Low dominant-pitch contour.
 
 ## Imported Levels
 

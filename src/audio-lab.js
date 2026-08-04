@@ -234,6 +234,7 @@ function update() {
 
 function renderFrame() {
   const source = audioSession.getSourceLabel();
+  updateBoundaryControls();
   els.sourceLabel.textContent = source.toUpperCase();
   els.scopeDisplayLabel.textContent = audioSession.isActive() ? `${source} signal` : "Idle display";
   if (!currentFrame) {
@@ -353,6 +354,10 @@ function logSnapshot() {
   const clarity = Math.round(currentFrame.clarity * 100);
   const cents = Math.round(centsFromMidiTarget(currentFrame.midi, targetMidi));
   const attachedTrack = getAttachedTrack();
+  const eligibleForMastery = sourceLabel === "MIC"
+    && holdLocked
+    && Math.abs(cents) <= targetToleranceCents
+    && musicianProfile.calibration.status === "calibrated";
   const savedEvent = persistPerformanceEvent(createPerformanceEvent({
     modeId: "audio-lab",
     score: holdLocked ? 100 : clarity,
@@ -386,6 +391,22 @@ function logSnapshot() {
     },
     evidence: {
       summary: `${sourceLabel.toUpperCase()} / ${note} to ${midiToNote(targetMidi)} / ${frequency} Hz / ${clarity}%${attachedTrack ? ` / ${attachedTrack.title}` : ""}`,
+    },
+    assistance: {
+      level: eligibleForMastery ? "none" : sourceLabel === "DEMO" ? "demo" : "guided",
+      eligibleForMastery,
+      values: {
+        calibrated: musicianProfile.calibration.status === "calibrated",
+        cents,
+        stableHold: holdLocked,
+      },
+    },
+    calibration: {
+      status: musicianProfile.calibration.status === "calibrated" ? "calibrated" : "degraded",
+      values: {
+        profileId: musicianProfile.profileId,
+        profileRevision: musicianProfile.revision,
+      },
     },
   }), { missionId: practiceContext.missionId });
   practiceContext.markSaved(savedEvent);
@@ -481,7 +502,8 @@ function recordPracticeLock() {
   practiceStats.streak += 1;
   practiceStats.lastLockedAt = new Date().toISOString();
   savePracticeStats(practiceStorageKey, practiceStats);
-  const eligibleForMastery = audioSession.getSourceLabel() === "MIC";
+  const eligibleForMastery = audioSession.getSourceLabel() === "MIC"
+    && musicianProfile.calibration.status === "calibrated";
   musicianProfile = saveMusicianProfile(recordPracticeResult(musicianProfile, {
     accuracy: 100,
     eligibleForMastery,
@@ -548,6 +570,8 @@ function renderCalibrationMessage(status, detail) {
 
 function renderMusicianProfile() {
   const prescription = createPracticePrescription(musicianProfile);
+  const lowBoundary = musicianProfile.calibration.boundaries.low;
+  const highBoundary = musicianProfile.calibration.boundaries.high;
   els.profileCenter.textContent = midiToNote(musicianProfile.centerMidi);
   els.profileRange.textContent = musicianProfile.calibration.status === "calibrated"
     ? `${musicianProfile.calibration.rangeStatus === "confirmed" ? "Confirmed" : "Estimated"} / ${midiToNote(musicianProfile.lowMidi)} to ${midiToNote(musicianProfile.highMidi)}`
@@ -555,9 +579,32 @@ function renderMusicianProfile() {
   els.profileStage.textContent = prescription.stage.toUpperCase();
   els.profileDetail.textContent = prescription.detail;
   els.profileCalibrateBtn.textContent = musicianProfile.calibration.status === "calibrated" ? "Recenter" : "Set center";
-  els.profileLowBtn.textContent = musicianProfile.calibration.boundaries.low.confirmed ? `Low ${midiToNote(musicianProfile.lowMidi)}` : "Set low";
-  els.profileHighBtn.textContent = musicianProfile.calibration.boundaries.high.confirmed ? `High ${midiToNote(musicianProfile.highMidi)}` : "Set high";
+  els.profileLowBtn.textContent = boundaryButtonLabel("Low", lowBoundary, musicianProfile.lowMidi);
+  els.profileHighBtn.textContent = boundaryButtonLabel("High", highBoundary, musicianProfile.highMidi);
+  updateBoundaryControls();
   renderDemoPitchButtons();
+}
+
+function updateBoundaryControls() {
+  const calibrated = musicianProfile.calibration.status === "calibrated";
+  const stable = Number.isFinite(currentFrame?.midi)
+    && Number.isFinite(currentFrame?.clarity)
+    && currentFrame.clarity >= 0.5;
+  const distance = stable ? Math.round(currentFrame.midi) - musicianProfile.centerMidi : 0;
+  const lowReady = calibrated && stable && distance <= -2 && distance >= -18;
+  const highReady = calibrated && stable && distance >= 2 && distance <= 18;
+  els.profileLowBtn.classList.toggle("ready", lowReady);
+  els.profileHighBtn.classList.toggle("ready", highReady);
+  els.profileLowBtn.dataset.ready = String(lowReady);
+  els.profileHighBtn.dataset.ready = String(highReady);
+  els.profileLowBtn.title = lowReady ? "Confirm this comfortable low note" : "Hold a clear note below your center";
+  els.profileHighBtn.title = highReady ? "Confirm this comfortable high note" : "Hold a clear note above your center";
+}
+
+function boundaryButtonLabel(label, boundary, midi) {
+  if (boundary.confirmed) return `${label} ${midiToNote(midi)}`;
+  if (boundary.confirmationCount > 0) return `${label} ${boundary.confirmationCount}/2`;
+  return `Set ${label.toLowerCase()}`;
 }
 
 function renderDemoPitchButtons() {

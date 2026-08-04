@@ -79,17 +79,17 @@ async function refreshApiStatus() {
 }
 
 function renderProviderStatus(recognition = {}) {
-  const activeProvider = recognition.activeProvider || "setscope-stub";
+  const activeProvider = recognition.activeProvider || "none";
   const webProvider = providerById(recognition.providers, activeProvider);
   const auddProvider = providerById(recognition.providers, "audd");
   els.providerName.textContent = webProvider?.label || providerShortLabel(activeProvider);
-  els.providerMode.textContent = recognition.mode || "Local demo fallback";
-  els.providerWeb.textContent = auddProvider?.configured ? "AudD live" : "Stub";
+  els.providerMode.textContent = recognition.mode || "Demo ready / live provider needed";
+  els.providerWeb.textContent = auddProvider?.configured ? "AudD live" : "Not configured";
   els.providerSetup.textContent = auddProvider?.configured ? "Ready" : "Token needed";
   els.providerSample.textContent = `${recognition.sampleSeconds || 8}s`;
   els.providerNative.textContent = recognition.native?.target || "ShazamKit";
   els.chainInput.textContent = "Mic/Sample";
-  els.chainRecognizer.textContent = auddProvider?.configured ? "AudD" : "Stub";
+  els.chainRecognizer.textContent = auddProvider?.configured ? "AudD" : "Provider needed";
 }
 
 async function refreshProviderDiagnostics() {
@@ -112,6 +112,7 @@ function providerShortLabel(provider) {
   if (provider === "audd") return "AudD";
   if (provider === "setscope-stub") return "Stub";
   if (provider === "setscope-static") return "Demo";
+  if (provider === "none") return "Demo";
   return provider || "API on";
 }
 

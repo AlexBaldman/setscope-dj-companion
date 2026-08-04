@@ -65,7 +65,7 @@ export function createWorkflows(els, { render, renderArchiveList, applySkin, sho
     }
   }
 
-  async function requestRecognition(audio, { signal } = {}) {
+  async function requestRecognition(audio, { signal, demoMode = false } = {}) {
     const requestId = uid();
     const windowSeconds = Math.max(1, Math.round(Number(audio?.durationMs || 0) / 1000) || 8);
     const sessionStartedAtMs = Date.parse(state.recognitionStartedAt || new Date().toISOString());
@@ -79,6 +79,7 @@ export function createWorkflows(els, { render, renderArchiveList, applySkin, sho
       setElapsedMs: Math.max(0, observedAtMs - sessionStartedAtMs),
       signal,
       windowSeconds,
+      demoMode,
     });
     state.recognitionCursor = payload.cursor || state.recognitionCursor + 1;
     return payload;
@@ -111,7 +112,7 @@ export function createWorkflows(els, { render, renderArchiveList, applySkin, sho
     showToast("Recognition stub started");
     demoTimer = window.setInterval(async () => {
       try {
-        const result = await requestRecognition();
+        const result = await requestRecognition(undefined, { demoMode: true });
         if (result.observation?.outcome !== "matched") {
           logRecognitionObservation(result.observation);
           render();

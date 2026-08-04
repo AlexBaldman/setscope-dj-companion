@@ -319,8 +319,15 @@ async function verifyLiveListening(page) {
   await page.locator("#listenBtn").click();
   await expectText(page, "#liveStatus", "Capturing", "live transport capture state");
   await page.locator("#liveMatches").waitFor({ state: "visible", timeout: 12000 });
-  await page.waitForFunction(() => document.querySelector("#liveMatches")?.textContent === "1", null, { timeout: 12000 });
-  assert((await page.locator("#listenBtn").getAttribute("aria-pressed")) === "true", "live transport should remain active after a match");
+  await page.waitForFunction(() => {
+    const draft = JSON.parse(localStorage.getItem("setscope-draft-v1") || "{}");
+    return draft.captureLog?.some((entry) =>
+      entry.outcome === "provider_error"
+      && entry.errorCode === "recognition_provider_not_configured"
+    );
+  }, null, { timeout: 12000 });
+  assert((await page.locator("#liveMatches").textContent()) === "0", "live listening should not invent matches without a provider");
+  assert((await page.locator("#listenBtn").getAttribute("aria-pressed")) === "true", "live transport should remain active while retrying a provider");
   await page.locator("#listenBtn").click();
   await expectText(page, "#liveStatus", "Off air", "live transport stopped state");
   assert((await page.locator("#listenBtn").getAttribute("aria-pressed")) === "false", "live transport should expose stopped state");
@@ -460,19 +467,26 @@ async function verifyAudioLab(page) {
   await expectText(page, "#scopeDisplayLabel", "Idle display", "Audio Lab truthful idle display");
   await expectText(page, "#sourceLabel", "NONE", "Audio Lab initial source label");
   await expectText(page, "#profileStage", "CALIBRATE", "Audio Lab shared boundary calibration stage");
-  assert(!(await page.locator("#profileRange").textContent()).includes("Not calibrated"), "Audio Lab should load Pitch Gates calibration");
   await page.locator('[data-preset="profile"]').click();
   assert((await page.locator("[data-target-midi]").count()) === 5, "Audio Lab should build tuner targets from the shared safe span");
   await page.locator("#toneBtn").click();
   await page.waitForFunction(() => document.querySelector("#liveNote")?.textContent !== "--");
+  await page.locator("#profileCalibrateBtn").click();
+  await expectText(page, "#profileRange", "Estimated", "Audio Lab center calibration");
   await page.locator("[data-demo-midi]").nth(0).click();
   await page.waitForFunction(() => document.querySelector("#liveNote")?.textContent === document.querySelectorAll("[data-demo-midi]")[0]?.textContent);
+  await page.waitForFunction(() => document.querySelector("#profileLowBtn")?.dataset.ready === "true");
   await page.locator("#profileLowBtn").click();
+  await expectText(page, "#profileLowBtn", "Low 1/2", "Audio Lab low-boundary first sample");
   await page.locator("#profileLowBtn").click();
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem("setscope-musician-profile-v1") || "{}")?.calibration?.boundaries?.low?.confirmed);
   await page.locator("[data-demo-midi]").nth(2).click();
   await page.waitForFunction(() => document.querySelector("#liveNote")?.textContent === document.querySelectorAll("[data-demo-midi]")[2]?.textContent);
+  await page.waitForFunction(() => document.querySelector("#profileHighBtn")?.dataset.ready === "true");
   await page.locator("#profileHighBtn").click();
+  await expectText(page, "#profileHighBtn", "High 1/2", "Audio Lab high-boundary first sample");
   await page.locator("#profileHighBtn").click();
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem("setscope-musician-profile-v1") || "{}")?.calibration?.boundaries?.high?.confirmed);
   await expectText(page, "#profileRange", "Confirmed", "Audio Lab confirmed comfort span");
   await expectText(page, "#profileStage", "HEAR", "confirmed comfort span should advance to hearing");
   await page.locator("[data-demo-midi]").nth(1).click();
@@ -591,6 +605,7 @@ async function auditPage(page, label) {
       clippedTitleInputs: [...document.querySelectorAll(".entry-title")]
         .filter((node) => node.scrollWidth > node.clientWidth + 1)
         .map((node) => node.id || "entry-title"),
+      setTitleWidth: document.querySelector(".topbar .set-title")?.getBoundingClientRect().width || null,
       title: document.title,
       transparentSharedSurfaces: [...document.querySelectorAll('[data-ui="chassis"], [data-ui="panel"]')]
         .filter((node) => getComputedStyle(node).backgroundColor === "rgba(0, 0, 0, 0)")
@@ -614,10 +629,13 @@ async function auditPage(page, label) {
   assert(!result.overflowX, `${label} should not have horizontal overflow`);
   assert(result.clippedControls.length === 0, `${label} should not clip controls: ${result.clippedControls.join(", ")}`);
   assert(result.clippedTitleInputs.length === 0, `${label} should fit journal titles: ${result.clippedTitleInputs.join(", ")}`);
+  if (result.setTitleWidth !== null) assert(result.setTitleWidth >= 120, `${label} should keep the set title readable: ${result.setTitleWidth}px`);
   assert(result.duplicateIds.length === 0, `${label} should not have duplicate ids: ${result.duplicateIds.join(", ")}`);
   assert(result.brokenImages.length === 0, `${label} should not have broken images: ${result.brokenImages.join(", ")}`);
   assert(result.transparentSharedSurfaces.length === 0, `${label} should give shared hardware surfaces a material background: ${result.transparentSharedSurfaces.join(", ")}`);
-  if (label.endsWith("-mobile")) assert(result.undersizedPriorityTargets.length === 0, `${label} should keep priority touch targets at 44px: ${result.undersizedPriorityTargets.join(", ")}`);
+  if (label.endsWith("-mobile") || label.endsWith("-tablet")) {
+    assert(result.undersizedPriorityTargets.length === 0, `${label} should keep priority touch targets at 44px: ${result.undersizedPriorityTargets.join(", ")}`);
+  }
 }
 
 async function expectVisible(page, selector, label) {

@@ -614,3 +614,16 @@
     min-height: 44px;
   }
 }
+
+@media (max-width: 900px), (pointer: coarse) {
+  .sequencer {
+    grid-template-columns: 48px repeat(16, 44px);
+    gap: 4px;
+    overflow-x: auto;
+  }
+
+  .step-cell {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

@@ -2,14 +2,14 @@ import { PitchDetector } from "../vendor/pitchy.js";
 
 const FOCUS_CONFIG = Object.freeze({
   melody: {
-    label: "Lead contour",
+    label: "Upper contour",
     minMidi: 52,
     maxMidi: 84,
     highpassHz: 120,
     lowpassHz: 1800,
   },
   bass: {
-    label: "Bass contour",
+    label: "Low contour",
     minMidi: 28,
     maxMidi: 60,
     highpassHz: 35,

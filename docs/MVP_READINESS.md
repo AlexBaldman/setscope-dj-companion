@@ -21,7 +21,7 @@ The current MVP supports the essential loop:
 
 - Vinyl-first deck UI with sampler, car, and CD skins.
 - Recognition Stack panel with provider status, setup state, and signal-chain HUD.
-- Stub recognizer for no-token development.
+- Explicit demo recognizer for no-token development; live capture never fabricates a fixture match.
 - AudD adapter ready behind `AUDD_API_TOKEN`.
 - Synthetic sample-audio provider test.
 - Browser mic capture path with sanitized server payloads.

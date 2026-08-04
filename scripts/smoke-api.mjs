@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { mkdtemp } from "node:fs/promises";
+import { request as httpRequest } from "node:http";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -34,11 +35,27 @@ try {
   assert.equal(diagnostics.ok, true);
   assert.equal(diagnostics.checks.some((check) => check.id === "capture-window"), true);
 
+  const foreignHost = await rawRequest(`${baseUrl}/api/health`, { host: "attacker.example" });
+  assert.equal(foreignHost.status, 403);
+  assert.equal(foreignHost.body.error, "local_host_required");
+
+  const foreignOrigin = await fetch(`${baseUrl}/api/analyze`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: "https://attacker.example",
+    },
+    body: JSON.stringify({ tracks: [] }),
+  });
+  assert.equal(foreignOrigin.status, 403);
+  assert.equal((await foreignOrigin.json()).error, "local_origin_required");
+
   const audioBytes = Buffer.from("UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=", "base64");
   const recognition = await postAudio(`${baseUrl}/api/recognize`, audioBytes, {
     requestId: recognitionRequestId,
     cursor: 0,
     durationMs: 8000,
+    demoMode: true,
   });
   assert.equal(recognition.audio.hasData, true);
   assert.equal(recognition.match.raw.audio.bytes, undefined);
@@ -50,6 +67,7 @@ try {
     requestId: recognitionRequestId,
     cursor: 999,
     durationMs: 8000,
+    demoMode: true,
   });
   assert.equal(replayedRecognition.transaction.replayed, true);
   assert.equal(replayedRecognition.match.title, recognition.match.title);
@@ -153,6 +171,23 @@ async function getJson(url) {
   return response.json();
 }
 
+function rawRequest(url, headers = {}) {
+  return new Promise((resolve, reject) => {
+    const request = httpRequest(url, { headers }, (response) => {
+      const chunks = [];
+      response.on("data", (chunk) => chunks.push(chunk));
+      response.on("end", () => {
+        resolve({
+          status: response.statusCode,
+          body: JSON.parse(Buffer.concat(chunks).toString("utf8")),
+        });
+      });
+    });
+    request.once("error", reject);
+    request.end();
+  });
+}
+
 async function postJson(url, body) {
   const response = await fetch(url, {
     method: "POST",
@@ -163,7 +198,7 @@ async function postJson(url, body) {
   return response.json();
 }
 
-async function postAudio(url, body, { requestId, cursor = 0, durationMs = 8000 } = {}) {
+async function postAudio(url, body, { requestId, cursor = 0, durationMs = 8000, demoMode = false } = {}) {
   const response = await fetch(url, {
     method: "POST",
     headers: {
@@ -173,6 +208,7 @@ async function postAudio(url, body, { requestId, cursor = 0, durationMs = 8000 }
       "x-setscope-session-id": "session_smoke_001",
       "x-setscope-set-elapsed-ms": "12000",
       "x-setscope-window-ms": String(durationMs),
+      "x-setscope-demo": demoMode ? "1" : "0",
     },
     body,
   });

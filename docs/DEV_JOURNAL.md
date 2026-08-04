@@ -1659,3 +1659,49 @@ Next:
 Preserve source phrase timing, add section looping and call-and-response playback,
 then introduce optional stem separation behind explicit model and confidence
 provenance.
+
+## 2026-07-30 - Trust, Calibration, and Release Hardening
+
+We reviewed the full application as a release candidate across architecture,
+learning integrity, audio lifecycle, responsive design, and deployment behavior.
+The pass fixed both the CI failure that triggered the review and several deeper
+problems that could have made polished feedback misleading.
+
+What changed:
+
+- Made Audio Lab boundary confirmation expose clear first- and second-sample
+  progress, then removed cross-analyzer sensitivity that made valid notes fail
+  unpredictably.
+- Prevented uncalibrated snapshots, imported audio, demos, legacy events, and
+  Any Octave rounds from silently becoming trusted mastery evidence.
+- Kept Any Octave welcoming for pitch-class practice while reserving interval
+  mastery for Exact Octave microphone performances.
+- Separated explicit recognition demos from live capture so an unconfigured
+  provider now returns an honest unavailable receipt instead of a fictional song.
+- Restricted the local API to loopback hosts and origins to reduce DNS-rebinding
+  and cross-origin write risk.
+- Added rollback cleanup for failed microphone, shared-audio, and file setup,
+  plus Pitch Gates teardown when the page exits.
+- Cleared stale detector frames when Pitch Gates changes inputs, preventing an
+  old file or microphone note from being mistaken for the new source.
+- Renamed imported practice choices to Upper Contour and Low Contour, surfaced
+  progress at the result panel, and kept the dominant-pitch limitation explicit.
+- Repaired the desktop header title collapse, mobile tool-rail orientation,
+  timeline BPM clipping, and tablet Rhythm Roulette touch targets.
+- Expanded regression coverage for provider honesty, legacy evidence,
+  loopback-server protection, title readability, tablet touch sizing, and the
+  complete Audio Lab calibration flow.
+
+Verification:
+
+- All 27 fast test groups passed.
+- Local API smoke and security checks passed.
+- Full desktop, compact, tablet, mobile, narrow-mobile, light-theme, and
+  reduced-motion browser checks passed.
+- The GitHub Pages artifact built successfully and passed its browser suite.
+
+Next:
+
+Synchronize imported Pitch Gates targets to source timestamps and loop playback,
+add a listen-predict-sing reference-tone cycle, preserve full versioned replay
+payloads, and separate controller-specific Beat School latency profiles.

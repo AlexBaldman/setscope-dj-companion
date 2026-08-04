@@ -16,6 +16,11 @@ export function migratePerformanceEventV1(event) {
     time: event?.time,
     details: event?.details,
     evidence: event?.evidence,
+    assistance: {
+      level: event?.sourceLabel?.toLowerCase() === "demo" ? "demo" : "guided",
+      eligibleForMastery: false,
+      values: { migratedFromLegacy: true },
+    },
     createdAt: event?.createdAt || "1970-01-01T00:00:00.000Z",
   });
 }

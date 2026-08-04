@@ -48,6 +48,18 @@ const event = createPitchGatesCompletionEvent({
   lives: 3,
   diagnosis: { code: "high", biasCents: 37, detail: "Landings tended high." },
 });
+const octaveForgivingEvent = createPitchGatesCompletionEvent({
+  sourceLabel: "MIC",
+  pitchMatchMode: "pitch-class",
+  eligibleForMastery: true,
+});
+const exactOctaveEvent = createPitchGatesCompletionEvent({
+  sourceLabel: "MIC",
+  pitchMatchMode: "exact-octave",
+  eligibleForMastery: true,
+});
+assert.equal(octaveForgivingEvent.assistance.eligibleForMastery, false);
+assert.equal(exactOctaveEvent.assistance.eligibleForMastery, true);
 
 const savedPitchEvent = persistPerformanceEvent(event);
 

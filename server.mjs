@@ -5,7 +5,7 @@ import { createSetScopeDatabase } from "./server/database.mjs";
 import { loadLocalEnv } from "./server/env.mjs";
 import { createJournalStore } from "./server/journal-store.mjs";
 import { createRecognitionStore } from "./server/recognition-store.mjs";
-import { sendError } from "./server/json.mjs";
+import { HttpRequestError, sendError } from "./server/json.mjs";
 import { createApiRouter } from "./server/routes.mjs";
 import { serveStatic } from "./server/static.mjs";
 
@@ -24,6 +24,7 @@ const routeApi = createApiRouter({
 
 const server = createServer(async (request, response) => {
   try {
+    assertLocalRequest(request);
     const url = new URL(request.url || "/", `http://${request.headers.host}`);
     if (url.pathname.startsWith("/api/")) {
       await routeApi(url, request, response);
@@ -37,6 +38,24 @@ const server = createServer(async (request, response) => {
 }).listen(port, "127.0.0.1", () => {
   console.log(`SetScope running at http://127.0.0.1:${port}/`);
 });
+
+function assertLocalRequest(request) {
+  const host = String(request.headers.host || "").toLowerCase();
+  if (!/^(localhost|127\.0\.0\.1|\[::1\])(?::\d{1,5})?$/.test(host)) {
+    throw new HttpRequestError(403, "local_host_required");
+  }
+  const origin = String(request.headers.origin || "");
+  if (!origin) return;
+  let originHost = "";
+  try {
+    originHost = new URL(origin).hostname.toLowerCase();
+  } catch {
+    throw new HttpRequestError(403, "local_origin_required");
+  }
+  if (!["localhost", "127.0.0.1", "::1"].includes(originHost)) {
+    throw new HttpRequestError(403, "local_origin_required");
+  }
+}
 
 for (const signal of ["SIGINT", "SIGTERM"]) {
   process.once(signal, () => {

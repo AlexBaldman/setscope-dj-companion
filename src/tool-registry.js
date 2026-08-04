@@ -22,8 +22,9 @@ export function renderToolRack(container = document.querySelector("[data-tool-ra
     </details>
   `;
   requestAnimationFrame(() => {
-    const active = container.querySelector(".tool-rack-item.active, .tool-labs-summary.active");
-    active?.scrollIntoView({ behavior: "auto", block: "nearest", inline: "center" });
+    const active = container.querySelector('[aria-current="page"]')
+      || container.querySelector(".tool-labs-summary.active");
+    active?.scrollIntoView({ behavior: "auto", block: "nearest", inline: "nearest" });
   });
 }
 

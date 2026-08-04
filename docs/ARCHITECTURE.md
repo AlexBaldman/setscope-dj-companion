@@ -68,7 +68,7 @@
 - `server/audd-provider.mjs`: AudD recognition adapter and result mapper.
 - `server/provider-schema.mjs`: validation for normalized provider matches.
 - `server/provider-normalizer.mjs`: shared provider-to-SetScope match normalization.
-- `server/recognition-provider.mjs`: stub recognition provider, track analysis, and provider response normalization.
+- `server/recognition-provider.mjs`: explicit demo recognition, configured-provider dispatch, track analysis, and provider response normalization.
 - `server/recognition-store.mjs`: bounded, atomic, replay-safe recognition transaction ledger keyed by request ID.
 - `server/json.mjs`: bounded JSON request parsing plus structured HTTP error responses.
 - `data/setscope.sqlite`: shared local database for recognition receipts and archived sets.
@@ -83,8 +83,11 @@
 - Browser smoke checks cover layout overflow and the recognition flow.
 - Provider responses now pass through a normalized match shape before reaching the frontend.
 - The browser can now capture short mic windows with `MediaRecorder` and submit sanitized audio-window metadata through `/api/recognize`.
-- AudD can be enabled with `AUDD_API_TOKEN` while the stub recognizer remains the local no-token fallback.
-- `/api/health` now returns recognition provider status so the UI can show whether the app is running on the stub, AudD, or the planned native adapter slot.
+- AudD can be enabled with `AUDD_API_TOKEN`; without it, live capture reports an
+  unavailable provider while the separately selected demo remains usable.
+- `/api/health` returns recognition provider status so the UI can distinguish
+  AudD, explicit demo capability, an unconfigured live provider, and the planned
+  native adapter slot.
 - `/api/providers/diagnostics` performs a dry provider setup check without sending audio.
 - The browser can generate a short synthetic WAV to test the provider pipeline without mic permission.
 - Pitch Gates exercises real-time monophonic pitch analysis using mic, selected shared audio, or files, with an automatic silent demo path for smoke testing.
@@ -253,7 +256,8 @@ The UI should depend on this normalized shape, not on any individual provider re
 
 ## Provider Strategy
 
-- Local development without secrets uses `setscope-stub`.
+- Local development without secrets can run the explicit `setscope-stub` demo;
+  captured live audio is never routed to fixtures.
 - Web recognition can use AudD by setting `AUDD_API_TOKEN`.
 - iOS should use ShazamKit as a sibling adapter that maps Apple matches into the same normalized `match` object.
 - Apple does not currently advertise a separate public ShazamKit per-recognition fee in the docs we checked, but distributing an iOS app generally requires the Apple Developer Program, which Apple lists at 99 USD per year.

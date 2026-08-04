@@ -20,7 +20,16 @@ export async function getProviderDiagnostics() {
   return response.json();
 }
 
-export async function recognizeWindow({ audio, cursor, requestId, sessionId, setElapsedMs, signal, windowSeconds = 12 }) {
+export async function recognizeWindow({
+  audio,
+  cursor,
+  requestId,
+  sessionId,
+  setElapsedMs,
+  signal,
+  windowSeconds = 12,
+  demoMode = false,
+}) {
   if (isStaticDeployment()) throw new Error("static_demo_recognition");
   const body = audio?.blob instanceof Blob ? audio.blob : new Blob([], { type: audio?.mimeType || "application/octet-stream" });
   const response = await fetch("/api/recognize", {
@@ -32,6 +41,7 @@ export async function recognizeWindow({ audio, cursor, requestId, sessionId, set
       "x-setscope-session-id": sessionId || "",
       "x-setscope-set-elapsed-ms": String(setElapsedMs || 0),
       "x-setscope-window-ms": String(Math.max(1000, Number(audio?.durationMs || windowSeconds * 1000))),
+      "x-setscope-demo": demoMode ? "1" : "0",
     },
     body,
     signal,

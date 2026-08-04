@@ -63,7 +63,7 @@ export function createPerformanceEventV2({
       eligibleForMastery:
         typeof assistance.eligibleForMastery === "boolean"
           ? assistance.eligibleForMastery
-          : assistanceLevel !== "demo",
+          : false,
       values: plainObject(assistance.values),
     },
     calibration: {

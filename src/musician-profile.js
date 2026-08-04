@@ -78,7 +78,7 @@ export function calibrateMusicianProfile(profile, frame, { sourceLabel = "unknow
 export function confirmMusicianBoundary(profile, boundary, frame, { now = new Date() } = {}) {
   if (profile.calibration.status !== "calibrated") throw new Error("center_calibration_required");
   if (!["low", "high"].includes(boundary)) throw new Error("invalid_boundary");
-  if (!Number.isFinite(frame?.midi) || !Number.isFinite(frame?.clarity) || frame.clarity < profile.detector.clarityFloor) {
+  if (!Number.isFinite(frame?.midi) || !Number.isFinite(frame?.clarity) || frame.clarity < 0.5) {
     throw new Error("stable_pitch_required");
   }
   const midi = Math.round(frame.midi);

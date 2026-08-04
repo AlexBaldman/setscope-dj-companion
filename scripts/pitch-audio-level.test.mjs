@@ -13,7 +13,7 @@ const level = createPracticeLevelFromFrames(frames, {
 });
 
 assert.equal(level.status, "ready");
-assert.equal(level.focusLabel, "Lead contour");
+assert.equal(level.focusLabel, "Upper contour");
 assert.equal(level.targetMidiSequence.length, 12);
 assert(level.confidence > 0.6 && level.confidence <= 0.86);
 assert(level.targetMidiSequence.every(Number.isFinite));
@@ -26,6 +26,6 @@ const sparse = createPracticeLevelFromFrames([
 ], { focus: "bass" });
 assert.equal(sparse.status, "insufficient");
 assert.deepEqual(sparse.targetMidiSequence, []);
-assert.equal(sparse.focusLabel, "Bass contour");
+assert.equal(sparse.focusLabel, "Low contour");
 
 console.log("Pitch audio-level checks passed");

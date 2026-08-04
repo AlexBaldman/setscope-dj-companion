@@ -427,6 +427,7 @@ export function logRecognitionObservation(observation = {}) {
     status: observation.outcome || "invalid",
     requestId: observation.requestId,
     outcome: observation.outcome || "invalid",
+    errorCode: observation.errorCode || "",
     provenance: observation.provenance || "inference",
     capturedAt: observation.completedAt || new Date().toISOString(),
   });

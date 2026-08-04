@@ -40,11 +40,14 @@ export async function recognizeAudioWindow({ requestId = "local-preview", cursor
   const startedAt = new Date(startedAtMs).toISOString();
   const audioMetadata = sanitizeAudioMetadata(audio);
   const shouldUseAudD = isAudDConfigured() && audioMetadata.hasData;
+  const demoMode = metadata?.demoMode === true;
   const result = shouldUseAudD
     ? await recognizeFromConfiguredProvider({ audio, metadata, audioMetadata, cursor, signal })
-    : recognizeFromStub({ cursor });
+    : demoMode
+      ? recognizeFromStub({ cursor })
+      : providerUnavailable({ cursor });
   const completedAtMs = Date.now();
-  const provenance = shouldUseAudD ? "inference" : "story";
+  const provenance = demoMode ? "story" : "inference";
   const observation = createRecognitionObservation({
     observationId: `observation_${requestId}`,
     requestId,
@@ -52,7 +55,7 @@ export async function recognizeAudioWindow({ requestId = "local-preview", cursor
     setElapsedMs: normalizeElapsedMs(metadata?.setElapsedMs),
     outcome: result.outcome || (result.match?.status === "matched" ? "matched" : "unmatched"),
     provenance,
-    provider: result.match?.provider || (shouldUseAudD ? "audd" : "setscope-stub"),
+    provider: result.match?.provider || (shouldUseAudD ? "audd" : demoMode ? "setscope-stub" : "unconfigured"),
     startedAt,
     completedAt: new Date(completedAtMs).toISOString(),
     latencyMs: Math.max(0, completedAtMs - startedAtMs),
@@ -93,7 +96,7 @@ function formatElapsedTime(milliseconds) {
 }
 
 export function getRecognitionProviderLabel() {
-  return isAudDConfigured() ? "audd" : "setscope-stub";
+  return isAudDConfigured() ? "audd" : "none";
 }
 
 export function getRecognitionProviderStatus() {
@@ -101,7 +104,7 @@ export function getRecognitionProviderStatus() {
   const activeProvider = getRecognitionProviderLabel();
   return {
     activeProvider,
-    mode: auddConfigured ? "Live web recognition" : "Local demo fallback",
+    mode: auddConfigured ? "Live web recognition" : "Demo ready / live provider needed",
     sampleSeconds: 8,
     providers: [
       {
@@ -109,7 +112,7 @@ export function getRecognitionProviderStatus() {
         label: "SetScope Stub",
         configured: true,
         available: true,
-        role: "Local demo",
+        role: "Explicit demo only",
       },
       {
         id: "audd",
@@ -130,6 +133,15 @@ export function getRecognitionProviderStatus() {
       target: "ShazamKit",
       status: "Planned iOS adapter",
     },
+  };
+}
+
+function providerUnavailable({ cursor = 0 } = {}) {
+  return {
+    outcome: "provider_error",
+    cursor: Number(cursor || 0) + 1,
+    detectedAt: new Date().toISOString(),
+    errorCode: "recognition_provider_not_configured",
   };
 }
 

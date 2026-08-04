@@ -125,7 +125,7 @@ function normalizeSkillReceipt(receipt = {}) {
     modeId: text(receipt.modeId),
     score: clamp(receipt.score),
     trackId: text(receipt.trackId),
-    eligibleForMastery: receipt.eligibleForMastery !== false,
+    eligibleForMastery: receipt.eligibleForMastery === true,
     assistanceLevel: text(receipt.assistanceLevel, "none"),
     dimensions: plainNumbers(receipt.dimensions),
     createdAt: validDate(receipt.createdAt),
