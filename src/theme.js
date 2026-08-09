@@ -1,4 +1,5 @@
 import { applyRoomSystem, cueRoomMotion } from "./room-system.js";
+import { mountExperienceStrip } from "./experience-system.js";
 
 const STORAGE_KEY = "setscope-theme";
 const root = document.documentElement;
@@ -6,6 +7,7 @@ const buttons = document.querySelectorAll("[data-theme-toggle]");
 
 applyTheme(localStorage.getItem(STORAGE_KEY) || "dark");
 applyRoomSystem();
+mountExperienceStrip();
 
 document.querySelectorAll('[data-ui="action"]').forEach((button) => {
   button.addEventListener("pointerdown", () => cueRoomMotion("impact"));

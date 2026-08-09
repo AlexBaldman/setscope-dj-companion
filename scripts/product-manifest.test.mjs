@@ -5,6 +5,7 @@ import {
   labSurfaces,
   playerSurfaces,
   practiceSurfaces,
+  PRODUCT_MANIFEST_VERSION,
   productSurfaces,
   publicPageFiles,
 } from "../src/product-manifest.js";
@@ -12,6 +13,7 @@ import { buildPracticeHref } from "../src/practice-context.js";
 import { roomManifest } from "../src/room-system.js";
 import { createPracticeMission, modeLabel } from "../src/session-spine.js";
 
+assert.equal(PRODUCT_MANIFEST_VERSION, 2);
 assert.equal(productSurfaces.length, 8);
 assert.equal(new Set(productSurfaces.map(({ id }) => id)).size, productSurfaces.length);
 assert.equal(new Set(productSurfaces.map(({ file }) => file)).size, productSurfaces.length);
@@ -31,6 +33,9 @@ assert.deepEqual(labSurfaces.map(({ id }) => id), [
 ]);
 assert(productSurfaces.every(({ navigationGroup }) => ["player", "labs"].includes(navigationGroup)));
 assert(productSurfaces.every(({ room }) => roomManifest[room]));
+assert(productSurfaces.every(({ experience }) => experience.world === "The Music Block"));
+assert(productSurfaces.every(({ experience }) => experience.code && experience.place && experience.lens));
+assert(productSurfaces.every(({ experience }) => experience.verbs.length === 3));
 await Promise.all(publicPageFiles.map((file) => access(file)));
 
 const track = { id: "track-manifest", time: "00:10", title: "Manifest Groove" };

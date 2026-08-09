@@ -70,6 +70,140 @@
   pointer-events: none;
 }
 
+.experience-strip {
+  position: relative;
+  z-index: 12;
+  min-width: 0;
+  min-height: 52px;
+  padding: 6px 22px 7px;
+  display: grid;
+  grid-template-columns: minmax(170px, auto) minmax(180px, 1fr) auto auto;
+  gap: 16px;
+  align-items: center;
+  overflow: hidden;
+  border-bottom: 2px solid var(--chassis-black);
+  background:
+    linear-gradient(90deg, rgba(var(--room-accent-rgb), .12), transparent 28%),
+    repeating-linear-gradient(90deg, transparent 0 11px, rgba(255,255,255,.018) 11px 12px),
+    color-mix(in srgb, var(--surface-panel), black 14%);
+  box-shadow: inset 0 1px rgba(255,255,255,.05), 0 5px 18px rgba(0,0,0,.22);
+}
+
+.experience-place,
+.experience-transmission {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.experience-place span,
+.experience-transmission span {
+  overflow: hidden;
+  color: var(--text-secondary);
+  font: 750 8px/1 var(--font-data);
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.experience-place strong,
+.experience-transmission strong {
+  overflow: hidden;
+  color: var(--text-primary);
+  font: 850 12px/1.1 var(--font-ui);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.experience-place strong::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  margin-right: 7px;
+  display: inline-block;
+  border: 1px solid var(--chassis-black);
+  background: var(--room-accent);
+  box-shadow: 2px 2px 0 var(--chassis-black);
+}
+
+.experience-strip > p {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: color-mix(in srgb, var(--text-primary), var(--text-secondary) 38%);
+  font: 650 11px/1.25 var(--font-ui);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.experience-route {
+  min-width: 226px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.experience-route span {
+  color: var(--text-secondary);
+  font: 800 9px/1 var(--font-data);
+  text-transform: uppercase;
+}
+
+.experience-route span[data-route-origin] {
+  color: var(--room-accent);
+}
+
+.experience-route span[data-route-origin]::before {
+  content: ">";
+  margin-right: 3px;
+  color: var(--room-accent-secondary);
+}
+
+.experience-route i {
+  width: 24px;
+  height: 1px;
+  background: repeating-linear-gradient(90deg, var(--border-strong) 0 3px, transparent 3px 6px);
+}
+
+.experience-transmission {
+  min-width: 78px;
+  justify-items: end;
+  padding-left: 11px;
+  border-left: 1px solid color-mix(in srgb, var(--room-accent), transparent 62%);
+}
+
+.experience-transmission strong {
+  color: var(--room-accent);
+  font-family: var(--font-data);
+}
+
+.experience-stamp {
+  position: absolute;
+  right: 7px;
+  bottom: -6px;
+  width: 30px;
+  height: 18px;
+  display: grid;
+  grid-template-columns: repeat(5, 3px);
+  gap: 3px;
+  align-items: end;
+  opacity: .34;
+  transform: rotate(-8deg);
+  pointer-events: none;
+}
+
+.experience-stamp i {
+  height: 7px;
+  background: var(--room-accent);
+  box-shadow: 0 -4px 0 color-mix(in srgb, var(--room-accent-secondary), transparent 35%);
+}
+
+.experience-stamp i:nth-child(2),
+.experience-stamp i:nth-child(4) {
+  height: 12px;
+}
+
 [data-ui="chassis"] {
   position: relative;
   isolation: isolate;
@@ -265,6 +399,34 @@ body[data-listening="active"] [data-motion="meter-lock"] .deck-led-bank i {
     rgba(245,240,230,.94);
 }
 
+:root[data-theme="light"] .experience-strip {
+  border-bottom-color: #aaa092;
+  background:
+    linear-gradient(90deg, rgba(var(--room-accent-rgb), .12), transparent 28%),
+    repeating-linear-gradient(90deg, transparent 0 11px, rgba(0,0,0,.025) 11px 12px),
+    rgba(241, 235, 223, .96);
+  box-shadow: inset 0 1px white, 0 4px 12px rgba(66, 56, 44, .12);
+}
+
+:root[data-theme="light"] .experience-place strong,
+:root[data-theme="light"] .experience-transmission strong {
+  color: #24211d;
+}
+
+:root[data-theme="light"] .experience-strip > p {
+  color: #5b554d;
+}
+
+@media (max-width: 1100px) {
+  .experience-strip {
+    grid-template-columns: minmax(170px, 1fr) auto auto;
+  }
+
+  .experience-strip > p {
+    display: none;
+  }
+}
+
 :root[data-theme="light"] [data-ui="chassis"],
 :root[data-theme="light"] [data-ui="panel"],
 :root[data-theme="light"] [data-ui="metric"] {
@@ -291,6 +453,42 @@ body[data-listening="active"] [data-motion="meter-lock"] .deck-led-bank i {
     background-size: auto 100vh;
     background-position: 35% top;
     background-attachment: scroll;
+  }
+
+  .experience-strip {
+    min-height: 32px;
+    padding: 4px 12px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+
+  .experience-place,
+  .experience-transmission {
+    display: flex;
+    align-items: center;
+  }
+
+  .experience-place span,
+  .experience-transmission span,
+  .experience-route,
+  .experience-stamp {
+    display: none;
+  }
+
+  .experience-place strong,
+  .experience-transmission strong {
+    font-size: 10px;
+  }
+
+  .experience-transmission {
+    min-width: 0;
+    padding-left: 8px;
+  }
+
+  .experience-place strong::before {
+    width: 6px;
+    height: 6px;
+    margin-right: 5px;
   }
 }
 

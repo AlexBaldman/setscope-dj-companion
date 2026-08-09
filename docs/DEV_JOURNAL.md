@@ -1,5 +1,15 @@
 # SetScope Dev Journal
 
+## 2026-08-08 - Connected Music World Pass
+
+- Reviewed the freshest Jeopardish, jeoPARODY, and uINVERSE architecture, visual direction, foundry, and editorial notes.
+- Preserved their strongest shared principle: product truth emits meaningful events, direction interprets them, and presentation renders them.
+- Upgraded the Product Manifest with eight stable place identities inside The Music Block.
+- Added a shared experience projection layer and responsive station strip across every surface.
+- Kept semantic place data separate from the Room System's materials, colors, backgrounds, and motion.
+- Expanded Style Lab with the connected-world contract and versioned the visual system as V2.
+- Recorded adopted ideas, rejected shortcuts, and earned next steps in `docs/CROSS_PROJECT_INTEGRATION_2026-08-08.md`.
+
 ## 2026-05-03 - Concept Prototype
 
 We started with the core idea: a DJ set watching companion that can identify songs during a set, collect timestamps, BPM, transition notes, and music-history context. The first prototype was a single-file browser app with a vinyl-inspired cockpit, track timeline, inspector panel, editable metadata, local storage, JSON export, imported-audio BPM estimation, and a recognition-demo loop.

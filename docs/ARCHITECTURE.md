@@ -80,6 +80,24 @@
 - `data/setscope.sqlite`: shared local database for recognition receipts and archived sets.
 - `data/sets.json`: legacy archive imported and renamed on first successful migration.
 
+## World Truth And Projection
+
+SetScope now follows a four-layer experience boundary:
+
+```text
+PORTABLE PRODUCT TRUTH
+  SetDraft / mission / skill / observation / performance receipt
+             -> SEMANTIC MUSICAL EVENT
+             -> EXPERIENCE DIRECTION
+             -> PROJECTION
+                DOM / Canvas / audio / motion / touch / MIDI / future native UI
+```
+
+The Product Manifest owns what each surface means. The Room System owns material,
+accent, background, and motion. The Experience System joins those layers into a
+responsive projection but owns no score, recognition result, lesson state, or
+musical evidence. See `docs/CROSS_PROJECT_INTEGRATION_2026-08-08.md`.
+
 ## What Is Working
 
 - The app has a useful end-to-end prototype loop: detect/mock-recognize, inspect, edit, tag, archive, export, and reload saved sets.

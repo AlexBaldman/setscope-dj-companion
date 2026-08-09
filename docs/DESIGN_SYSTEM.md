@@ -1,5 +1,21 @@
 # SetScope Design System
 
+## Connected World Grammar
+
+SetScope is one semantic music world, The Music Block, projected through eight
+purposeful places. Each place declares a stable code, lens, promise, and three-step
+route in `src/product-manifest.js`. `src/experience-system.js` renders that identity;
+`src/room-system.js` supplies its material and motion.
+
+The shared station strip is intentionally narrow. Desktop and tablet views may show
+the full place, purpose, route, lens, and code. Phones keep only place and code. The
+strip must never push the contextual primary action out of the first usable viewport.
+
+Dense visual discovery belongs in environments, transitions, receipts, and margins.
+Live pitch, timing, track identity, and primary controls stay on calm instrument
+surfaces. This is the app-wide boundary between graphic-novel/pixel personality and
+professional music-tool legibility.
+
 ## Product Direction
 
 SetScope should feel like one authored family of music instruments assembled across eras. The neutral chassis, navigation, controls, typography, focus behavior, and responsive rules stay consistent. Each room keeps a distinct creative identity:

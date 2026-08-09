@@ -103,7 +103,7 @@ function fitEntryTitle() {
   const maximum = window.innerWidth <= 520 ? 28 : window.innerWidth <= 880 ? 38 : 54;
   let size = maximum;
   els.entryTitle.style.fontSize = `${size}px`;
-  while (els.entryTitle.scrollWidth > els.entryTitle.clientWidth + 1 && size > 17) {
+  while (els.entryTitle.scrollWidth > els.entryTitle.clientWidth + 1 && size > 14) {
     size -= 1;
     els.entryTitle.style.fontSize = `${size}px`;
   }

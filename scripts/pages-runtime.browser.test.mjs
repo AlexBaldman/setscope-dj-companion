@@ -39,6 +39,16 @@ try {
       productSurfaces.length,
       `${surface.id} should render the complete shared tool rack`,
     );
+    assert.equal(
+      await page.locator("[data-experience-strip]").count(),
+      1,
+      `${surface.id} should render one connected-room identity strip`,
+    );
+    assert.match(
+      (await page.locator("[data-experience-strip]").textContent()) || "",
+      new RegExp(`${surface.experience.place}.*${surface.experience.code}`, "s"),
+      `${surface.id} should project its manifest place and station code`,
+    );
     assert.deepEqual(
       await page.locator("img").evaluateAll((images) => images
         .filter((image) => !image.complete || image.naturalWidth === 0)
